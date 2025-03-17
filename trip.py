@@ -93,17 +93,37 @@ def send_request():
     }
     
     payload = [
-        {
-            "variables": {
-                "locationId": 5089668,
-                "targetedReviewId": None,
-                "pageSize": 30,
-                "pageOffset": 0,
-                "filters": [],
-                "dateFilter": {"minTime": ""}
-            },
-            "extensions": {"preRegisteredQueryId": "f1db297b34cb996b"}
+         {
+        "variables": {
+            "locationId": 534021,
+            "offset": 0,
+            "limit": 15,
+            "keywordVariant": "location_keywords_v2_llr_order_30_en",
+            "language": "en",
+            "userId": "",
+            "filters": [],
+            "prefs": {},
+            "initialPrefs": {}
+        },
+        "extensions": {
+            "preRegisteredQueryId": "aaff0337570ed0aa"
         }
+    },
+        {
+        "variables": {
+            "rssId": "ta-534021",
+            "locationId": 534021,
+            "geoId": 32655,
+            "locale": "en-US",
+            "currency": "USD",
+            "distanceUnitHotelsAndRestaurants": "MILES",
+            "distanceUnitAttractions": "MILES",
+            "numTimeslots": 6
+        },
+        "extensions": {
+            "preRegisteredQueryId": "e50473638bca81f5"
+        }
+    }
     ]
     
     # cookies = parse_cookies("cookies.txt")
@@ -112,6 +132,9 @@ def send_request():
     
     print("Status Code:", response.status_code)
     print("Response JSON:", response.json())
+    # save the response to a file
+    with open('response.json', 'w') as f:
+        json.dump(response.json(), f, indent=4)
     
 if __name__ == "__main__":
     send_request()
