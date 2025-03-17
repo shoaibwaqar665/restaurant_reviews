@@ -74,11 +74,57 @@ def send_request(location_id):
     
     print(f"Status Code for location {location_id}:", response.status_code)
     
-    # Save the response to a file named with the location ID
+    # Parse the response
+    response_data = response.json()
+    
+    # Extract required data
+    filtered_data = {
+        "reviews": [],
+        "restaurant": {},
+        "location": {}
+    }
+    
+    # Extract reviews data
+    if response_data and len(response_data) > 0:
+        reviews_data = response_data[0].get("data", {}).get("locations", [{}])[0].get("reviewListPage", {}).get("reviews", [])
+        for review in reviews_data:
+            filtered_data["reviews"].append({
+                "userId": review.get("userId"),
+                "id": review.get("id"),
+                "text": review.get("text"),
+                "locationId": review.get("locationId"),
+                "title": review.get("title"),
+                "rating": review.get("rating"),
+                "publishedDate": review.get("publishedDate"),
+                "username": review.get("username")
+            })
+    
+    # Extract restaurant data
+    if response_data and len(response_data) > 1:
+        restaurant_data = response_data[1].get("data", {}).get("RestaurantPresentation_searchRestaurantsById", {}).get("restaurants", [{}])[0]
+        filtered_data["restaurant"] = {
+            "name": restaurant_data.get("name"),
+            "description": restaurant_data.get("description"),
+            "telephone": restaurant_data.get("telephone"),
+            "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
+            "schedule": restaurant_data.get("open_hours", {}).get("schedule")
+        }
+    
+    # Extract location data
+    if response_data and len(response_data) > 1:
+        location_data = response_data[1].get("data", {}).get("locations", [{}])[0]
+        filtered_data["location"] = {
+            "localizedStreetAddress": location_data.get("localizedStreetAddress"),
+            "isoCountryCode": location_data.get("isoCountryCode"),
+            "parent": location_data.get("parent"),
+            "email": location_data.get("email")
+        }
+    
+    # Save the filtered response to a file named with the location ID
     filename = f"{location_id}.json"
     with open(filename, 'w') as f:
-        json.dump(response.json(), f, indent=4)
-    print(f"Response saved to {filename}")
+        json.dump(filtered_data, f, indent=4)
+    print(f"Filtered response saved to {filename}")
 
 def run():
     with sync_playwright() as p:
