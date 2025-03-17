@@ -1,0 +1,102 @@
+[
+    {
+        "name": "TAUnique",
+        "value": "%1%enc%3APa9dJx6JTE%2BU8JOY6E%2FiuMnEm4rhGGPah3lPtuC46wKoBOorxpcnr1kgaaur8YmiNox8JbUSTxk%3D",
+        "domain": "www.tripadvisor.com",
+        "path": "/",
+        "expires": 1776789435.51958,
+        "httpOnly": true,
+        "secure": false,
+        "sameSite": "Lax"
+    },
+    {
+        "name": "TASID",
+        "value": "7B3ADDEFCE93AFB806A87566B2E632F5",
+        "domain": ".www.tripadvisor.com",
+        "path": "/",
+        "expires": 1742231246.519385,
+        "httpOnly": false,
+        "secure": true,
+        "sameSite": "Lax"
+    },
+    {
+        "name": "TASameSite",
+        "value": "1",
+        "domain": ".www.tripadvisor.com",
+        "path": "/",
+        "expires": 1776789444.073386,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Strict"
+    },
+    {
+        "name": "datadome",
+        "value": "EbyV3lsFSO4gVfdZIIx2JNxpoStmb0krTRdniJo3wSJS~cHeb4I8oqaD5LtsrylVs9gJVCSxPPPOxmW_sjwQgzE9ugh0eIsoEPiQzaex8gB08DoArlRsURj95UpDoiX2",
+        "domain": ".tripadvisor.com",
+        "path": "/",
+        "expires": 1773333444.073447,
+        "httpOnly": false,
+        "secure": true,
+        "sameSite": "Lax"
+    },
+    {
+        "name": "TASession",
+        "value": "V2ID.7B3ADDEFCE93AFB806A87566B2E632F5*SQ.1*LS.Restaurant_Review*HS.recommended*ES.popularity*DS.5*SAS.popularity*FPS.oldFirst*FA.1*DF.0*TRA.true",
+        "domain": ".tripadvisor.com",
+        "path": "/",
+        "expires": -1,
+        "httpOnly": false,
+        "secure": false,
+        "sameSite": "Lax"
+    },
+    {
+        "name": "TASSK",
+        "value": "enc%3AAHm9ZFI3f4dYeIPfTAMPuZFdo0U8pwvdqhSl4QBJ0aq2NQk2zFOBHYlxUJMK9mVlKE7yq4v7iG3vCpoAqF1jQCmcNinAhjf6IeV47hwoeuOne56uDqAGB1KMwVBWjBQ7CA%3D%3D",
+        "domain": ".www.tripadvisor.com",
+        "path": "/",
+        "expires": 1757781446.519088,
+        "httpOnly": true,
+        "secure": false,
+        "sameSite": "Lax"
+    },
+    {
+        "name": "PAC",
+        "value": "AIKEQvU9N_kuBG2SEsiHiXX6J-QZCX-PQ6DcQNRYXurzlEtqTc9NiQ2Oe4WFxnYKL-BtGK796Qge9zj1xyHieumamWS0En5XG90KusLMjEhg1sZ48FHTN7kHpV1zALbNoKELK9f47Z3-Vss13mZB58sDtLObu50dj53_qkvraUretOfo2oaBBYhvWpQXjazLlide9fwISpW-uQO_Any0tNahZ7ZEje4duIKFBj37CaNsatkSzktiobtyZ08cFj_NsTYGvlIapPFLX-A1WFVRaPsKLeaY897oiMExXhpi5Z10qbL0pbEb_wE0GoZr_WozL1NK8eRT8s5_ACBLZKxOYs9dnbn32IZZ3xcnZi4yPILkKykFyU_qcTK-4acs1f6ZuQ%3D%3D",
+        "domain": ".www.tripadvisor.com",
+        "path": "/",
+        "expires": 1776789446.519176,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Lax"
+    },
+    {
+        "name": "SRT",
+        "value": "TART_SYNC",
+        "domain": ".www.tripadvisor.com",
+        "path": "/",
+        "expires": 1742231246.519255,
+        "httpOnly": false,
+        "secure": false,
+        "sameSite": "Lax"
+    },
+    {
+        "name": "TART",
+        "value": "%1%enc%3AHsTgRspD8vt%2F5qDxiXLsa9CP7z8lYMUNLsborZkSgVY36CnxrBMcrB2Vx6gC3LXfAWSFWkWkUks%3D",
+        "domain": ".www.tripadvisor.com",
+        "path": "/",
+        "expires": 1742661446.519332,
+        "httpOnly": true,
+        "secure": false,
+        "sameSite": "Lax"
+    },
+    {
+        "name": "__vt",
+        "value": "3-kHJsa_vHUPsL-kABQCT24E-H_BQo6gx1APGQJPtzQp0ltU7NO8t6CHoLFkoOchfaF1mg5sHOWRCWK5Hnu5GfKAy8x8MH7rU-AxW5OMB5QmVrp3yOkqEPs_oaEM5FdBEvnpE_z4F1uoFv63J-F2CPq_2g",
+        "domain": ".www.tripadvisor.com",
+        "path": "/",
+        "expires": 1742233046.743536,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Lax"
+    }
+]
