@@ -41,7 +41,7 @@ def send_request(location_id):
             "variables": {
                 "locationId": int(location_id),
                 "offset": 0,
-                "limit": 15,
+                "limit": 500,
                 "keywordVariant": "location_keywords_v2_llr_order_30_en",
                 "language": "en",
                 "userId": "",
