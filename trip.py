@@ -1,46 +1,18 @@
-# from patchright.sync_api import sync_playwright
-# import time
-# import json
-# from datetime import datetime
-# import requests
-# # def save_cookies(cookies, filename):
-# #     # Save cookies in JSON format
-# #     with open(filename, 'w') as f:
-# #         json.dump(cookies, f, indent=4)
-    
-# #     # Save cookies in raw string format
-# #     raw_cookies = '; '.join([f"{cookie['name']}={cookie['value']}" for cookie in cookies])
-# #     with open('cookies.txt', 'w') as f:
-# #         f.write(raw_cookies)
+import requests
+import json
+from patchright.sync_api import sync_playwright
+import time
+import json
+from datetime import datetime
+import requests
+import re
 
-# # def run():
-# #     with sync_playwright() as p:
-# #         browser = p.chromium.launch(headless=False)
-# #         page = browser.new_page()
-        
-# #         try:
-# #             # Navigate to the page
-# #             page.goto("https://www.tripadvisor.com/Restaurant_Review-g32655-d534021-Reviews-Shakey_s_Pizza_Parlor-Los_Angeles_California.html")
-            
-# #             # Wait for page to load
-# #             time.sleep(7)
-            
-# #             # Get and save cookies
-# #             cookies = page.context.cookies()
-# #             cookie_filename = 'cookies_.json'
-# #             save_cookies(cookies, cookie_filename)
-            
-# #             # Print page title
-# #             print(page.title())
-            
-# #         except Exception as e:
-# #             print(f"An error occurred: {str(e)}")
-# #             raise
-# #         finally:
-# #             browser.close()
-
-# # if __name__ == "__main__":
-# #     run()
+def extract_location_id(url):
+    # Extract the location ID from the URL using regex
+    match = re.search(r'-d(\d+)-', url)
+    if match:
+        return match.group(1)
+    return None
 
 def parse_cookies(cookie_string):
     cookie_dict = {}
@@ -57,35 +29,7 @@ with open('cookies.txt', 'r') as f:
 # Parse cookies into dictionary
 cookies = parse_cookies(cookie_string)
 
-# # hit request to the url
-# url = "https://www.tripadvisor.com/Restaurant_Review-g32655-d534021-Reviews-Shakey_s_Pizza_Parlor-Los_Angeles_California.html"
-# headers = {
-#     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-# }
-# response = requests.get(url, cookies=cookies, headers=headers)
-
-# # save the response to a file
-# with open('response.html', 'w') as f:
-#     f.write(response.text)
-
-
-import requests
-import json
-
-# def read_cookies(file_path):
-#     """Reads cookies from a text file and returns them as a dictionary."""
-#     cookies = {}
-#     try:
-#         with open(file_path, "r") as file:
-#             for line in file:
-#                 if "=" in line:
-#                     key, value = line.strip().split("=", 1)
-#                     cookies[key] = value
-#     except FileNotFoundError:
-#         print("Cookies file not found!")
-#     return cookies
-
-def send_request():
+def send_request(location_id):
     url = "https://www.tripadvisor.com/data/graphql/ids"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -93,48 +37,94 @@ def send_request():
     }
     
     payload = [
-         {
-        "variables": {
-            "locationId": 534021,
-            "offset": 0,
-            "limit": 15,
-            "keywordVariant": "location_keywords_v2_llr_order_30_en",
-            "language": "en",
-            "userId": "",
-            "filters": [],
-            "prefs": {},
-            "initialPrefs": {}
-        },
-        "extensions": {
-            "preRegisteredQueryId": "aaff0337570ed0aa"
-        }
-    },
         {
-        "variables": {
-            "rssId": "ta-534021",
-            "locationId": 534021,
-            "geoId": 32655,
-            "locale": "en-US",
-            "currency": "USD",
-            "distanceUnitHotelsAndRestaurants": "MILES",
-            "distanceUnitAttractions": "MILES",
-            "numTimeslots": 6
+            "variables": {
+                "locationId": int(location_id),
+                "offset": 0,
+                "limit": 15,
+                "keywordVariant": "location_keywords_v2_llr_order_30_en",
+                "language": "en",
+                "userId": "",
+                "filters": [],
+                "prefs": {},
+                "initialPrefs": {}
+            },
+            "extensions": {
+                "preRegisteredQueryId": "aaff0337570ed0aa"
+            }
         },
-        "extensions": {
-            "preRegisteredQueryId": "e50473638bca81f5"
+        {
+            "variables": {
+                "rssId": f"ta-{location_id}",
+                "locationId": int(location_id),
+                "geoId": 32655,
+                "locale": "en-US",
+                "currency": "USD",
+                "distanceUnitHotelsAndRestaurants": "MILES",
+                "distanceUnitAttractions": "MILES",
+                "numTimeslots": 6
+            },
+            "extensions": {
+                "preRegisteredQueryId": "e50473638bca81f5"
+            }
         }
-    }
     ]
-    
-    # cookies = parse_cookies("cookies.txt")
     
     response = requests.post(url, headers=headers, cookies=cookies, data=json.dumps(payload))
     
-    print("Status Code:", response.status_code)
-    print("Response JSON:", response.json())
-    # save the response to a file
-    with open('response.json', 'w') as f:
-        json.dump(response.json(), f, indent=4)
+    print(f"Status Code for location {location_id}:", response.status_code)
     
+    # Save the response to a file named with the location ID
+    filename = f"{location_id}.json"
+    with open(filename, 'w') as f:
+        json.dump(response.json(), f, indent=4)
+    print(f"Response saved to {filename}")
+
+def run():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        page = browser.new_page()
+        
+        try:
+            # Navigate to Google
+            page.goto("https://www.google.com")
+            
+            # Wait for the search box to be visible and type the search query
+            search_box = page.locator('textarea[name="q"]')
+            search_box.wait_for()
+            search_box.fill("shakey's pizza parlor tripadvisor usa")
+            
+            # Press Enter to search
+            search_box.press("Enter")
+            
+            # Wait for search results to load
+            page.wait_for_load_state("networkidle")
+            
+            # Find all TripAdvisor links in the search results
+            tripadvisor_links = page.locator("a[href*='tripadvisor.com']")
+            
+            # Get all TripAdvisor URLs
+            urls = tripadvisor_links.evaluate_all("elements => elements.map(el => el.href)")
+            
+            # Process each URL
+            print("\nProcessing TripAdvisor URLs:")
+            for url in urls:
+                print(f"Found URL: {url}")
+                location_id = extract_location_id(url)
+                if location_id:
+                    print(f"Extracted location ID: {location_id}")
+                    send_request(location_id)
+                else:
+                    print("Could not extract location ID from URL")
+            
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+            raise
+        finally:
+            browser.close()
+
 if __name__ == "__main__":
-    send_request()
+    run()
+
+
+
