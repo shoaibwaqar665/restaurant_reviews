@@ -48,7 +48,179 @@ with open('cookies.txt', 'r') as f:
 # Parse cookies into dictionary
 cookies = parse_cookies(cookie_string)
 
-def send_request(location_id):
+######################### location data extraction ###############################
+def extract_restaurant_data(response_data):
+    """Extract location ID and location name from the response data"""
+    restaurant_data = []
+    try:
+        if response_data and len(response_data) > 0:
+            # First check the resolved items section
+            resolved_items = response_data[0].get("data", {}).get("SERP_getResultSections", {}).get("clusters", [])
+            
+            for cluster in resolved_items:
+                sections = cluster.get("sections", [])
+                for section in sections:
+                    if section.get("__typename") in ["SERP_ResolvedItemsSection", "SERP_PagedSearchResultsSections"]:
+                        # Handle the PagedSearchResultsSections differently
+                        if section.get("__typename") == "SERP_PagedSearchResultsSections":
+                            for subsection in section.get("sections", []):
+                                for result in subsection.get("results", []):
+                                    if "locationId" in result:
+                                        loc_id = result.get("locationId")
+                                        loc_name = result.get("details", {}).get("locationV2", {}).get("names", {}).get("longOnlyHierarchyTypeaheadV2", "")
+                                        restaurant_data.append({
+                                            "locationId": loc_id,
+                                            "locationName": loc_name
+                                        })
+                                    
+                        # Handle ResolvedItemsSection
+                        else:
+                            for result in section.get("results", []):
+                                if "locationId" in result:
+                                    loc_id = result.get("locationId")
+                                    loc_name = result.get("details", {}).get("locationV2", {}).get("names", {}).get("longOnlyHierarchyTypeaheadV2", "")
+                                    restaurant_data.append({
+                                        "locationId": loc_id,
+                                        "locationName": loc_name
+                                    })
+    except Exception as e:
+        print(f"Error extracting restaurant data: {str(e)}")
+    
+    return restaurant_data
+
+def send_request_location_data(query="shakey's pizza parlor"):
+    # Read cookies from cookies.txt
+    try:
+        with open('cookies.txt', 'r') as f:
+            cookie_string = f.read()
+        cookies = parse_cookies(cookie_string)
+    except Exception as e:
+        print(f"Error reading cookies: {str(e)}")
+        return
+    
+    url = "https://www.tripadvisor.com/data/graphql/ids"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Content-Type": "application/json"
+    }
+    
+    # Current timestamp
+    timestamp = int(time.time() * 1000)
+    
+    # Construct the payload
+    payload = [
+        {
+            "variables": {
+                "request": {
+                    "additionalFields": [
+                        "SNIPPET",
+                        "MENTION_COUNT"
+                    ],
+                    "filters": {
+                        "dataTypes": [
+                            "LOCATION"
+                        ],
+                        "locationTypes": [
+                            "GEO",
+                            "ACCOMMODATION",
+                            "AIRLINE",
+                            "ATTRACTION",
+                            "ATTRACTION_PRODUCT",
+                            "EATERY",
+                            "NEIGHBORHOOD",
+                            "FLIGHT",
+                            "VACATION_RENTAL"
+                        ]
+                    },
+                    "geoId": 29092,
+                    "includeTopInSearch": True,
+                    "limit": 30,
+                    "locale": "en-US",
+                    "query": query,
+                    "userContext": {
+                        "coordinates": {
+                            "latitude": 31.408397,
+                            "longitude": 73.103523
+                        }
+                    }
+                }
+            },
+            "extensions": {
+                "preRegisteredQueryId": "24076282f3106d7f"
+            }
+        },
+        {
+            "variables": {
+                "request": {
+                    "clientRequestTimestampMs": timestamp,
+                    "request": [
+                        {
+                            "pageUid": "aef848f9-c1a8-4817-80e5-5f0bc44acf5d",
+                            "userId": None,
+                            "sessionId": "1C1E9FC37C6749EDB7A7939DE28144FF",
+                            "page": "Search",
+                            "userAgent": "DESKTOP",
+                            "eventTimestampMs": timestamp,
+                            "team": "Other",
+                            "itemType": "Currency_Dropdown",
+                            "itemName": "Currency_DropdownImp",
+                            "customData": "{\"defaultCurrency\":\"USD\"}"
+                        }
+                    ]
+                }
+            },
+            "extensions": {
+                "preRegisteredQueryId": "b682df01eec3e82a"
+            }
+        },
+        {
+            "variables": {
+                "request": {
+                    "clientRequestTimestampMs": timestamp,
+                    "request": [
+                        {
+                            "pageUid": "aef848f9-c1a8-4817-80e5-5f0bc44acf5d",
+                            "userId": None,
+                            "sessionId": "1C1E9FC37C6749EDB7A7939DE28144FF",
+                            "page": "Search",
+                            "userAgent": "DESKTOP",
+                            "eventTimestampMs": timestamp,
+                            "team": "Other",
+                            "itemType": "POS_Dropdown",
+                            "itemName": "POS_DropdownImp",
+                            "customData": "{\"defaultPos\":\"en-US\"}"
+                        }
+                    ]
+                }
+            },
+            "extensions": {
+                "preRegisteredQueryId": "b682df01eec3e82a"
+            }
+        }
+    ]
+    
+    # Send the request
+    try:
+        print(f"Sending request for query: {query}")
+        response = requests.post(url, headers=headers, cookies=cookies, json=payload)
+        
+        if response.status_code == 200:
+            response_data = response.json()
+            restaurants_data = extract_restaurant_data(response_data)
+            return restaurants_data
+            
+        else:
+            print(f"Request failed with status code: {response.status_code}")
+            print(response.text)
+            return []
+    except Exception as e:
+        print(f"Error sending request: {str(e)}")
+        return []
+
+############################location data extraction end ############################
+
+############################# review data extraction #################################
+def send_request_for_reviews(location_id, location_name):
     url = "https://www.tripadvisor.com/data/graphql/ids"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -56,7 +228,7 @@ def send_request(location_id):
     }
     
     # Initial batch size for reviews
-    batch_size = 15
+    batch_size = 3
     offset = 0
     
     # Dictionary to store all reviews and avoid duplicates
@@ -65,8 +237,13 @@ def send_request(location_id):
     location_info = None
     total_count = None
     
+    # Clean location name for filename
+    safe_location_name = location_name.replace(" ", "_")
+    safe_location_name = safe_location_name.replace(",", "_")
+    
     # Check if file already exists, and load existing data if it does
-    filename = f"{location_id}.json"
+    filename = f"{location_id}_{safe_location_name}.json"
+    
     try:
         with open(filename, 'r', encoding='utf-8') as f:
             existing_data = json.load(f)
@@ -76,13 +253,15 @@ def send_request(location_id):
                     all_reviews[str(review['id'])] = review
             restaurant_info = existing_data.get("restaurant", {})
             location_info = existing_data.get("location", {})
+            print(f"Loaded {len(all_reviews)} existing reviews from {filename}")
     except (FileNotFoundError, json.JSONDecodeError):
-        pass  # File doesn't exist or is invalid, start fresh
+        print(f"No existing file found or invalid JSON. Starting fresh collection for {location_id}")
     
     # Fetch reviews in batches until we've retrieved all of them
     while True:
         print(f"Fetching reviews for location {location_id} - Offset: {offset}, Batch size: {batch_size}")
         
+        # Construct the payload for this batch
         payload = [
             {
                 "variables": {
@@ -118,19 +297,31 @@ def send_request(location_id):
         ]
         
         try:
-            response = requests.post(url, headers=headers, cookies=cookies, data=json.dumps(payload))
+            # Send the request with proper JSON serialization
+            response = requests.post(
+                url, 
+                headers=headers, 
+                cookies=cookies, 
+                json=payload  # Use json parameter for automatic serialization
+            )
             
             if response.status_code != 200:
                 print(f"Error fetching reviews: Status code {response.status_code}")
+                print(f"Response: {response.text[:200]}...")  # Print first 200 chars of response
+                break
+            
+            # Parse the response
+            try:
+                response_data = response.json()
+            except json.JSONDecodeError:
+                print(f"Error: Invalid JSON response")
+                print(f"Response text: {response.text[:200]}...")  # Print first 200 chars
                 break
                 
-            response_data = response.json()
-            
-            # Debug: Save the first response for inspection
-            # if offset == 0:
-            #     with open(f"response_debug_{location_id}.json", 'w', encoding='utf-8') as f:
-            #         json.dump(response_data, f, indent=4, ensure_ascii=False)
-            #     print(f"Saved debug response to response_debug_{location_id}.json")
+            # Validate response structure
+            if not response_data or not isinstance(response_data, list) or len(response_data) == 0:
+                print(f"Error: Invalid response data format: {response_data}")
+                break
             
             # Extract restaurant info with additional details (only once)
             if restaurant_info is None and len(response_data) > 1:
@@ -369,6 +560,7 @@ def send_request(location_id):
             else:
                 print("No location data in response, stopping pagination")
                 break
+                
         except Exception as e:
             print(f"Error processing batch: {str(e)}")
             break
@@ -385,50 +577,13 @@ def send_request(location_id):
         json.dump(filtered_data, f, indent=4, ensure_ascii=False)
     
     print(f"Saved {len(all_reviews)} total reviews to {filename}")
+    return filtered_data
 
 def run_scraper(query: str):
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        page = browser.new_page()
-        
-        try:
-            # Navigate to Google
-            print("Navigating to Google")
-            page.goto("https://www.google.com")
-            
-            # Wait for the search box to be visible and type the search query
-            search_box = page.locator('textarea[name="q"]')
-            search_box.wait_for()
-            search_box.fill(f"{query} tripadvisor usa")
-            
-            # Press Enter to search
-            search_box.press("Enter")
-            
-            # Wait for search results to load
-            page.wait_for_load_state("networkidle")
-            
-            # Find all TripAdvisor links in the search results
-            tripadvisor_links = page.locator("a[href*='tripadvisor.com']")
-            
-            # Get all TripAdvisor URLs
-            urls = tripadvisor_links.evaluate_all("elements => elements.map(el => el.href)")
-            
-            # Process each URL
-            print("\nProcessing TripAdvisor URLs:")
-            for url in urls:
-                print(f"Found URL: {url}")
-                location_id = extract_location_id(url)
-                if location_id:
-                    print(f"Extracted location ID: {location_id}")
-                    send_request(location_id)
-                else:
-                    print("Could not extract location ID from URL")
-            
-        except Exception as e:
-            print(f"An error occurred: {str(e)}")
-            raise
-        finally:
-            browser.close()
+    location_data = send_request_location_data(query)
+    for location in location_data:
+        print(f"Processing location {location['locationName']} with ID {location['locationId']}")
+        send_request_for_reviews(location["locationId"],location["locationName"])
 
 def decode_and_clean_url(encoded_url):
     if not encoded_url:
@@ -659,23 +814,6 @@ class TripAdvisorController:
         except (FileNotFoundError, json.JSONDecodeError):
             return {"error": "Restaurant not found"}
     
-    @http_post('/translate/{restaurant_id}', response={200: Dict, 400: Dict})
-    def translate_reviews(self, request, restaurant_id: str):
-        """Translate all non-English reviews for a specific restaurant ID"""
-        try:
-            result = translate_existing_reviews(restaurant_id)
-            if result:
-                return 200, {
-                    "message": f"Successfully translated reviews for restaurant {restaurant_id}",
-                }
-            else:
-                return 400, {
-                    "error": f"Failed to translate reviews for restaurant {restaurant_id}"
-                }
-        except Exception as e:
-            return 400, {
-                "error": f"Error: {str(e)}"
-            }
 
 # Register controllers
 api.register_controllers(TripAdvisorController)
