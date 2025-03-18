@@ -11,9 +11,13 @@ from typing import Dict
 from ninja_extra import api_controller, http_get, http_post, NinjaExtraAPI
 from myapp.schema import TripAdvisorQuery
 import base64
+from googletrans import Translator
 
 # Initialize the Ninja API
 api = NinjaExtraAPI(urls_namespace='Tripadvisor')
+
+# Initialize translator
+translator = Translator()
 
 def extract_location_id(url):
     # Extract the location ID from the URL using regex
@@ -271,6 +275,8 @@ def send_request(location_id):
                     if review_id and review_id not in all_reviews:
                         # Add only new reviews
                         review_text = review.get("text", "")
+                        review_language = review.get("language", "en")
+                        review_title = review.get("title", "")
                         
                         # Extract review photos if available
                         photos = []
@@ -285,18 +291,59 @@ def send_request(location_id):
                                         "height": 600
                                     })
                         
-                        all_reviews[review_id] = {
+                        # Prepare the review data structure
+                        review_data = {
                             "userId": review.get("userId"),
                             "id": review_id,
                             "text": review_text,
                             "locationId": review.get("locationId"),
-                            "title": review.get("title"),
+                            "title": review_title,
                             "rating": review.get("rating"),
                             "publishedDate": review.get("publishedDate"),
                             "username": review.get("username"),
                             "photos": photos,
-                            "language": review.get("language")
+                            "language": review_language,
+                            "is_translated": False  # Default to not translated
                         }
+                        
+                        # Translate review if not in English
+                        if review_language and review_language != "en":
+                            try:
+                                # Create a translation object within the review data
+                                translation = {
+                                    "language": "en"  # Target language
+                                }
+                                
+                                # Translate text
+                                if review_text:
+                                    translated_text = translate_text(review_text, source_lang=review_language, dest_lang='en')
+                                    if translated_text and translated_text != review_text:
+                                        translation["text"] = translated_text
+                                
+                                # Translate title if available
+                                if review_title:
+                                    print(f"Attempting to translate title: '{review_title}' from {review_language}")
+                                    try:
+                                        translated_title = translate_text(review_title, source_lang=review_language, dest_lang='en')
+                                        print(f"Title translation result: '{translated_title}'")
+                                        if translated_title and translated_title != review_title:
+                                            translation["title"] = translated_title
+                                            print(f"Added title translation for review {review_id}")
+                                    except Exception as e:
+                                        print(f"Error translating title for review {review_id}: {str(e)}")
+                                else:
+                                    print(f"No title to translate for review {review_id}")
+                                
+                                # Add the translation to the review data if we have any translated content
+                                if "text" in translation or "title" in translation:
+                                    review_data["translation"] = translation
+                                    review_data["is_translated"] = True
+                                    print(f"Translated review {review_id} from {review_language} to English")
+                                    
+                            except Exception as e:
+                                print(f"Error translating review {review_id}: {str(e)}")
+                        
+                        all_reviews[review_id] = review_data
                         new_reviews_count += 1
                 
                 print(f"Added {new_reviews_count} new reviews in this batch")
@@ -396,6 +443,109 @@ def decode_and_clean_url(encoded_url):
         print(f"Error decoding URL {encoded_url}: {str(e)}")
         return encoded_url
 
+def translate_text(text, source_lang='auto', dest_lang='en'):
+    """Translate text from source language to destination language."""
+    if not text:
+        print("No text to translate")
+        return text
+        
+    if source_lang == dest_lang:
+        print(f"Source language {source_lang} is the same as destination language, skipping translation")
+        return text
+    
+    try:
+        print(f"Translating from {source_lang} to {dest_lang}: '{text[:50]}{'...' if len(text) > 50 else ''}'")
+        translation = translator.translate(text, src=source_lang, dest=dest_lang)
+        result = translation.text
+        print(f"Translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+        return result
+    except Exception as e:
+        print(f"Translation error: {str(e)}")
+        # Try with auto-detected language if a specific source language fails
+        if source_lang != 'auto':
+            print("Retrying with auto language detection")
+            try:
+                translation = translator.translate(text, dest=dest_lang)
+                return translation.text
+            except Exception as retry_error:
+                print(f"Retry translation error: {str(retry_error)}")
+        return text  # Return original text if translation fails
+
+def translate_existing_reviews(location_id):
+    """Translate any non-English reviews in an existing JSON file."""
+    filename = f"{location_id}.json"
+    
+    try:
+        # Load existing data
+        with open(filename, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        reviews = data.get("reviews", [])
+        total_reviews = len(reviews)
+        translated_count = 0
+        
+        print(f"Processing translations for {total_reviews} reviews in {filename}")
+        
+        for i, review in enumerate(reviews):
+            review_id = review.get("id")
+            language = review.get("language")
+            
+            # Skip English reviews and already translated reviews
+            if not language or language == "en" or review.get("is_translated", False):
+                continue
+                
+            # Get review text and title
+            review_text = review.get("text", "")
+            review_title = review.get("title", "")
+            
+            # Create translation object
+            translation = {
+                "language": "en"
+            }
+            
+            # Translate text if available
+            if review_text:
+                try:
+                    translated_text = translate_text(review_text, source_lang=language, dest_lang='en')
+                    if translated_text and translated_text != review_text:
+                        translation["text"] = translated_text
+                except Exception as e:
+                    print(f"Error translating text for review {review_id}: {str(e)}")
+            
+            # Translate title if available
+            if review_title:
+                print(f"Attempting to translate title: '{review_title}' from {language}")
+                try:
+                    translated_title = translate_text(review_title, source_lang=language, dest_lang='en')
+                    print(f"Title translation result: '{translated_title}'")
+                    if translated_title and translated_title != review_title:
+                        translation["title"] = translated_title
+                        print(f"Added title translation for review {review_id}")
+                except Exception as e:
+                    print(f"Error translating title for review {review_id}: {str(e)}")
+            
+            # Add translation to review if we have any translated content
+            if "text" in translation or "title" in translation:
+                review["translation"] = translation
+                review["is_translated"] = True
+                translated_count += 1
+                print(f"[{i+1}/{total_reviews}] Translated review {review_id} from {language}")
+            
+            # Add a brief delay to avoid API rate limits
+            if i % 5 == 0 and i > 0:
+                time.sleep(1)
+        
+        # Save updated data
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        
+        print(f"Translation complete. Added translations for {translated_count} reviews.")
+        return True
+    
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error processing file {filename}: {str(e)}")
+        return False
+
 @api_controller("", tags=["TripAdvisor"])
 class TripAdvisorController:
     
@@ -430,6 +580,23 @@ class TripAdvisorController:
         except (FileNotFoundError, json.JSONDecodeError):
             return {"error": "Restaurant not found"}
     
+    @http_post('/translate/{restaurant_id}', response={200: Dict, 400: Dict})
+    def translate_reviews(self, request, restaurant_id: str):
+        """Translate all non-English reviews for a specific restaurant ID"""
+        try:
+            result = translate_existing_reviews(restaurant_id)
+            if result:
+                return 200, {
+                    "message": f"Successfully translated reviews for restaurant {restaurant_id}",
+                }
+            else:
+                return 400, {
+                    "error": f"Failed to translate reviews for restaurant {restaurant_id}"
+                }
+        except Exception as e:
+            return 400, {
+                "error": f"Error: {str(e)}"
+            }
 
 # Register controllers
 api.register_controllers(TripAdvisorController)

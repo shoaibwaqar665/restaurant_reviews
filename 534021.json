@@ -10,7 +10,8 @@
             "publishedDate": "2022-03-27",
             "username": "Savyvjxk",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "BDE131CEF8B2AB7B583AA4303D29A2E5",
@@ -22,7 +23,8 @@
             "publishedDate": "2019-11-07",
             "username": "Rachel7310",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "FC68641A06926D6241B8E4ACDD9EB5F0",
@@ -53,7 +55,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "086D515F5A2FB3DD5CAC5B8C5B948D51",
@@ -65,7 +68,8 @@
             "publishedDate": "2018-11-18",
             "username": "DanielF9392",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "F6EE9DE0F8FAFC07FC2393D7C640BF5F",
@@ -77,7 +81,12 @@
             "publishedDate": "2018-10-03",
             "username": "dasca959",
             "photos": [],
-            "language": "it"
+            "language": "it",
+            "is_translated": true,
+            "translation": {
+                "language": "en",
+                "text": "This place is located on the Sunset Boulevard, which is known is very long, on the opposite side of the trendy and exclusive restaurants where you meet the stars of cinema so as you travel the avenue and move away from the glamorous area also the premises and above all the prices change but I must say that we have eaten a dignified pizza in a cute place, in the hand, for boys and families and the price was very competitive to eat at Los Angeles.The crap is also spent a lot.The positive thing is that the place is less than ten minutes with the car from the Hollywood Boulevard (Walk of Fame).If you want to spend little, eat a discreet pizza and then take a walk on the street paved by the stars I recommend it"
+            }
         },
         {
             "userId": "5A4C64FBA795FF8A70FA04A606B237C6",
@@ -89,7 +98,13 @@
             "publishedDate": "2018-09-04",
             "username": "Jenny H",
             "photos": [],
-            "language": "de"
+            "language": "de",
+            "is_translated": true,
+            "translation": {
+                "language": "en",
+                "text": "We once had a pizza and once chicken wings.\nEverything was very tasty and freshly prepared.\nYou can refill drinks yourself -as much you want.\nAmbience was great for a typical meal in the USA.",
+                "title": "Delicious food"
+            }
         },
         {
             "userId": "D725B904E381BED522F1BD4D88416B41",
@@ -101,7 +116,8 @@
             "publishedDate": "2017-02-15",
             "username": "Taleen B",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "040FAF20600760A08CE735EB304078D6",
@@ -113,7 +129,8 @@
             "publishedDate": "2016-05-15",
             "username": "K H",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "0BA5CDBF788365F7AE1ED8E5A549CA4B",
@@ -125,7 +142,8 @@
             "publishedDate": "2016-02-17",
             "username": "Kelly V",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "E8773D47B580A5DB38465B04BC511E5E",
@@ -137,7 +155,8 @@
             "publishedDate": "2015-11-15",
             "username": "tripptrapptrolololo",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "3524B89D5CE95F02542C36A61F2276D9",
@@ -149,7 +168,12 @@
             "publishedDate": "2015-09-09",
             "username": "SusiTeePunkt",
             "photos": [],
-            "language": "de"
+            "language": "de",
+            "is_translated": true,
+            "translation": {
+                "language": "en",
+                "text": "We visited the shakeys on the first evening of our L.A. stay.Our hotel was nearby so that we could walk.After we studied the card for an unusually long time, an employee came to help us to explain the system.You order and pay at a counter and then get the food delivered to the table.The drink can be filled in as often as you want, just like the salad, on the salad bar.The food was very tasty and the price-performance ratio was great.Only the cutlery and dishes could be replaced, because it has been the best years.We would go again;)."
+            }
         },
         {
             "userId": "C64E39F29947746DBF99F9B1ECAA99CF",
@@ -161,7 +185,8 @@
             "publishedDate": "2013-12-30",
             "username": "Larry H",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "BC93350F6D09687A19D032AD6AF556CE",
@@ -173,7 +198,8 @@
             "publishedDate": "2012-10-28",
             "username": "PlatinumMember174",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "38B04D25AEB4ED49C4A598196F7F6A67",
@@ -204,7 +230,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "71F8AB3DD7EEE3E332DFED53372D5A10",
@@ -216,7 +243,8 @@
             "publishedDate": "2012-07-25",
             "username": "301kikkik",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "FF50EBD3380406B61D55688504A748DC",
@@ -228,7 +256,8 @@
             "publishedDate": "2011-06-13",
             "username": "AnnieJ97",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "32A182F4C05EE3D16508B9FED71A1A26",
@@ -240,7 +269,8 @@
             "publishedDate": "2008-07-07",
             "username": null,
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         }
     ],
     "restaurant": {
@@ -292,7 +322,7 @@
                 }
             ]
         },
-        "url": "UEk3X2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL2xvY2F0aW9ucy9sb3MtYW5nZWxlcy9sYS1zdW5zZXQtcmVzdGF1cmFudC9fM2Np",
+        "url": "OFZwX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL2xvY2F0aW9ucy9sb3MtYW5nZWxlcy9sYS1zdW5zZXQtcmVzdGF1cmFudC9fdE10",
         "decoded_url": "https://www.shakeys.com/locations/los-angeles/la-sunset-restaurant/",
         "dining_options": [
             "Takeout",
@@ -310,7 +340,7 @@
         ],
         "menu": {
             "has_provider": false,
-            "menu_url": "V0VUX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL21lbnUvcGl6emEvX0JFSg==",
+            "menu_url": "N3lMX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL21lbnUvcGl6emEvX2ZMbg==",
             "decoded_menu_url": "https://www.shakeys.com/menu/pizza/"
         }
     },

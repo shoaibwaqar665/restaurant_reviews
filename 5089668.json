@@ -23,7 +23,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "A08C3745B152AC9D129C0E7A254FA5AD",
@@ -35,7 +36,8 @@
             "publishedDate": "2024-03-18",
             "username": "DukeClay",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "E2BE06BB8B4A6A97C39C0BDEA20AF62C",
@@ -54,7 +56,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "6B3FAD5CE4DB444C1C7E1F2A9128CA77",
@@ -109,7 +112,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "6DF989B552660D9991942E958E251FD7",
@@ -121,7 +125,8 @@
             "publishedDate": "2020-04-13",
             "username": "MA9703",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "2AD68D8410DD84A4C23E4D977BD04073",
@@ -140,7 +145,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "503A229882DA6B41E3098178A9520AA6",
@@ -152,7 +158,8 @@
             "publishedDate": "2020-01-20",
             "username": "PROROB68",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "E0C241ED99B2526EFDB2E930CE8E7B73",
@@ -164,7 +171,8 @@
             "publishedDate": "2020-01-01",
             "username": "markrs44mag",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "D2B991E9F95E6F1362FEDB4D81431998",
@@ -176,7 +184,13 @@
             "publishedDate": "2019-11-12",
             "username": "Cristiane C",
             "photos": [],
-            "language": "pt"
+            "language": "pt",
+            "is_translated": true,
+            "translation": {
+                "language": "en",
+                "text": "It has a good variety of products, which are very well served.Half -mouth service, but we release it ... it can be a cultural difference",
+                "title": "Well -served"
+            }
         },
         {
             "userId": "144866E758479C07AEC5F13514C5EFE9",
@@ -188,7 +202,8 @@
             "publishedDate": "2019-09-25",
             "username": "John S",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "9423AD9D97DC350A8A34AF167170C3D1",
@@ -219,7 +234,13 @@
                     "height": 600
                 }
             ],
-            "language": "ja"
+            "language": "ja",
+            "is_translated": true,
+            "translation": {
+                "language": "en",
+                "text": "I used to eat Shakees in the past in Japan, but this was my first time eating it in the US.\n\nI happened to find a shop right next to the motel I stayed at.Unlike in Japanese restaurants, the flavor was very strong and it was quite tasty!",
+                "title": "I've had dinner at Shakey's for the first time in a while"
+            }
         },
         {
             "userId": "734D36BFFFF10516F16CCA9D267FF59B",
@@ -231,7 +252,8 @@
             "publishedDate": "2019-08-06",
             "username": "patrikc333",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "B84878D616BEB3C92AE605E6BF95C87A",
@@ -243,7 +265,8 @@
             "publishedDate": "2019-07-18",
             "username": "Don P",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "9BE83C1A91F9B2D02AE6644AD7E79A34",
@@ -255,7 +278,8 @@
             "publishedDate": "2019-04-02",
             "username": "jpjim2019",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "83354D2DDDAD2C831588AE1C1DDA412E",
@@ -267,7 +291,8 @@
             "publishedDate": "2019-03-25",
             "username": "lilnetjojocoxon",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "E1BF8D6DCEE50E50E351686C7CBD699F",
@@ -286,7 +311,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "2254059862735F3DEDE5C1B1403BA93E",
@@ -298,7 +324,8 @@
             "publishedDate": "2018-12-16",
             "username": "h_e_tompkins",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "CE99CC9B2BED8A13234C157C97D4DFB3",
@@ -310,7 +337,8 @@
             "publishedDate": "2018-12-15",
             "username": "Judy W",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "B92841421BF3FCA3E50D8CB7DCD059F6",
@@ -322,7 +350,8 @@
             "publishedDate": "2018-11-22",
             "username": "Miczmama80",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "40B988CE40ED1689D50E310ED41C4C7F",
@@ -334,7 +363,8 @@
             "publishedDate": "2018-10-06",
             "username": "suzannesW7870FS",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "5A7F8DBC96883F6FA61309C1C62E0E9B",
@@ -346,7 +376,8 @@
             "publishedDate": "2018-09-26",
             "username": "BeulahMae",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "50775333AF8872CD930B91F578FFDB4C",
@@ -358,7 +389,8 @@
             "publishedDate": "2018-08-20",
             "username": "sebastiansX7628HP",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "771C069A49EE0C6F6D835CBBAFBF0155",
@@ -395,7 +427,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "C77A08790371E3F9D891FA4A40A4F279",
@@ -407,7 +440,8 @@
             "publishedDate": "2018-07-25",
             "username": "sinnerman07",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "2AF5A26528CF8B2018863D0368F02F1C",
@@ -419,7 +453,8 @@
             "publishedDate": "2018-07-23",
             "username": "tm69tnt",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "822E3F1AA5F8140ECFCBEF66188EA841",
@@ -431,7 +466,8 @@
             "publishedDate": "2018-07-10",
             "username": "katpirpinias",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "F8E47B8E64537BE11660B296635D2D66",
@@ -443,7 +479,8 @@
             "publishedDate": "2018-07-09",
             "username": "kmello01",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "6BD5655A7E66040E8D25BDD7C7DF777E",
@@ -455,7 +492,8 @@
             "publishedDate": "2018-07-07",
             "username": "Linda55555",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "600607E57E05ABEE31A21F59FCD249C8",
@@ -467,7 +505,8 @@
             "publishedDate": "2018-06-28",
             "username": "Spacey N",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "2540E54FEAF84F709350945892022641",
@@ -479,7 +518,8 @@
             "publishedDate": "2018-05-25",
             "username": "BunnieinOregon",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "88D50707E4E04F94BBF1355F57B86097",
@@ -491,7 +531,8 @@
             "publishedDate": "2018-05-15",
             "username": "ConVivo",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "97BA8C203747F85CA2D64E2DC96EB3FC",
@@ -503,7 +544,12 @@
             "publishedDate": "2018-05-09",
             "username": "ficklekorokoro",
             "photos": [],
-            "language": "ja"
+            "language": "ja",
+            "is_translated": true,
+            "translation": {
+                "language": "en",
+                "text": "If you're thinking of Junkie Food, this is Shaky's Pizza!It's simple, just salami and cheese, but it's oily and delicious!Cork is a must!It's an atmosphere where everyone can eat together."
+            }
         },
         {
             "userId": "D263AEF0F9096313C22578DE9FF1969A",
@@ -515,7 +561,8 @@
             "publishedDate": "2018-03-26",
             "username": "Jessica M",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "0AF39FF203A0402E3D8FE4CC819699BA",
@@ -527,7 +574,8 @@
             "publishedDate": "2018-03-04",
             "username": "SHERREE K",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "F31A507CE1BCF2A04DBA9F9925997AD5",
@@ -539,7 +587,8 @@
             "publishedDate": "2018-02-04",
             "username": "Mmabaledi S",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "1940300F1DE87DD98110D9A9468B1DDC",
@@ -551,7 +600,8 @@
             "publishedDate": "2017-12-16",
             "username": "Jim G",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "6360CE1F627603CCD2A0F3482ECC55B8",
@@ -563,7 +613,8 @@
             "publishedDate": "2017-11-27",
             "username": "Jeff D",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "E4AE16C88948B2F2648599719FBC8949",
@@ -575,7 +626,8 @@
             "publishedDate": "2017-11-20",
             "username": "Darren M",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "BFD1436EE8C39431EF8D9953038309CA",
@@ -587,7 +639,8 @@
             "publishedDate": "2017-06-26",
             "username": "Richard L",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "F1544126903F7D8DB51FED8E4BAE73AE",
@@ -599,7 +652,8 @@
             "publishedDate": "2017-06-26",
             "username": "Jeff C",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "E6C57A1F38713F5D7A130A9B626FED7A",
@@ -611,7 +665,8 @@
             "publishedDate": "2017-06-21",
             "username": "Mike R",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "DEA15370521AEE92563BB68CC707D223",
@@ -623,7 +678,8 @@
             "publishedDate": "2017-05-03",
             "username": "bigbadbuyer",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "7EF0FAFB84BD9012D44264A1164204CA",
@@ -635,7 +691,8 @@
             "publishedDate": "2017-03-23",
             "username": "Kim J",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "95F3AA0A0EEEC70DD53B20E5F083794B",
@@ -647,7 +704,8 @@
             "publishedDate": "2017-03-15",
             "username": "rmartinez135",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "F2C482DE69C33BE01F5CD83702722A0E",
@@ -659,7 +717,8 @@
             "publishedDate": "2017-03-07",
             "username": "sandeelee",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "D713F168A5AD1A431EF5879059805ABA",
@@ -671,7 +730,8 @@
             "publishedDate": "2017-01-28",
             "username": "Gaby V",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "9702BBBC62ABB09B2FAD230F6F7BE52D",
@@ -683,7 +743,8 @@
             "publishedDate": "2017-01-23",
             "username": "TheBigTravelBoss",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "7F78340FE8853BACAAA159EDE708BD3D",
@@ -695,7 +756,8 @@
             "publishedDate": "2016-12-23",
             "username": "debbiedavemesa",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "E9E6EFED0B12F81B71B1F91E97753AD3",
@@ -707,7 +769,8 @@
             "publishedDate": "2016-12-17",
             "username": "WB1984",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "73B91FE65C02241D8BB2B8B085B71CE5",
@@ -719,7 +782,8 @@
             "publishedDate": "2016-11-03",
             "username": "Anna E",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "39A05C6AC251583804DFF13C00889D18",
@@ -731,7 +795,8 @@
             "publishedDate": "2016-10-17",
             "username": "SonnyCat",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "C0D68E992E4410BF3C31EB424C2B760A",
@@ -743,7 +808,8 @@
             "publishedDate": "2016-10-12",
             "username": "Nedbedrock",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "7A40D56F57C9C82DC4C9E0C6E67983F6",
@@ -755,7 +821,8 @@
             "publishedDate": "2016-10-04",
             "username": "Kenny C",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "668FDEF4B7B6A011F40BEF8F16DDC4E2",
@@ -767,7 +834,8 @@
             "publishedDate": "2016-09-28",
             "username": "Mr D",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "C45633E497716BF7035EA932EC327A78",
@@ -779,7 +847,12 @@
             "publishedDate": "2016-09-18",
             "username": "MichTW",
             "photos": [],
-            "language": "pl"
+            "language": "pl",
+            "is_translated": true,
+            "translation": {
+                "language": "en",
+                "title": "Fast food."
+            }
         },
         {
             "userId": "3BAE0B9F1735156E255BEBE0422ECF5F",
@@ -791,7 +864,8 @@
             "publishedDate": "2016-09-16",
             "username": "Randy T",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "BD7B3ED0BCC82D89C037EE1A21C7A7E3",
@@ -803,7 +877,8 @@
             "publishedDate": "2016-09-07",
             "username": "maegenr2015",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "5C88F6CD5F2E89864865B0E2AB3CCF38",
@@ -815,7 +890,8 @@
             "publishedDate": "2016-08-11",
             "username": "Daiverman",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "858AC7C66267BDACA8AD5FD2E7359BC4",
@@ -827,7 +903,8 @@
             "publishedDate": "2016-07-26",
             "username": "123Denice",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "80A42B23CA20DB44BACE59E2C5C69FF4",
@@ -846,7 +923,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "002FBE41241EDEEF1C3D0D6EE6FC0A28",
@@ -858,7 +936,8 @@
             "publishedDate": "2016-07-22",
             "username": "Sally C",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "C2F365482EAE47F3215CBB5F065BC915",
@@ -877,7 +956,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "F8C930964C043B7DFB2D7C3FCFA2AAC2",
@@ -889,7 +969,8 @@
             "publishedDate": "2016-06-04",
             "username": "Nancy M",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "311C3BFE7B54D793199923D50680974E",
@@ -901,7 +982,8 @@
             "publishedDate": "2016-05-25",
             "username": "Wednesday S",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "ADD8753BC3DF989CE966E344BCCB0112",
@@ -913,7 +995,8 @@
             "publishedDate": "2016-05-23",
             "username": "girlieduke",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "AD21BAFCD06B5406A48A5CBC352A4EEF",
@@ -925,7 +1008,8 @@
             "publishedDate": "2016-03-20",
             "username": "aultz",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "C5B8D2AB1D0CB170935639C4C2966FFE",
@@ -937,7 +1021,8 @@
             "publishedDate": "2016-01-21",
             "username": "Steven W",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "3D5FDE49BACCB97927C6A0A38628B4BB",
@@ -949,7 +1034,8 @@
             "publishedDate": "2016-01-19",
             "username": "ChristinaWard_2012",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "D736BA523CF0C8AA29E0D1A99ED757CB",
@@ -961,7 +1047,8 @@
             "publishedDate": "2015-11-28",
             "username": "Laura B",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "7EA9BA3339676751375092689B1F178B",
@@ -973,7 +1060,8 @@
             "publishedDate": "2015-11-23",
             "username": "TallTex_Austin",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "52DF789A24E413D8B08D5390E813925F",
@@ -985,7 +1073,8 @@
             "publishedDate": "2015-11-23",
             "username": "Bryan W",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "CE5834F933CB80B4B841627A2603D0EE",
@@ -997,7 +1086,8 @@
             "publishedDate": "2015-10-09",
             "username": "val2323",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "84FA7829818A30949E762C608A867502",
@@ -1009,7 +1099,8 @@
             "publishedDate": "2015-09-28",
             "username": "Rhi J",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "C75368F1A3712F03105F8C4A1BACC9C7",
@@ -1021,7 +1112,8 @@
             "publishedDate": "2015-09-27",
             "username": "Rexster555",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "E62798A3A2FAF48B73686759AACFCC18",
@@ -1033,7 +1125,8 @@
             "publishedDate": "2015-09-25",
             "username": "Tina B",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "218E665DA2AA64CBDA41F8AECF11C709",
@@ -1045,7 +1138,8 @@
             "publishedDate": "2015-09-23",
             "username": "Pam H",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "A6FB7049180ED765612DA1FF201389B5",
@@ -1057,7 +1151,8 @@
             "publishedDate": "2015-09-10",
             "username": "Fredrock",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "B82527EF199F9D3B3C15AAF69EFF5541",
@@ -1069,7 +1164,8 @@
             "publishedDate": "2015-08-29",
             "username": "Rose R",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "1B5E489DDF913491A38CA31DF172EFF9",
@@ -1081,7 +1177,8 @@
             "publishedDate": "2015-08-28",
             "username": "Seavapor",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "25948ED2E67F02717EFDBF4E18FD4385",
@@ -1093,7 +1190,8 @@
             "publishedDate": "2015-07-27",
             "username": "Ernie2107",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "F19903D021A8ABABF302BEE217371EC3",
@@ -1105,7 +1203,8 @@
             "publishedDate": "2015-07-23",
             "username": "Mishel37",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "EBF3FA0BCE5E289BBD04EEAB5182D30B",
@@ -1142,7 +1241,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "07F207AB3CA03EBF46F4AE19BB6FFB7F",
@@ -1154,7 +1254,8 @@
             "publishedDate": "2015-07-10",
             "username": "Mark D",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "CD7F6B163FDAA082340F5A7DCF57D36E",
@@ -1166,7 +1267,8 @@
             "publishedDate": "2015-06-30",
             "username": "Steve T",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "17FEFB550CD9B25BCBB99E3F7D74A788",
@@ -1178,7 +1280,8 @@
             "publishedDate": "2015-05-26",
             "username": "dabrownguy",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "1F2160D6A43AFCA4C1F94C12EC1B2D87",
@@ -1190,7 +1293,8 @@
             "publishedDate": "2015-05-19",
             "username": "D.N A",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "76D7947406A287CC86F4B42D0989306C",
@@ -1202,7 +1306,8 @@
             "publishedDate": "2015-05-14",
             "username": "Julikins55",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "284CB354E8F0B366ECC674A4B89B6FF7",
@@ -1214,7 +1319,8 @@
             "publishedDate": "2015-05-01",
             "username": "Photoguy505",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "131DA53E50DF28D18FB586BFAD5D4618",
@@ -1226,7 +1332,8 @@
             "publishedDate": "2015-03-14",
             "username": "Boxler",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "45493077E0A3CDB51FAD326A71468D71",
@@ -1238,7 +1345,8 @@
             "publishedDate": "2015-03-06",
             "username": "Duncan M",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "A3295C358B4DB1EB1C44D58CD5D23F93",
@@ -1250,7 +1358,8 @@
             "publishedDate": "2015-02-01",
             "username": "Susan W",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "686160B2E59E2ECA5C31ACC4ACAFDBA4",
@@ -1262,7 +1371,8 @@
             "publishedDate": "2015-01-29",
             "username": "NIMOTA I",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "C5E72B99B11B1FE3570CD6A50CB913E7",
@@ -1274,7 +1384,8 @@
             "publishedDate": "2015-01-21",
             "username": "Gmount1",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "851DD074BB963A4696BC4694C6E00E54",
@@ -1286,7 +1397,8 @@
             "publishedDate": "2014-11-25",
             "username": "Marisa M",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "5BFF54E7C640D33FEAEFD49210E06AF5",
@@ -1298,7 +1410,8 @@
             "publishedDate": "2014-11-23",
             "username": "Sara K",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "048F82DE5BC500EDFCFE530626CD71ED",
@@ -1310,7 +1423,8 @@
             "publishedDate": "2014-11-19",
             "username": "Disneymommy09",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "9595D9BC8F4A08F929BB23966E630F48",
@@ -1322,7 +1436,8 @@
             "publishedDate": "2014-11-13",
             "username": "Kevin W",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "CA4CE3A5A56DC06E2E7B05097367C1FB",
@@ -1334,7 +1449,8 @@
             "publishedDate": "2014-10-25",
             "username": "Bbumh",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "22D066CDA2006CFF873C483990691EDD",
@@ -1346,7 +1462,8 @@
             "publishedDate": "2014-10-06",
             "username": "drandys102",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "B27BB4078A4E37886FB3CF01713D8537",
@@ -1358,7 +1475,8 @@
             "publishedDate": "2014-10-05",
             "username": "DoubleOIncognito",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "AF93098D2F3DFD4E8422203AC8296418",
@@ -1370,7 +1488,8 @@
             "publishedDate": "2014-10-02",
             "username": "Melanie M",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "BAA6DF4F73ACE7F1685F648D5B815F84",
@@ -1382,7 +1501,8 @@
             "publishedDate": "2014-09-04",
             "username": "Valerie D",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "CB05636607B0462097E7EBA904FECB4F",
@@ -1413,7 +1533,8 @@
                     "height": 600
                 }
             ],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "08E327E077446C7C70C44988F9872E77",
@@ -1425,7 +1546,8 @@
             "publishedDate": "2014-07-23",
             "username": "TriTrond",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "4F44022D2D7A836BECFAC2ED4A6E2464",
@@ -1437,7 +1559,8 @@
             "publishedDate": "2014-07-16",
             "username": "AlbertaJanelle",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "32103295F7319D641823E7A9D9ABFDEE",
@@ -1449,7 +1572,8 @@
             "publishedDate": "2014-07-03",
             "username": "sandra284",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "048F82DE5BC500EDFCFE530626CD71ED",
@@ -1461,7 +1585,8 @@
             "publishedDate": "2014-05-13",
             "username": "Disneymommy09",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "35F34B18D0E9D34DA0E5A6482A800B1C",
@@ -1473,7 +1598,8 @@
             "publishedDate": "2014-04-22",
             "username": "Lana P",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "DF3A01483150C0AD628197DACB68A39A",
@@ -1552,7 +1678,12 @@
                     "height": 600
                 }
             ],
-            "language": "fr"
+            "language": "fr",
+            "is_translated": true,
+            "translation": {
+                "language": "en",
+                "text": "We had never gone to a Shakey's Pizza and will never go back there.\n\nThis restaurant is near our hotel and we soupped it last night on April 15, 2014.\n\nWe enter and there is no welcome and no one to explain to us how this restaurant works.We are not sure what to do and we head towards the boxes on the left near the kitchen.\n\nWe ask if we have to sit down and how the restaurant for orders works.\n\nThe girl cannot answer us what is weird and asks another to come and enlighten us.She explains to us quickly and we place our order.\n\nA number is given to us and she tells us to choose a table and we will come to carry our orders directly for us.We put our number 83 on the table and wait.Our table was close to the kitchen and the boxes from which hellish music emanated.The sound was so strong that we had to speak loudly to understand each other.The employees listened to this music for them.Total lack of respect for customers as far as we are concerned.\n\nWe believed that our commands of a small pizza of 4 small points including the unlimited salad bar were what we would have but a plate of two pieces of chicken with potatoes landed on our table in addition to the pizza.None of this had been told.We complain about this opinion not of the price paid for everything we had but of the lack of explanation.We finally had for our money despite the poor quality of the food except for the salad bar which is healthier.\n\nWe paid $ 8.99 Each or a total amount of $ 19.42 for our orders which are thus read on the invoice: 2 single & 2pc leg/th mojo.\n\nThe concept seems popular with the American population but certainly not for us as tourists from Quebec.\n\nThe manager was busy with her phone or other thing in hand and we seemed to disturb her when asked if you could change Canadian money.The answer was not nothing more.\n\nWe left without anyone sending us a smile or a thank you for your visit by promising never to set foot in this channel again.\n\n_______________________________________________\n\nText written on April 15, 2014 in Anaheim, California."
+            }
         },
         {
             "userId": "6181AC8DBA0307713EFBD0EFF450BE11",
@@ -1564,7 +1695,8 @@
             "publishedDate": "2014-04-13",
             "username": "BradleyandCole",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "6F690DFDC747539B374F212A3927F5D6",
@@ -1576,7 +1708,8 @@
             "publishedDate": "2014-03-13",
             "username": "KelownaBOY",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "82A5A191862A05E494CB3D115DF7FA45",
@@ -1588,7 +1721,8 @@
             "publishedDate": "2014-03-06",
             "username": "MsKizz",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "632348B577BD5FDAC32B187BDF324E14",
@@ -1600,7 +1734,8 @@
             "publishedDate": "2014-03-05",
             "username": "LVLAMBO",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "8DD416F4999597C81BCC8D24E6510564",
@@ -1612,7 +1747,8 @@
             "publishedDate": "2014-02-22",
             "username": "Stormed_Norm",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "98C0172A13BB2EFAFAD94FCA0D802CA7",
@@ -1624,7 +1760,8 @@
             "publishedDate": "2014-01-29",
             "username": "Arnold V",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "452B4C0F8AFA95016763DCB5DCAF4941",
@@ -1636,7 +1773,8 @@
             "publishedDate": "2014-01-18",
             "username": "BagmanNZ",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "B0745FA04C6ECCDBBF429BF0963E76B3",
@@ -1648,7 +1786,8 @@
             "publishedDate": "2013-10-14",
             "username": "Mkyms",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "25133C182488D23035E87C21B0313C3A",
@@ -1660,7 +1799,8 @@
             "publishedDate": "2013-09-03",
             "username": "Djsahn65",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "092FEBF4DEC227B01A9D3D35F54B7047",
@@ -1672,7 +1812,8 @@
             "publishedDate": "2013-08-14",
             "username": "Itz_Showtime",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "1E82AA712E545D4F82F49A01032E44F0",
@@ -1684,7 +1825,8 @@
             "publishedDate": "2013-07-26",
             "username": "johnjcm",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         },
         {
             "userId": "5439AD1386AC37753A75537AB88AE550",
@@ -1696,7 +1838,8 @@
             "publishedDate": "2013-04-04",
             "username": "mguerra602",
             "photos": [],
-            "language": "en"
+            "language": "en",
+            "is_translated": false
         }
     ],
     "restaurant": {
@@ -1748,7 +1891,7 @@
                 }
             ]
         },
-        "url": "Qm1uX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL2xvY2F0aW9ucy9vcmFuZ2UvYW5haGVpbS1yZXN0YXVyYW50L19XNUU=",
+        "url": "R1ZGX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL2xvY2F0aW9ucy9vcmFuZ2UvYW5haGVpbS1yZXN0YXVyYW50L19Ecmw=",
         "decoded_url": "https://www.shakeys.com/locations/orange/anaheim-restaurant/",
         "dining_options": [
             "Takeout",
@@ -1770,7 +1913,7 @@
         ],
         "menu": {
             "has_provider": false,
-            "menu_url": "T2dYX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL21lbnUvcGl6emEvX3RydQ==",
+            "menu_url": "dXJBX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL21lbnUvcGl6emEvX3VuRQ==",
             "decoded_menu_url": "https://www.shakeys.com/menu/pizza/"
         }
     },
