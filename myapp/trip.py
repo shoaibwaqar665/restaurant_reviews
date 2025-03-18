@@ -6,6 +6,10 @@ import json
 from datetime import datetime
 import requests
 import re
+from ninja_extra import api_controller, http_get, NinjaExtraAPI
+
+# Initialize the Ninja API
+api = NinjaExtraAPI(urls_namespace='Tripadvisor')
 
 def extract_location_id(url):
     # Extract the location ID from the URL using regex
@@ -169,8 +173,30 @@ def run():
         finally:
             browser.close()
 
-if __name__ == "__main__":
-    run()
+# if __name__ == "__main__":
+#     run()
 
 
 
+@api_controller("", tags=["TripAdvisor"])
+class TripAdvisorController:
+    
+    @http_get('/restaurants')
+    def get_restaurants(self):
+        """Return a list of all restaurant IDs"""
+        import glob
+        json_files = glob.glob('*.json')
+        restaurant_ids = [f.split('.')[0] for f in json_files if f[0].isdigit()]
+        return {"restaurant_ids": restaurant_ids}
+    
+    @http_get('/restaurants/{restaurant_id}')
+    def get_restaurant(self, restaurant_id: str):
+        """Return restaurant details for a specific ID"""
+        try:
+            with open(f'{restaurant_id}.json', 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"error": "Restaurant not found"}
+
+# Register controllers
+api.register_controllers(TripAdvisorController)
