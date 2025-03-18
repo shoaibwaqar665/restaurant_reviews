@@ -43,95 +43,175 @@ def send_request(location_id):
         "Content-Type": "application/json"
     }
     
-    payload = [
-        {
-            "variables": {
-                "locationId": int(location_id),
-                "offset": 0,
-                "limit": 500,
-                "keywordVariant": "location_keywords_v2_llr_order_30_en",
-                "language": "en",
-                "userId": "",
-                "filters": [],
-                "prefs": {},
-                "initialPrefs": {}
+    # Initial batch size for reviews
+    batch_size = 15
+    offset = 0
+    
+    # Dictionary to store all reviews and avoid duplicates
+    all_reviews = {}
+    restaurant_info = None
+    location_info = None
+    total_count = None
+    
+    # Check if file already exists, and load existing data if it does
+    filename = f"{location_id}.json"
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            existing_data = json.load(f)
+            # Load existing reviews into our dictionary using id as key
+            for review in existing_data.get("reviews", []):
+                if 'id' in review:
+                    all_reviews[str(review['id'])] = review
+            restaurant_info = existing_data.get("restaurant", {})
+            location_info = existing_data.get("location", {})
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass  # File doesn't exist or is invalid, start fresh
+    
+    # Fetch reviews in batches until we've retrieved all of them
+    while True:
+        print(f"Fetching reviews for location {location_id} - Offset: {offset}, Batch size: {batch_size}")
+        
+        payload = [
+            {
+                "variables": {
+                    "locationId": int(location_id),
+                    "offset": offset,
+                    "limit": batch_size,
+                    "keywordVariant": "location_keywords_v2_llr_order_30_en",
+                    "language": "en",
+                    "userId": "",
+                    "filters": [],
+                    "prefs": {},
+                    "initialPrefs": {}
+                },
+                "extensions": {
+                    "preRegisteredQueryId": "aaff0337570ed0aa"
+                }
             },
-            "extensions": {
-                "preRegisteredQueryId": "aaff0337570ed0aa"
+            {
+                "variables": {
+                    "rssId": f"ta-{location_id}",
+                    "locationId": int(location_id),
+                    "geoId": 32655,
+                    "locale": "en-US",
+                    "currency": "USD",
+                    "distanceUnitHotelsAndRestaurants": "MILES",
+                    "distanceUnitAttractions": "MILES",
+                    "numTimeslots": 6
+                },
+                "extensions": {
+                    "preRegisteredQueryId": "e50473638bca81f5"
+                }
             }
-        },
-        {
-            "variables": {
-                "rssId": f"ta-{location_id}",
-                "locationId": int(location_id),
-                "geoId": 32655,
-                "locale": "en-US",
-                "currency": "USD",
-                "distanceUnitHotelsAndRestaurants": "MILES",
-                "distanceUnitAttractions": "MILES",
-                "numTimeslots": 6
-            },
-            "extensions": {
-                "preRegisteredQueryId": "e50473638bca81f5"
-            }
-        }
-    ]
+        ]
+        
+        try:
+            response = requests.post(url, headers=headers, cookies=cookies, data=json.dumps(payload))
+            
+            if response.status_code != 200:
+                print(f"Error fetching reviews: Status code {response.status_code}")
+                break
+                
+            response_data = response.json()
+            
+            # Debug the response structure
+            if offset == 0:
+                with open(f"response_debug_{location_id}.json", 'w', encoding='utf-8') as f:
+                    json.dump(response_data, f, indent=4, ensure_ascii=False)
+                print(f"Saved debug response to response_debug_{location_id}.json")
+            
+            # Get restaurant and location info only once
+            if restaurant_info is None and len(response_data) > 1:
+                restaurant_data = response_data[1].get("data", {}).get("RestaurantPresentation_searchRestaurantsById", {}).get("restaurants", [{}])[0]
+                restaurant_info = {
+                    "name": restaurant_data.get("name"),
+                    "description": restaurant_data.get("description"),
+                    "telephone": restaurant_data.get("telephone"),
+                    "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
+                    "schedule": restaurant_data.get("open_hours", {}).get("schedule")
+                }
+            
+            if location_info is None and len(response_data) > 1:
+                location_data = response_data[1].get("data", {}).get("locations", [{}])[0]
+                location_info = {
+                    "localizedStreetAddress": location_data.get("localizedStreetAddress"),
+                    "isoCountryCode": location_data.get("isoCountryCode"),
+                    "parent": location_data.get("parent"),
+                    "email": location_data.get("email")
+                }
+            
+            # Extract reviews and determine total count for pagination
+            if response_data and len(response_data) > 0:
+                location_data = response_data[0].get("data", {}).get("locations", [{}])[0]
+                review_list_page = location_data.get("reviewListPage", {})
+                
+                # Get the total count if we don't have it yet
+                if total_count is None:
+                    total_count = review_list_page.get("totalCount", 0)
+                    print(f"Total reviews for location {location_id}: {total_count}")
+                    if total_count == 0:
+                        print("Warning: totalCount is 0, there may be an issue with the response structure")
+                        break
+                
+                # Process current batch of reviews
+                reviews_batch = review_list_page.get("reviews", [])
+                new_reviews_count = 0
+                
+                if not reviews_batch:
+                    print("Warning: No reviews found in this batch")
+                    if offset == 0:
+                        print("Failed to find any reviews, check the response structure")
+                        break
+                
+                for review in reviews_batch:
+                    review_id = str(review.get("id", ""))
+                    if review_id and review_id not in all_reviews:
+                        # Add only new reviews
+                        review_text = review.get("text", "")
+                        all_reviews[review_id] = {
+                            "userId": review.get("userId"),
+                            "id": review_id,
+                            "text": review_text,
+                            "locationId": review.get("locationId"),
+                            "title": review.get("title"),
+                            "rating": review.get("rating"),
+                            "publishedDate": review.get("publishedDate"),
+                            "username": review.get("username")
+                        }
+                        new_reviews_count += 1
+                
+                print(f"Added {new_reviews_count} new reviews in this batch")
+                
+                if reviews_batch and new_reviews_count == 0:
+                    print("Received reviews but all were duplicates, stopping pagination")
+                    break
+                
+                # Increment offset for next batch
+                offset += len(reviews_batch)
+                
+                # If we've fetched all reviews or this batch was empty, exit the loop
+                if len(reviews_batch) < batch_size or offset >= total_count:
+                    print(f"Reached the end of reviews at offset {offset}/{total_count}")
+                    break
+            else:
+                print("No location data in response, stopping pagination")
+                break
+        except Exception as e:
+            print(f"Error processing batch: {str(e)}")
+            break
     
-    response = requests.post(url, headers=headers, cookies=cookies, data=json.dumps(payload))
-    
-    print(f"Status Code for location {location_id}:", response.status_code)
-    
-    # Parse the response
-    response_data = response.json()
-    
-    # Extract required data
+    # Prepare the final data structure
     filtered_data = {
-        "reviews": [],
-        "restaurant": {},
-        "location": {}
+        "reviews": list(all_reviews.values()),
+        "restaurant": restaurant_info or {},
+        "location": location_info or {}
     }
     
-    # Extract reviews data
-    if response_data and len(response_data) > 0:
-        reviews_data = response_data[0].get("data", {}).get("locations", [{}])[0].get("reviewListPage", {}).get("reviews", [])
-        for review in reviews_data:
-            filtered_data["reviews"].append({
-                "userId": review.get("userId"),
-                "id": review.get("id"),
-                "text": review.get("text"),
-                "locationId": review.get("locationId"),
-                "title": review.get("title"),
-                "rating": review.get("rating"),
-                "publishedDate": review.get("publishedDate"),
-                "username": review.get("username")
-            })
+    # Save the filtered response to a file
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(filtered_data, f, indent=4, ensure_ascii=False)
     
-    # Extract restaurant data
-    if response_data and len(response_data) > 1:
-        restaurant_data = response_data[1].get("data", {}).get("RestaurantPresentation_searchRestaurantsById", {}).get("restaurants", [{}])[0]
-        filtered_data["restaurant"] = {
-            "name": restaurant_data.get("name"),
-            "description": restaurant_data.get("description"),
-            "telephone": restaurant_data.get("telephone"),
-            "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
-            "schedule": restaurant_data.get("open_hours", {}).get("schedule")
-        }
-    
-    # Extract location data
-    if response_data and len(response_data) > 1:
-        location_data = response_data[1].get("data", {}).get("locations", [{}])[0]
-        filtered_data["location"] = {
-            "localizedStreetAddress": location_data.get("localizedStreetAddress"),
-            "isoCountryCode": location_data.get("isoCountryCode"),
-            "parent": location_data.get("parent"),
-            "email": location_data.get("email")
-        }
-    
-    # Save the filtered response to a file named with the location ID
-    filename = f"{location_id}.json"
-    with open(filename, 'w') as f:
-        json.dump(filtered_data, f, indent=4)
-    print(f"Filtered response saved to {filename}")
+    print(f"Saved {len(all_reviews)} total reviews to {filename}")
 
 def run_scraper(query: str):
     with sync_playwright() as p:
