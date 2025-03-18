@@ -114,30 +114,106 @@ def send_request(location_id):
                 
             response_data = response.json()
             
-            # Debug the response structure
-            if offset == 0:
-                with open(f"response_debug_{location_id}.json", 'w', encoding='utf-8') as f:
-                    json.dump(response_data, f, indent=4, ensure_ascii=False)
-                print(f"Saved debug response to response_debug_{location_id}.json")
+            # Debug: Save the first response for inspection
+            # if offset == 0:
+            #     with open(f"response_debug_{location_id}.json", 'w', encoding='utf-8') as f:
+            #         json.dump(response_data, f, indent=4, ensure_ascii=False)
+            #     print(f"Saved debug response to response_debug_{location_id}.json")
             
-            # Get restaurant and location info only once
+            # Extract restaurant info with additional details (only once)
             if restaurant_info is None and len(response_data) > 1:
                 restaurant_data = response_data[1].get("data", {}).get("RestaurantPresentation_searchRestaurantsById", {}).get("restaurants", [{}])[0]
+                
+                # Extract dining options
+                dining_options = []
+                if "dining_options" in restaurant_data and "items" in restaurant_data["dining_options"]:
+                    for item in restaurant_data["dining_options"]["items"]:
+                        if "tag" in item and "localizedName" in item["tag"]:
+                            dining_options.append(item["tag"]["localizedName"])
+                
+                # Extract cuisines
+                cuisines = []
+                if "cuisines" in restaurant_data and "items" in restaurant_data["cuisines"]:
+                    for item in restaurant_data["cuisines"]["items"]:
+                        if "tag" in item and "localizedName" in item["tag"]:
+                            cuisines.append(item["tag"]["localizedName"])
+                
+                # Extract meal types
+                meal_types = []
+                if "meal_types" in restaurant_data and "items" in restaurant_data["meal_types"]:
+                    for item in restaurant_data["meal_types"]["items"]:
+                        if "tag" in item and "localizedName" in item["tag"]:
+                            meal_types.append(item["tag"]["localizedName"])
+                
+                # Extract menu info
+                menu_info = None
+                if "menu" in restaurant_data:
+                    menu_data = restaurant_data["menu"]
+                    menu_info = {
+                        "has_provider": menu_data.get("has_provider", False),
+                        "menu_url": menu_data.get("menu_url", "")
+                    }
+                
                 restaurant_info = {
                     "name": restaurant_data.get("name"),
                     "description": restaurant_data.get("description"),
                     "telephone": restaurant_data.get("telephone"),
                     "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
-                    "schedule": restaurant_data.get("open_hours", {}).get("schedule")
+                    "schedule": restaurant_data.get("open_hours", {}).get("schedule"),
+                    "url": restaurant_data.get("url", ""),
+                    "dining_options": dining_options,
+                    "cuisines": cuisines, 
+                    "meal_types": meal_types,
+                    "menu": menu_info
                 }
             
+            # Extract location info with additional details (only once)
             if location_info is None and len(response_data) > 1:
                 location_data = response_data[1].get("data", {}).get("locations", [{}])[0]
+                
+                # Extract thumbnail with custom size
+                thumbnail = None
+                if "thumbnail" in location_data and "photoSizeDynamic" in location_data["thumbnail"]:
+                    photo_data = location_data["thumbnail"]["photoSizeDynamic"]
+                    if "urlTemplate" in photo_data:
+                        # Replace {width} and {height} with desired dimensions
+                        thumbnail_url = photo_data["urlTemplate"].replace("{width}", "800").replace("{height}", "600")
+                        thumbnail = {
+                            "url": thumbnail_url,
+                            "width": 800,
+                            "height": 600,
+                            "original_width": photo_data.get("maxWidth"),
+                            "original_height": photo_data.get("maxHeight")
+                        }
+                
+                # Extract review summary in correct format
+                review_summary = None
+                if "reviewSummary" in location_data:
+                    review_summary = {
+                        "alertStatusCount": location_data["reviewSummary"].get("alertStatusCount", 0),
+                        "rating": location_data["reviewSummary"].get("rating"),
+                        "count": location_data["reviewSummary"].get("count")
+                    }
+                
+                # Extract review aggregations (including language counts)
+                review_aggregations = None
+                if len(response_data) > 0:
+                    first_location = response_data[0].get("data", {}).get("locations", [{}])[0]
+                    if "reviewAggregations" in first_location:
+                        agg_data = first_location["reviewAggregations"]
+                        review_aggregations = {
+                            "ratingCounts": agg_data.get("ratingCounts", []),
+                            "languageCounts": agg_data.get("languageCounts", {})
+                        }
+                
                 location_info = {
                     "localizedStreetAddress": location_data.get("localizedStreetAddress"),
                     "isoCountryCode": location_data.get("isoCountryCode"),
                     "parent": location_data.get("parent"),
-                    "email": location_data.get("email")
+                    "email": location_data.get("email"),
+                    "thumbnail": thumbnail,
+                    "reviewSummary": review_summary,
+                    "reviewAggregations": review_aggregations
                 }
             
             # Extract reviews and determine total count for pagination
@@ -168,6 +244,20 @@ def send_request(location_id):
                     if review_id and review_id not in all_reviews:
                         # Add only new reviews
                         review_text = review.get("text", "")
+                        
+                        # Extract review photos if available
+                        photos = []
+                        if "photos" in review and review["photos"]:
+                            for photo in review["photos"]:
+                                if "photoSizeDynamic" in photo and "urlTemplate" in photo["photoSizeDynamic"]:
+                                    photo_url = photo["photoSizeDynamic"]["urlTemplate"].replace("{width}", "800").replace("{height}", "600")
+                                    photos.append({
+                                        "id": photo.get("id"),
+                                        "url": photo_url,
+                                        "width": 800,
+                                        "height": 600
+                                    })
+                        
                         all_reviews[review_id] = {
                             "userId": review.get("userId"),
                             "id": review_id,
@@ -176,7 +266,9 @@ def send_request(location_id):
                             "title": review.get("title"),
                             "rating": review.get("rating"),
                             "publishedDate": review.get("publishedDate"),
-                            "username": review.get("username")
+                            "username": review.get("username"),
+                            "photos": photos,
+                            "language": review.get("language")
                         }
                         new_reviews_count += 1
                 
