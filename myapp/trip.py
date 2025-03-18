@@ -17,7 +17,14 @@ from googletrans import Translator
 api = NinjaExtraAPI(urls_namespace='Tripadvisor')
 
 # Initialize translator
-translator = Translator()
+try:
+    translator = Translator(service_urls=[
+        'translate.google.com',
+        'translate.google.co.jp',  # Japanese Google Translate
+    ])
+except Exception as e:
+    print(f"Error initializing translator: {str(e)}")
+    translator = Translator()  # Fallback to default
 
 def extract_location_id(url):
     # Extract the location ID from the URL using regex
@@ -453,23 +460,95 @@ def translate_text(text, source_lang='auto', dest_lang='en'):
         print(f"Source language {source_lang} is the same as destination language, skipping translation")
         return text
     
+    # Special handling for Japanese text
+    if source_lang == 'ja' or (source_lang == 'auto' and any(ord(c) > 0x3000 for c in text)):
+        print("Detected Japanese text, using special handling")
+        try:
+            # Try using a Japanese-specific service URL
+            temp_translator = Translator(service_urls=['translate.google.co.jp'])
+            translation = temp_translator.translate(text, dest=dest_lang)
+            if translation and hasattr(translation, 'text') and translation.text:
+                result = translation.text
+                print(f"Japanese translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                return result
+        except Exception as jp_error:
+            print(f"Japanese-specific translation failed: {str(jp_error)}")
+            
+        # Fallback: Try direct request to Google Translate API
+        try:
+            print("Trying direct request method for Japanese text")
+            session = requests.Session()
+            session.headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            }
+            url = "https://translate.googleapis.com/translate_a/single"
+            params = {
+                "client": "gtx",
+                "sl": "ja",
+                "tl": "en",
+                "dt": "t",
+                "q": text
+            }
+            response = session.get(url, params=params)
+            if response.status_code == 200:
+                json_data = response.json()
+                if json_data and len(json_data) > 0 and len(json_data[0]) > 0:
+                    result = ''.join([t[0] for t in json_data[0] if t])
+                    print(f"Direct API translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                    return result
+        except Exception as direct_api_error:
+            print(f"Direct API translation failed: {str(direct_api_error)}")
+    
+    # Try multiple methods to handle different translation issues
     try:
         print(f"Translating from {source_lang} to {dest_lang}: '{text[:50]}{'...' if len(text) > 50 else ''}'")
-        translation = translator.translate(text, src=source_lang, dest=dest_lang)
-        result = translation.text
-        print(f"Translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
-        return result
-    except Exception as e:
-        print(f"Translation error: {str(e)}")
-        # Try with auto-detected language if a specific source language fails
-        if source_lang != 'auto':
-            print("Retrying with auto language detection")
-            try:
-                translation = translator.translate(text, dest=dest_lang)
-                return translation.text
-            except Exception as retry_error:
-                print(f"Retry translation error: {str(retry_error)}")
-        return text  # Return original text if translation fails
+        
+        # Method 1: Direct translation with specified language
+        try:
+            translation = translator.translate(text, src=source_lang, dest=dest_lang)
+            if translation and hasattr(translation, 'text') and translation.text:
+                result = translation.text
+                print(f"Translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                return result
+            else:
+                print("Translation returned None or invalid response")
+        except Exception as e:
+            print(f"First translation attempt failed: {str(e)}")
+        
+        # Method 2: Try with 'auto' language detection
+        try:
+            print("Trying with auto language detection")
+            translation = translator.translate(text, src='auto', dest=dest_lang)
+            if translation and hasattr(translation, 'text') and translation.text:
+                result = translation.text
+                print(f"Auto detection translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                return result
+            else:
+                print("Auto detection translation returned None or invalid response")
+        except Exception as e:
+            print(f"Auto detection translation failed: {str(e)}")
+            
+        # Method 3: Try creating a new translator instance (sometimes helps)
+        try:
+            print("Trying with new translator instance")
+            new_translator = Translator()
+            translation = new_translator.translate(text, dest=dest_lang)
+            if translation and hasattr(translation, 'text') and translation.text:
+                result = translation.text
+                print(f"New translator instance result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                return result
+            else:
+                print("New translator instance returned None or invalid response")
+        except Exception as e:
+            print(f"New translator instance failed: {str(e)}")
+            
+        # If everything fails, return original text
+        print("All translation methods failed, returning original text")
+        return text
+            
+    except Exception as main_error:
+        print(f"Main translation error: {str(main_error)}")
+        return text  # Return original text if all translation attempts fail
 
 def translate_existing_reviews(location_id):
     """Translate any non-English reviews in an existing JSON file."""

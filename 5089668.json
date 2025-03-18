@@ -548,7 +548,8 @@
             "is_translated": true,
             "translation": {
                 "language": "en",
-                "text": "If you're thinking of Junkie Food, this is Shaky's Pizza!It's simple, just salami and cheese, but it's oily and delicious!Cork is a must!It's an atmosphere where everyone can eat together."
+                "text": "If you're thinking of Junkie Food, this is Shaky's Pizza! It's simple, just salami and cheese, but it's oily and delicious! Cork is a must! It's an atmosphere where everyone can eat together.",
+                "title": "This is junkie meal"
             }
         },
         {
@@ -851,6 +852,7 @@
             "is_translated": true,
             "translation": {
                 "language": "en",
+                "text": "Nothing revealing, but they keep the level.We fit a large group, a gas station nearby.Close to the hotel.",
                 "title": "Fast food."
             }
         },
@@ -1682,7 +1684,8 @@
             "is_translated": true,
             "translation": {
                 "language": "en",
-                "text": "We had never gone to a Shakey's Pizza and will never go back there.\n\nThis restaurant is near our hotel and we soupped it last night on April 15, 2014.\n\nWe enter and there is no welcome and no one to explain to us how this restaurant works.We are not sure what to do and we head towards the boxes on the left near the kitchen.\n\nWe ask if we have to sit down and how the restaurant for orders works.\n\nThe girl cannot answer us what is weird and asks another to come and enlighten us.She explains to us quickly and we place our order.\n\nA number is given to us and she tells us to choose a table and we will come to carry our orders directly for us.We put our number 83 on the table and wait.Our table was close to the kitchen and the boxes from which hellish music emanated.The sound was so strong that we had to speak loudly to understand each other.The employees listened to this music for them.Total lack of respect for customers as far as we are concerned.\n\nWe believed that our commands of a small pizza of 4 small points including the unlimited salad bar were what we would have but a plate of two pieces of chicken with potatoes landed on our table in addition to the pizza.None of this had been told.We complain about this opinion not of the price paid for everything we had but of the lack of explanation.We finally had for our money despite the poor quality of the food except for the salad bar which is healthier.\n\nWe paid $ 8.99 Each or a total amount of $ 19.42 for our orders which are thus read on the invoice: 2 single & 2pc leg/th mojo.\n\nThe concept seems popular with the American population but certainly not for us as tourists from Quebec.\n\nThe manager was busy with her phone or other thing in hand and we seemed to disturb her when asked if you could change Canadian money.The answer was not nothing more.\n\nWe left without anyone sending us a smile or a thank you for your visit by promising never to set foot in this channel again.\n\n_______________________________________________\n\nText written on April 15, 2014 in Anaheim, California."
+                "text": "We had never gone to a Shakey's Pizza and will never go back there.\n\nThis restaurant is near our hotel and we soupped it last night on April 15, 2014.\n\nWe enter and there is no welcome and no one to explain to us how this restaurant works.We are not sure what to do and we head towards the boxes on the left near the kitchen.\n\nWe ask if we have to sit down and how the restaurant for orders works.\n\nThe girl cannot answer us what is weird and asks another to come and enlighten us.She explains to us quickly and we place our order.\n\nA number is given to us and she tells us to choose a table and we will come to carry our orders directly for us.We put our number 83 on the table and wait.Our table was close to the kitchen and the boxes from which hellish music emanated.The sound was so strong that we had to speak loudly to understand each other.The employees listened to this music for them.Total lack of respect for customers as far as we are concerned.\n\nWe believed that our commands of a small pizza of 4 small points including the unlimited salad bar were what we would have but a plate of two pieces of chicken with potatoes landed on our table in addition to the pizza.None of this had been told.We complain about this opinion not of the price paid for everything we had but of the lack of explanation.We finally had for our money despite the poor quality of the food except for the salad bar which is healthier.\n\nWe paid $ 8.99 Each or a total amount of $ 19.42 for our orders which are thus read on the invoice: 2 single & 2pc leg/th mojo.\n\nThe concept seems popular with the American population but certainly not for us as tourists from Quebec.\n\nThe manager was busy with her phone or other thing in hand and we seemed to disturb her when asked if you could change Canadian money.The answer was not nothing more.\n\nWe left without anyone sending us a smile or a thank you for your visit by promising never to set foot in this channel again.\n\n_______________________________________________\n\nText written on April 15, 2014 in Anaheim, California.",
+                "title": "Food overflowing with fat and poor quality in addition to excessive noise."
             }
         },
         {
@@ -1891,7 +1894,7 @@
                 }
             ]
         },
-        "url": "R1ZGX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL2xvY2F0aW9ucy9vcmFuZ2UvYW5haGVpbS1yZXN0YXVyYW50L19Ecmw=",
+        "url": "dERHX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL2xvY2F0aW9ucy9vcmFuZ2UvYW5haGVpbS1yZXN0YXVyYW50L180TVk=",
         "decoded_url": "https://www.shakeys.com/locations/orange/anaheim-restaurant/",
         "dining_options": [
             "Takeout",
@@ -1913,7 +1916,7 @@
         ],
         "menu": {
             "has_provider": false,
-            "menu_url": "dXJBX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL21lbnUvcGl6emEvX3VuRQ==",
+            "menu_url": "SmNPX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL21lbnUvcGl6emEvX20xNg==",
             "decoded_menu_url": "https://www.shakeys.com/menu/pizza/"
         }
     },
