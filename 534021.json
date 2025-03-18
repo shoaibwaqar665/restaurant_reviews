@@ -292,7 +292,8 @@
                 }
             ]
         },
-        "url": "bmJoX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL2xvY2F0aW9ucy9sb3MtYW5nZWxlcy9sYS1zdW5zZXQtcmVzdGF1cmFudC9fR0VK",
+        "url": "UEk3X2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL2xvY2F0aW9ucy9sb3MtYW5nZWxlcy9sYS1zdW5zZXQtcmVzdGF1cmFudC9fM2Np",
+        "decoded_url": "https://www.shakeys.com/locations/los-angeles/la-sunset-restaurant/",
         "dining_options": [
             "Takeout",
             "Reservations",
@@ -309,10 +310,35 @@
         ],
         "menu": {
             "has_provider": false,
-            "menu_url": "ZE52X2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL21lbnUvcGl6emEvX3VmRA=="
+            "menu_url": "V0VUX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL21lbnUvcGl6emEvX0JFSg==",
+            "decoded_menu_url": "https://www.shakeys.com/menu/pizza/"
         }
     },
     "location": {
+        "locationId": 534021,
+        "name": "",
+        "placeType": "EATERY",
+        "url": "/Restaurant_Review-g32655-d534021-Reviews-Shakey_s_Pizza_Parlor-Los_Angeles_California.html",
+        "topicCount": 2,
+        "reviewSummary": {
+            "alertStatusCount": 0,
+            "rating": 4.2,
+            "count": 17
+        },
+        "reviewAggregations": {
+            "ratingCounts": [
+                0,
+                2,
+                1,
+                6,
+                8
+            ],
+            "languageCounts": {
+                "de": 2,
+                "en": 14,
+                "it": 1
+            }
+        },
         "localizedStreetAddress": {
             "city": "Los Angeles",
             "state": "California",
@@ -332,21 +358,6 @@
             "height": 600,
             "original_width": 550,
             "original_height": 412
-        },
-        "reviewSummary": null,
-        "reviewAggregations": {
-            "ratingCounts": [
-                0,
-                2,
-                1,
-                6,
-                8
-            ],
-            "languageCounts": {
-                "de": 2,
-                "en": 14,
-                "it": 1
-            }
         }
     }
 }

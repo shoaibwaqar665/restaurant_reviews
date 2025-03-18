@@ -1699,6 +1699,127 @@
             "language": "en"
         }
     ],
-    "restaurant": {},
-    "location": {}
+    "restaurant": {
+        "name": "Shakey's Pizza Parlor",
+        "description": null,
+        "telephone": "+1 714-533-0442",
+        "localizedRealtimeAddress": "1027 S Harbor Blvd, Anaheim, CA 92805",
+        "schedule": {
+            "sun": [
+                {
+                    "close_time": "22:00:00",
+                    "open_time": "11:00:00"
+                }
+            ],
+            "mon": [
+                {
+                    "close_time": "22:00:00",
+                    "open_time": "11:00:00"
+                }
+            ],
+            "tue": [
+                {
+                    "close_time": "22:00:00",
+                    "open_time": "11:00:00"
+                }
+            ],
+            "wed": [
+                {
+                    "close_time": "22:00:00",
+                    "open_time": "11:00:00"
+                }
+            ],
+            "thu": [
+                {
+                    "close_time": "22:00:00",
+                    "open_time": "11:00:00"
+                }
+            ],
+            "fri": [
+                {
+                    "close_time": "23:00:00",
+                    "open_time": "11:00:00"
+                }
+            ],
+            "sat": [
+                {
+                    "close_time": "23:00:00",
+                    "open_time": "11:00:00"
+                }
+            ]
+        },
+        "url": "Qm1uX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL2xvY2F0aW9ucy9vcmFuZ2UvYW5haGVpbS1yZXN0YXVyYW50L19XNUU=",
+        "decoded_url": "https://www.shakeys.com/locations/orange/anaheim-restaurant/",
+        "dining_options": [
+            "Takeout",
+            "Reservations",
+            "Seating",
+            "Parking Available",
+            "Television",
+            "Highchairs Available",
+            "Wheelchair Accessible",
+            "Serves Alcohol"
+        ],
+        "cuisines": [
+            "American",
+            "Pizza"
+        ],
+        "meal_types": [
+            "Lunch",
+            "Dinner"
+        ],
+        "menu": {
+            "has_provider": false,
+            "menu_url": "T2dYX2h0dHBzOi8vd3d3LnNoYWtleXMuY29tL21lbnUvcGl6emEvX3RydQ==",
+            "decoded_menu_url": "https://www.shakeys.com/menu/pizza/"
+        }
+    },
+    "location": {
+        "locationId": 5089668,
+        "name": "",
+        "placeType": "EATERY",
+        "url": "/Restaurant_Review-g29092-d5089668-Reviews-Shakey_s_Pizza_Parlor-Anaheim_California.html",
+        "topicCount": 1,
+        "reviewSummary": {
+            "alertStatusCount": 0,
+            "rating": 3.9,
+            "count": 121
+        },
+        "reviewAggregations": {
+            "ratingCounts": [
+                7,
+                6,
+                17,
+                50,
+                41
+            ],
+            "languageCounts": {
+                "pt": 1,
+                "ja": 2,
+                "en": 116,
+                "pl": 1,
+                "fr": 1
+            }
+        },
+        "localizedStreetAddress": {
+            "city": "Anaheim",
+            "state": "California",
+            "postalCode": "92805",
+            "street1": "1027 S Harbor Blvd",
+            "street2": null
+        },
+        "isoCountryCode": "US",
+        "parent": {
+            "locationId": 29092,
+            "localizedName": "Anaheim"
+        },
+        "email": "contactus@shakeys.com",
+        "thumbnail": {
+            "url": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1d/98/f2/f7/large-pan-pizza-with.jpg?w=800&h=600&s=1",
+            "width": 800,
+            "height": 600,
+            "original_width": 4032,
+            "original_height": 3024
+        }
+    }
 }

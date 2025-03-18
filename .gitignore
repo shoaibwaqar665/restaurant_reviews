@@ -1,2 +1,5 @@
 /myenv
 .env
+new.json
+response_debug_*.json
+# response.json

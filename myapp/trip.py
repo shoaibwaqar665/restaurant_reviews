@@ -10,6 +10,7 @@ import re
 from typing import Dict
 from ninja_extra import api_controller, http_get, http_post, NinjaExtraAPI
 from myapp.schema import TripAdvisorQuery
+import base64
 
 # Initialize the Ninja API
 api = NinjaExtraAPI(urls_namespace='Tripadvisor')
@@ -149,10 +150,17 @@ def send_request(location_id):
                 menu_info = None
                 if "menu" in restaurant_data:
                     menu_data = restaurant_data["menu"]
+                    menu_url = menu_data.get("menu_url", "")
+                    decoded_menu_url = decode_and_clean_url(menu_url) if menu_url else ""
                     menu_info = {
                         "has_provider": menu_data.get("has_provider", False),
-                        "menu_url": menu_data.get("menu_url", "")
+                        "menu_url": menu_url,
+                        "decoded_menu_url": decoded_menu_url
                     }
+                
+                # Get and decode restaurant URL
+                restaurant_url = restaurant_data.get("url", "")
+                decoded_restaurant_url = decode_and_clean_url(restaurant_url) if restaurant_url else ""
                 
                 restaurant_info = {
                     "name": restaurant_data.get("name"),
@@ -160,7 +168,8 @@ def send_request(location_id):
                     "telephone": restaurant_data.get("telephone"),
                     "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
                     "schedule": restaurant_data.get("open_hours", {}).get("schedule"),
-                    "url": restaurant_data.get("url", ""),
+                    "url": restaurant_url,
+                    "decoded_url": decoded_restaurant_url,
                     "dining_options": dining_options,
                     "cuisines": cuisines, 
                     "meal_types": meal_types,
@@ -367,6 +376,25 @@ def run_scraper(query: str):
         finally:
             browser.close()
 
+def decode_and_clean_url(encoded_url):
+    if not encoded_url:
+        return ""
+        
+    try:
+        # Decode Base64
+        decoded_bytes = base64.b64decode(encoded_url)
+        decoded_str = decoded_bytes.decode("utf-8")
+
+        # Remove redundant prefix (e.g., "5zh_" or "dEp_") using regex
+        cleaned_url = re.sub(r'^[a-zA-Z0-9]+_', '', decoded_str)
+
+        # Remove everything after the last "/"
+        cleaned_url = re.sub(r'/[^/]+/?$', '/', cleaned_url)
+
+        return cleaned_url
+    except Exception as e:
+        print(f"Error decoding URL {encoded_url}: {str(e)}")
+        return encoded_url
 
 @api_controller("", tags=["TripAdvisor"])
 class TripAdvisorController:
