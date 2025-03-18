@@ -149,6 +149,26 @@
             "rating": 4,
             "publishedDate": "2012-07-25",
             "username": "301kikkik"
+        },
+        {
+            "userId": "FF50EBD3380406B61D55688504A748DC",
+            "id": 113212377,
+            "text": "My family and I got the buffet. They serve salad, chicken, spaghetti,  and pizza. It was okay but not the best stuff in the world. It will do for lunch",
+            "locationId": 534021,
+            "title": "Okay for lunch but nothing impressive.",
+            "rating": 4,
+            "publishedDate": "2011-06-13",
+            "username": "AnnieJ97"
+        },
+        {
+            "userId": "32A182F4C05EE3D16508B9FED71A1A26",
+            "id": 19414777,
+            "text": "Small,medium and large american pizza, you can order it thin or pan.\nGood.\nNice place.",
+            "locationId": 534021,
+            "title": "Small,medium and large american pizza, you can order it thin or pan.\r\nGood.\r\nNice place.",
+            "rating": 2,
+            "publishedDate": "2008-07-07",
+            "username": null
         }
     ],
     "restaurant": {

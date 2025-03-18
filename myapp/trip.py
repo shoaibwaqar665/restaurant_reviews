@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import requests
 import json
 from patchright.sync_api import sync_playwright
@@ -6,7 +7,9 @@ import json
 from datetime import datetime
 import requests
 import re
-from ninja_extra import api_controller, http_get, NinjaExtraAPI
+from typing import Dict
+from ninja_extra import api_controller, http_get, http_post, NinjaExtraAPI
+from myapp.schema import TripAdvisorQuery
 
 # Initialize the Ninja API
 api = NinjaExtraAPI(urls_namespace='Tripadvisor')
@@ -130,19 +133,20 @@ def send_request(location_id):
         json.dump(filtered_data, f, indent=4)
     print(f"Filtered response saved to {filename}")
 
-def run():
+def run_scraper(query: str):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
         page = browser.new_page()
         
         try:
             # Navigate to Google
+            print("Navigating to Google")
             page.goto("https://www.google.com")
             
             # Wait for the search box to be visible and type the search query
             search_box = page.locator('textarea[name="q"]')
             search_box.wait_for()
-            search_box.fill("shakey's pizza parlor tripadvisor usa")
+            search_box.fill(f"{query} tripadvisor usa")
             
             # Press Enter to search
             search_box.press("Enter")
@@ -173,10 +177,6 @@ def run():
         finally:
             browser.close()
 
-# if __name__ == "__main__":
-#     run()
-
-
 
 @api_controller("", tags=["TripAdvisor"])
 class TripAdvisorController:
@@ -197,6 +197,21 @@ class TripAdvisorController:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return {"error": "Restaurant not found"}
+    
+    @http_post('/restaurant_details', response={200: Dict, 400: Dict})
+    def restaurant_details(self,request, data: TripAdvisorQuery):
+        """Return restaurant details for a specific ID"""
+        try:
+           query = data.query
+           print(query)
+           executor = ThreadPoolExecutor()
+           future = executor.submit(run_scraper,query )
+           return 200, {
+               "message": "Success",
+           }
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"error": "Restaurant not found"}
+    
 
 # Register controllers
 api.register_controllers(TripAdvisorController)

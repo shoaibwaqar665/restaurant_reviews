@@ -101,7 +101,7 @@
             "username": "John S"
         },
         {
-            "userId": "9423AD9D97DC350A8A34AF167170C3D1", 
+            "userId": "9423AD9D97DC350A8A34AF167170C3D1",
             "id": 697394639,
             "text": "\u65e5\u672c\u3067\u306f\u6614\u826f\u304f\u5229\u7528\u3055\u305b\u3066\u9802\u3044\u305f\u30b7\u30a7\u30fc\u30ad\u30fc\u30ba\u3067\u3059\u304c\u3001\u4eca\u56de\u521d\u3081\u3066\u30a2\u30e1\u30ea\u30ab\u3067\u98df\u3079\u307e\u3057\u305f\u3002\n\n\u305f\u307e\u305f\u307e\u5bbf\u6cca\u3057\u305f\u30e2\u30fc\u30c6\u30eb\u306e\u771f\u6a2a\u304c\u304a\u5e97\u3060\u3063\u305f\u306e\u3067\u3002\u65e5\u672c\u306e\u304a\u5e97\u3068\u9055\u3063\u3066\u5473\u304c\u3068\u3066\u3082\u6fc3\u304f\u3066\u4e2d\u3005\u7f8e\u5473\u3057\u304b\u3063\u305f\u3067\u3059\uff01",
             "locationId": 5089668,
@@ -149,6 +149,56 @@
             "rating": 5,
             "publishedDate": "2019-03-25",
             "username": "lilnetjojocoxon"
+        },
+        {
+            "userId": "E1BF8D6DCEE50E50E351686C7CBD699F",
+            "id": 655326915,
+            "text": "We placed an online order at 8:16 PM and it was supposed to be ready at 8:56pm. We showed up at 9 and it still wasn't ready, no worries, just running a little late, that's fine. We wait off to the side and that's when I noticed the cart of salad bar stuff just sitting there. Didnt think of anything at that moment. As we waited someone came to the counter angry because they waited over an hour and they still hadn't received their food. The workers apologized for the wait and said they were working on it as quickly as they could. We continued to wait and finally after waiting 40 minutes we finally got our food. Almost and hour after it was supposed to be ready and an hour and a half AFTER we ordered it. They apologized and gave us 2 large pizzas free on our next visit. It didnt do us any good because we were on vacation and weren't planning on wasting any more time there so we gave it to our maid at the hotel. The food was ok, not horrible buy definatly not worth 90 minutes of my families time. Last note, remember that salad bar cart I mentioned when we first came in? Yeah, it sat there untouched and was still there when we left. So take my advice, dont eat the salad bar.",
+            "locationId": 5089668,
+            "title": "Avoid unless you dont value your time or health.",
+            "rating": 2,
+            "publishedDate": "2019-02-27",
+            "username": "maleficent84mfg"
+        },
+        {
+            "userId": "2254059862735F3DEDE5C1B1403BA93E",
+            "id": 639935654,
+            "text": "My family and I were in Anaheim for a few days and visited Shakey\u2019s for dinner. Both my husband and I have fond memories of Shakey\u2019s from our childhoods. Perhaps we just remember things as better than they actually were. Considering where we were, we had a hot meal and fed four adults from about $45. Not bad.\n\nWe ordered a large pizza and the family antipasto salad. Both were okay. ",
+            "locationId": 5089668,
+            "title": "Okay for the location",
+            "rating": 3,
+            "publishedDate": "2018-12-16",
+            "username": "h_e_tompkins"
+        },
+        {
+            "userId": "CE99CC9B2BED8A13234C157C97D4DFB3",
+            "id": 639790426,
+            "text": "Clean and family friendly fun place to eat Italian. We had breast of chicken and pizza and both were delicious. We witnessed a lot of different group of people meeting to all eat together. Order your food and then go sit down at a table or both. Games for kids.",
+            "locationId": 5089668,
+            "title": "Nice variety of Food",
+            "rating": 4,
+            "publishedDate": "2018-12-15",
+            "username": "Judy W"
+        },
+        {
+            "userId": "B92841421BF3FCA3E50D8CB7DCD059F6",
+            "id": 635069197,
+            "text": "Shakey's was in close walking distance from our hotel. We were looking for close and affordable pizza, they had a special so we decided to try them. The food and drink did not disappoint. We got a large pepperoni, a large Mojo (round jojo's) and a family salad. We had plenty to bring back to our hotel. It was also nice not paying double for a beer. The kids played games while the adults relaxed. Shakey's is a great place for everyone. 4/5 because our cashier was obviously new and was not ready for the dinner crowd. The manager walked around though to make sure everyone was happy.",
+            "locationId": 5089668,
+            "title": "Dinner after Disneyland ",
+            "rating": 4,
+            "publishedDate": "2018-11-22",
+            "username": "Miczmama80"
+        },
+        {
+            "userId": "40B988CE40ED1689D50E310ED41C4C7F",
+            "id": 622803206,
+            "text": "After a long day traveling with kids, we ordered Shakey\u2019s to enjoy with our family in the hotel.  The specials were confusing and overpriced, but we placed an order with three items.  After each item, we checked the option for a side of ranch.  The food arrived without any ranch.  If you are a person that counts on condiments, you can understand how disappointing it is to choke down dry food.  After paying too much for the food, a delivery fee of $5 and a tip, we expected our order to be right.  Neither Shakey\u2019s nor Grub Hub responded to my complaint.  Paid way too much for dry food.  Order somewhere else.  Grub Hub reviews show that this is a common issue, which means that they truly don\u2019t care about customer service.  Spend your money somewhere else!",
+            "locationId": 5089668,
+            "title": "Spend Your Money Somewhere Else!",
+            "rating": 1,
+            "publishedDate": "2018-10-06",
+            "username": "suzannesW7870FS"
         }
     ],
     "restaurant": {
