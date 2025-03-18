@@ -171,6 +171,11 @@ def send_request(location_id):
             if location_info is None and len(response_data) > 1:
                 location_data = response_data[1].get("data", {}).get("locations", [{}])[0]
                 
+                # Extract first location data from first response for additional details
+                first_location = None
+                if len(response_data) > 0:
+                    first_location = response_data[0].get("data", {}).get("locations", [{}])[0]
+                
                 # Extract thumbnail with custom size
                 thumbnail = None
                 if "thumbnail" in location_data and "photoSizeDynamic" in location_data["thumbnail"]:
@@ -186,34 +191,47 @@ def send_request(location_id):
                             "original_height": photo_data.get("maxHeight")
                         }
                 
-                # Extract review summary in correct format
+                # Get basic location details
+                location_details = {
+                    "locationId": location_data.get("locationId"),
+                    "name": location_data.get("name", ""),
+                    "placeType": first_location.get("placeType", ""),
+                    "url": first_location.get("url", ""),
+                    "topicCount": first_location.get("topicCount", 0),
+                }
+                
+                # Extract review summary from the first location data (matching new.json structure)
                 review_summary = None
-                if "reviewSummary" in location_data:
+                if first_location and "reviewSummary" in first_location:
                     review_summary = {
-                        "alertStatusCount": location_data["reviewSummary"].get("alertStatusCount", 0),
-                        "rating": location_data["reviewSummary"].get("rating"),
-                        "count": location_data["reviewSummary"].get("count")
+                        "alertStatusCount": first_location["reviewSummary"].get("alertStatusCount", 0),
+                        "rating": first_location["reviewSummary"].get("rating"),
+                        "count": first_location["reviewSummary"].get("count")
                     }
+                
+                # Add review summary to location details
+                location_details["reviewSummary"] = review_summary
                 
                 # Extract review aggregations (including language counts)
                 review_aggregations = None
-                if len(response_data) > 0:
-                    first_location = response_data[0].get("data", {}).get("locations", [{}])[0]
-                    if "reviewAggregations" in first_location:
-                        agg_data = first_location["reviewAggregations"]
-                        review_aggregations = {
-                            "ratingCounts": agg_data.get("ratingCounts", []),
-                            "languageCounts": agg_data.get("languageCounts", {})
-                        }
+                if first_location and "reviewAggregations" in first_location:
+                    agg_data = first_location["reviewAggregations"]
+                    review_aggregations = {
+                        "ratingCounts": agg_data.get("ratingCounts", []),
+                        "languageCounts": agg_data.get("languageCounts", {})
+                    }
                 
+                # Add review aggregations to location details
+                location_details["reviewAggregations"] = review_aggregations
+                
+                # Add additional location info
                 location_info = {
+                    **location_details,
                     "localizedStreetAddress": location_data.get("localizedStreetAddress"),
                     "isoCountryCode": location_data.get("isoCountryCode"),
                     "parent": location_data.get("parent"),
                     "email": location_data.get("email"),
                     "thumbnail": thumbnail,
-                    "reviewSummary": review_summary,
-                    "reviewAggregations": review_aggregations
                 }
             
             # Extract reviews and determine total count for pagination
