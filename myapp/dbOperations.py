@@ -3,26 +3,26 @@ import psycopg2
 import psycopg2.extras  
 import sys 
 import requests
+import json
+from datetime import datetime
 
-from myapp.environment import  Scraping , Omni ,WebhookURL
+from myapp.environment import Scraping
 
 Scraping = Scraping
-Omni = Omni
-webhookUrl = WebhookURL.get("WebhookURL")
 
-def InsertTripadvisorReviews(
-    review_text, 
-    reviewer, 
-    rating_value, 
-    review_id,
-    time_created_date, 
-    time_created_time, 
-    venue,
-    venue_name,
-):
+def InsertRestaurantDetails(restaurant_data):
+    """
+    Insert restaurant details from Tripadvisor JSON data into the trip_restaurants_details table.
+    
+    Args:
+        restaurant_data (dict): The restaurant data from the Tripadvisor JSON
+    
+    Returns:
+        str: The location_id of the inserted or existing restaurant
+    """
     conn = None
     cursor = None
-
+    
     try:
         conn = psycopg2.connect(
             dbname=Scraping["Database"],
@@ -33,182 +33,186 @@ def InsertTripadvisorReviews(
         )
         cursor = conn.cursor()
 
+        location = restaurant_data["location"]
+        details = restaurant_data.get("restaurant", {})
+        location_id = str(location["locationId"])
+        
+        # Check if restaurant already exists
         check_query = """
             SELECT COUNT(*)
-            FROM tripadvisor_reviews
-            WHERE review_text = %s 
-              AND reviewer = %s 
-              AND rating = %s
-              AND review_id = %s
-              AND time_created_date = %s
-              AND time_created_time = %s
-              AND venue=%s
-              AND venue_name = %s
+            FROM trip_restaurants_details
+            WHERE location_id = %s
         """
-        cursor.execute(check_query, (review_text, reviewer, rating_value , review_id,time_created_date,time_created_time,venue,venue_name))
+        cursor.execute(check_query, (location_id,))
         existing_count = cursor.fetchone()[0]
-
+        
         if existing_count == 0:
+            # Prepare data for insertion
+            address = location.get("localizedStreetAddress", {})
+            schedule_data = details.get("schedule", {})
+            
             insert_query = """
-                INSERT INTO tripadvisor_reviews (
-                    review_text, 
-                    reviewer, 
-                    rating, 
-                    review_id,
-                    time_created_date,
-                    time_created_time, 
-                    venue,
-                    venue_name
+                INSERT INTO trip_restaurants_details (
+                    location_id,
+                    name,
+                    address,
+                    city,
+                    state,
+                    country,
+                    postal_code,
+                    phone,
+                    email,
+                    website,
+                    schedule,
+                    thumbnail,
+                    review_rating,
+                    review_count,
+                    dining_options,
+                    cuisines,
+                    meal_types,
+                    diets,
+                    menu_url,
+                    has_menu_provider
                 ) 
-                VALUES (%s, %s, %s, %s,%s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
+            
+            # Handle case where address might be in a single string format
+            street = ""
+            city = ""
+            state = ""
+            postal_code = ""
+            
+            # First check if we have a localizedRealtimeAddress string to parse
+            localized_address = details.get("localizedRealtimeAddress")
+            if localized_address and isinstance(localized_address, str):
+                # Try to parse address like "791 E Foothill Blvd, Upland, CA 91786"
+                try:
+                    # Split by commas
+                    address_parts = [part.strip() for part in localized_address.split(',')]
+                    
+                    # First part is typically the street address
+                    if len(address_parts) > 0:
+                        street = address_parts[0]
+                    
+                    # Second part is typically the city
+                    if len(address_parts) > 1:
+                        city = address_parts[1]
+                    
+                    # Last part typically contains state and zip code
+                    if len(address_parts) > 2:
+                        last_part = address_parts[-1].split()
+                        if len(last_part) > 0:
+                            state = last_part[0]  # First element should be state code
+                        if len(last_part) > 1:
+                            postal_code = last_part[-1]  # Last element should be zip code
+                            
+                    print(f"Parsed address: Street={street}, City={city}, State={state}, Postal={postal_code}")
+                except Exception as parse_error:
+                    print(f"Error parsing localized address: {str(parse_error)}")
+            
+            # If we didn't get values from localizedRealtimeAddress, use localizedStreetAddress
+            if not street and address.get("street1"):
+                street = address.get("street1", "")
+                if address.get("street2"):
+                    street += ", " + address.get("street2")
+            
+            if not city:
+                city = address.get("city")
+                
+            if not state:
+                state = address.get("state")
+                
+            if not postal_code:
+                postal_code = address.get("postalCode")
+                
+            # Get thumbnail URL
+            thumbnail = None
+            if "thumbnail" in location and "url" in location["thumbnail"]:
+                thumbnail = location["thumbnail"]["url"]
+                
+            # Get review stats
+            review_rating = None
+            review_count = None
+            if "reviewSummary" in location:
+                review_rating = location["reviewSummary"].get("rating")
+                review_count = location["reviewSummary"].get("count")
+                
+            # Menu info
+            menu_url = None
+            has_menu_provider = False
+            if "menu" in details:
+                if "decoded_menu_url" in details["menu"]:
+                    menu_url = details["menu"]["decoded_menu_url"]
+                has_menu_provider = details["menu"].get("has_provider", False)
+
+            website = None
+            if "restaurant_decoded_url" in details:
+                website = details["restaurant_decoded_url"]
+            
+            
+            # Convert schedule to JSON
+            schedule_json = json.dumps(schedule_data) if schedule_data else None
+            
             cursor.execute(
                 insert_query,
                 (
-                    review_text, 
-                    reviewer, 
-                    rating_value,
-                    review_id, 
-                    time_created_date, 
-                    time_created_time,
-                    venue,
-                    venue_name,
+                    location_id,
+                    # If name is not present, use the city name and state name
+                    location.get("name") or f"{city} {state}".strip(),
+                    street,
+                    city,
+                    state,
+                    location.get("isoCountryCode"),
+                    postal_code,
+                    details.get("telephone", ""),
+                    location.get("email"),
+                    website,
+                    schedule_json,
+                    thumbnail,
+                    review_rating,
+                    review_count,
+                    details.get("dining_options", []),
+                    details.get("cuisines", []),
+                    details.get("meal_types", []),
+                    details.get("diets", []),
+                    menu_url,
+                    has_menu_provider
                 )
             )
             conn.commit()
-            print("review added to the database.")
+            print(f"Restaurant details added to the database for location_id: {location_id}")
         else:
-            print("reviews already exists in the database. Skipping insertion.")
+            print(f"Restaurant already exists in the database for location_id: {location_id}")
         
-        return existing_count
+        return location_id
     except Exception as e:
-        print(f"Error: {str(e)}", file=sys.stderr)
+        print(f"Error inserting restaurant details: {str(e)}", file=sys.stderr)
+        return None
     finally:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
 
- 
-def integration_sse(error, valid,locations):
-    """Sends extracted data to a webhook."""
-    webhook_url = f'{webhookUrl}integration/trigger/update'
-    try:
-        if not valid:
-            payload = {
-                "status": "false",
-                "error": error,
-                "platform": "Doordash",
-                "closescreen": True
-            }
-        else:
-            payload = {
-                "status": "true",
-                "locations": locations,
-                "platform": "Doordash",
-                "imageurl": "",
-                "closescreen": True
-            }
-        response = requests.post(webhook_url, json=payload)
-        if response.status_code == 200:
-            print(f"Data sent to webhook: {payload}")
-        else:
-            print(f"Payload: {payload}")
-            print(f"Failed to send data to webhook. Status code: {response.status_code}")
-            print(f"the webhookurl: {webhook_url}")
-    except requests.RequestException as e:
-        print(f"Failed to send data to webhook: {str(e)}")
-        raise
 
-# ------------------- getting the location from database ------------------------
-
-
-def fetch_venue(location_guid):
-    conn = None
-    cursor = None
-
-    try:
-        conn = psycopg2.connect(
-            dbname=Omni["Database"],
-            user=Omni["Username"],
-            password=Omni["Password"],
-            host=Omni["Host"],
-            port=Omni["Port"]
-        )
-        cursor = conn.cursor()
-
-        # SQL query
-        print(location_guid,"location_guid in fetch venue")
-        query = "SELECT venue FROM doordash_credentials WHERE location_guid = %s AND is_deleted ='0'"
-        cursor.execute(query, (location_guid,))
-        print
-        
-        # Fetching the first row
-        record = cursor.fetchone()
-
-        if record is None:
-            print("No data found for the provided location_guid.")
-            return None
-        
-        # Closing the cursor and connection
-        print("The db data:", record[0])
-        return record[0]
+def InsertRestaurantReviews(restaurant_data, location_id):
+    """
+    Insert reviews from Tripadvisor JSON data into the trip_reviews and trip_review_photos tables.
+    Stops processing if 5 consecutive reviews already exist in the database.
     
-    except psycopg2.DatabaseError as error:
-        print("Database error:", error)
-    except Exception as ex:
-        print("An error occurred:", ex)
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()
-
-def fetch_all_location_guids():
-    conn = None
-    cursor = None
-
-    try:
-        conn = psycopg2.connect(
-            dbname=Omni["Database"],
-            user=Omni["Username"],
-            password=Omni["Password"],
-            host=Omni["Host"],
-            port=Omni["Port"]
-        )
-        cursor = conn.cursor()
-
-        # SQL query to fetch all location_guids where is_deleted is 0
-        query = "SELECT location_guid FROM doordash_credentials WHERE is_deleted = '0'"
-        cursor.execute(query)
-        
-        # Fetching all rows
-        records = cursor.fetchall()
-
-        # Extracting location_guids from the fetched records
-        location_guids = [record[0] for record in records]
-
-        # Closing the cursor and connection
-        return location_guids
+    Args:
+        restaurant_data (dict): The restaurant data from the Tripadvisor JSON
+        location_id (str): The location_id of the restaurant
     
-    except psycopg2.DatabaseError as error:
-        print("Database error:", error)
-    except Exception as ex:
-        print("An error occurred:", ex)
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()
-
-
-
-
-def GetPinByEmail(email,platform):
+    Returns:
+        int: The number of new reviews inserted
+    """
     conn = None
     cursor = None
-    pin = None
-
+    new_reviews_count = 0
+    consecutive_existing_count = 0
+    
     try:
         conn = psycopg2.connect(
             dbname=Scraping["Database"],
@@ -218,105 +222,144 @@ def GetPinByEmail(email,platform):
             port=Scraping["Port"]
         )
         cursor = conn.cursor()
-
-        query = """
-            SELECT pin 
-            FROM tbl_2fa 
-            WHERE email = %s AND platform = %s
-            LIMIT 1
-        """
-        cursor.execute(query, (email,platform,))
-        pin = cursor.fetchone()
-
-        if pin:
-            return pin[0]  # Return the pin value
-        else:
-            print("No record found for the given email.")
-            return None
-
+        
+        reviews = restaurant_data.get("reviews", [])
+        
+        for review in reviews:
+            review_id = review.get("id")
+            
+            # Check if review already exists
+            check_query = """
+                SELECT COUNT(*)
+                FROM trip_reviews
+                WHERE review_id = %s
+            """
+            cursor.execute(check_query, (review_id,))
+            existing_count = cursor.fetchone()[0]
+            
+            if existing_count == 0:
+                # Reset consecutive counter when a new review is found
+                consecutive_existing_count = 0
+                
+                # Prepare data for insertion
+                is_translated = review.get("is_translated", False)
+                translated_title = None
+                translated_text = None
+                
+                if is_translated and "translation" in review:
+                    translated_title = review["translation"].get("title")
+                    translated_text = review["translation"].get("text")
+                
+                # Insert review
+                insert_query = """
+                    INSERT INTO trip_reviews (
+                        review_id,
+                        location_id,
+                        user_id,
+                        username,
+                        title,
+                        text,
+                        translated_title,
+                        translated_text,
+                        is_translated,
+                        rating,
+                        published_date,
+                        language
+                    ) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """
+                
+                # Convert date string to date object if it exists
+                published_date = None
+                if "publishedDate" in review:
+                    try:
+                        published_date = datetime.strptime(review["publishedDate"], "%Y-%m-%d").date()
+                    except ValueError:
+                        published_date = None
+                
+                cursor.execute(
+                    insert_query,
+                    (
+                        review_id,
+                        location_id,
+                        review.get("userId"),
+                        review.get("username"),
+                        review.get("title"),
+                        review.get("text"),
+                        translated_title,
+                        translated_text,
+                        is_translated,
+                        review.get("rating"),
+                        published_date,
+                        review.get("language")
+                    )
+                )
+                
+                # Insert photos if they exist
+                photos = review.get("photos", [])
+                if photos:
+                    for photo in photos:
+                        if "url" in photo:
+                            photo_query = """
+                                INSERT INTO trip_review_photos (
+                                    review_id,
+                                    photo_url
+                                ) 
+                                VALUES (%s, %s)
+                            """
+                            cursor.execute(photo_query, (review_id, photo["url"]))
+                
+                new_reviews_count += 1
+            else:
+                # Increment consecutive existing reviews counter
+                consecutive_existing_count += 1
+                print(f"Review {review_id} already exists. Consecutive existing reviews: {consecutive_existing_count}")
+                
+                # Break the loop if 5 consecutive existing reviews are found
+                if consecutive_existing_count >= 5:
+                    print(f"Found 5 consecutive existing reviews. Stopping review processing.")
+                    break
+                
+        conn.commit()
+        print(f"Inserted {new_reviews_count} new reviews for location_id: {location_id}")
+        return new_reviews_count
     except Exception as e:
-        print(f"Error retrieving PIN from DB: {str(e)}", file=sys.stderr)
-        return None
-
+        print(f"Error inserting reviews: {str(e)}", file=sys.stderr)
+        return 0
     finally:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
 
-def sendImgUrlToWebHook(url, valid):
-    """Sends extracted data to a webhook."""
-    try:
-        if not valid:
-            payload = {
-                "status": "false",
-                "error": '',
-                "platform": "Doordash"
-            }
-            print(f"Location Not Found: {payload}")
 
-        else:
-            # formatted_locations = [{'location': loc} for loc in locations]
-            # locations_json = json.dumps(formatted_locations)
-            payload = {
-                "status": "true",
-                "locations": '',
-                "imageurl": url,
-                "platform": "Doordash",
-                "closescreen": False
-            }
-            print(f"Image Url sent to webhook: {payload}")
-        
-        response = requests.post(f"{webhookUrl}integration/trigger/update", json=payload)
-        return response
-    except requests.RequestException as e:
-        print(f"Failed to send data to webhook: {str(e)}")
-        raise
-
-
-def fetch_credentials(location_guid):
-    conn = None
-    cursor = None
-
-    try:
-        conn = psycopg2.connect(
-            dbname=Omni["Database"],
-            user=Omni["Username"],
-            password=Omni["Password"],
-            host=Omni["Host"],
-            port=Omni["Port"]
-        )
-        cursor = conn.cursor()
-
-        # SQL query with join and additional location_id column
-        query = """
-        SELECT email,password,venue FROM doordash_credentials
-        WHERE location_guid = %s  AND is_deleted = '0'
-        """
-        cursor.execute(query, (location_guid,))
-        
-        # Fetching the first row
-        record = cursor.fetchone()
-
-        if record is None:
-            # print("No data found for the provided location_guid.")
-            return None
-        
-        # Closing the cursor and connection
-        print(f"The db data: email={record[0]}, password={record[1]}, venue={record[2]}")
-        return {
-            "email": record[0],
-            "password": record[1],
-            "venue": record[2],
-            
-        }
+def ProcessTripadvisorData(json_file_path):
+    """
+    Process a Tripadvisor JSON file and insert the data into the database.
     
-    except psycopg2.DatabaseError as error:
-        print("Database error:", error)
-    except Exception as ex:
-        print("An error occurred:", ex)
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()
+    Args:
+        json_file_path (str): The path to the JSON file
+    
+    Returns:
+        tuple: (location_id, number of reviews inserted)
+    """
+    try:
+        # Load the JSON data
+        with open(json_file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        
+        # Insert restaurant details
+        location_id = InsertRestaurantDetails(data)
+        
+        if location_id:
+            # Insert reviews
+            review_count = InsertRestaurantReviews(data, location_id)
+            return location_id, review_count
+        else:
+            return None, 0
+            
+    except Exception as e:
+        print(f"Error processing JSON file: {str(e)}", file=sys.stderr)
+        return None, 0
+

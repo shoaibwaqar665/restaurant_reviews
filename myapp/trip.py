@@ -388,6 +388,13 @@ def send_request_for_reviews(location_id, location_name):
                                     if "tag" in item and "localizedName" in item["tag"]:
                                         meal_types.append(item["tag"]["localizedName"])
                             
+                            # Extract diet types
+                            diets = []
+                            if "diets" in restaurant_data and "items" in restaurant_data["diets"]:
+                                for item in restaurant_data["diets"]["items"]:
+                                    if "tag" in item and "localizedName" in item["tag"]:
+                                        diets.append(item["tag"]["localizedName"])
+                            
                             # Extract menu info
                             menu_info = None
                             if "menu" in restaurant_data:
@@ -404,17 +411,19 @@ def send_request_for_reviews(location_id, location_name):
                             restaurant_url = restaurant_data.get("url", "")
                             decoded_restaurant_url = decode_and_clean_url(restaurant_url) if restaurant_url else ""
                             
+
                             restaurant_info = {
                                 "name": restaurant_data.get("name"),
                                 "description": restaurant_data.get("description"),
                                 "telephone": restaurant_data.get("telephone"),
                                 "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
                                 "schedule": restaurant_data.get("open_hours", {}).get("schedule"),
-                                "url": restaurant_url,
-                                "decoded_url": decoded_restaurant_url,
+                                "restaurant_url": restaurant_url,
+                                "restaurant_decoded_url": decoded_restaurant_url,
                                 "dining_options": dining_options,
-                                "cuisines": cuisines, 
                                 "meal_types": meal_types,
+                                "cuisines": cuisines, 
+                                "diets": diets,
                                 "menu": menu_info
                             }
                         else:
@@ -866,25 +875,144 @@ def translate_existing_reviews(location_id):
         print(f"Error processing file {filename}: {str(e)}")
         return False
 
+########################################################
+from myapp.dbOperations import InsertRestaurantDetails, InsertRestaurantReviews, ProcessTripadvisorData
+import sys
+
+def FetchAndStoreRestaurantData(restaurant_query):
+    """
+    Fetches restaurant data from TripAdvisor and stores it in the database.
+    
+    This function:
+    1. Uses the trip.py module's send_request_location_data function to get restaurant location data
+    2. Uses send_request_for_reviews to fetch reviews for each restaurant
+    3. Processes and stores the data in the database
+    
+    Args:
+        restaurant_query (str): The restaurant name to search for
+        
+    Returns:
+        list: List of dictionaries containing processed restaurant IDs and review counts
+    """
+    
+    results = []
+    
+    try:
+        # Step 1: Get restaurant location data
+        print(f"Searching for restaurant: {restaurant_query}")
+        locations = send_request_location_data(restaurant_query)
+        
+        if not locations or len(locations) == 0:
+            print(f"No restaurants found for query: {restaurant_query}")
+            return results
+            
+        # Step 2: Process each restaurant
+        for location in locations:
+            location_id = location.get("locationId")
+            location_name = location.get("locationName")
+            
+            if not location_id:
+                print(f"Missing location ID for restaurant: {location_name}")
+                continue
+                
+            print(f"Processing restaurant: {location_name} (ID: {location_id})")
+            
+            # Step 3: Fetch detailed data including reviews
+            restaurant_data = send_request_for_reviews(location_id, location_name)
+            
+            if not restaurant_data:
+                print(f"Failed to get reviews for restaurant: {location_name}")
+                continue
+                
+            # Step 4: Insert restaurant details
+            stored_location_id = InsertRestaurantDetails(restaurant_data)
+            
+            if not stored_location_id:
+                print(f"Failed to store restaurant details for: {location_name}")
+                continue
+                
+            # Step 5: Insert reviews
+            review_count = InsertRestaurantReviews(restaurant_data, stored_location_id)
+            
+            # Record results
+            results.append({
+                "location_id": stored_location_id,
+                "name": location_name,
+                "reviews_inserted": review_count
+            })
+            
+            print(f"Successfully processed restaurant: {location_name} - Inserted {review_count} reviews")
+    
+    except Exception as e:
+        print(f"Error in FetchAndStoreRestaurantData: {str(e)}", file=sys.stderr)
+    
+    return results
+
+
+def ProcessExistingJsonFiles():
+    """
+    Processes all existing TripAdvisor JSON files in the current directory
+    and stores their data in the database.
+    
+    Returns:
+        int: Number of files processed
+    """
+    import glob
+    import os
+    
+    json_files = glob.glob('*.json')
+    processed_count = 0
+    
+    for json_file in json_files:
+        # Skip files that don't match the TripAdvisor pattern (should start with a number)
+        if not json_file[0].isdigit() or not json_file.endswith('.json'):
+            continue
+            
+        print(f"Processing file: {json_file}")
+        
+        try:
+            location_id, review_count = ProcessTripadvisorData(json_file)
+            
+            if location_id:
+                processed_count += 1
+                print(f"Successfully processed {json_file}: location_id {location_id}, {review_count} reviews inserted")
+            else:
+                print(f"Failed to process {json_file}")
+                
+        except Exception as e:
+            print(f"Error processing {json_file}: {str(e)}", file=sys.stderr)
+    
+    print(f"Completed processing {processed_count} files")
+    return processed_count
+########################################################
+
+
+
+
+
+
+
+
+
 @api_controller("", tags=["TripAdvisor"])
 class TripAdvisorController:
     
-    @http_get('/restaurants')
-    def get_restaurants(self):
-        """Return a list of all restaurant IDs"""
-        import glob
-        json_files = glob.glob('*.json')
-        restaurant_ids = [f.split('.')[0] for f in json_files if f[0].isdigit()]
-        return {"restaurant_ids": restaurant_ids}
+    # @http_get('/restaurants')
+    # def get_restaurants(self):
+    #     """Return a list of all restaurant IDs"""
+    #     import glob
+    #     json_files = glob.glob('*.json')
+    #     restaurant_ids = [f.split('.')[0] for f in json_files if f[0].isdigit()]
+    #     return {"restaurant_ids": restaurant_ids}
     
-    @http_get('/restaurants/{restaurant_id}')
-    def get_restaurant(self, restaurant_id: str):
-        """Return restaurant details for a specific ID"""
-        try:
-            with open(f'{restaurant_id}.json', 'r') as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {"error": "Restaurant not found"}
+    # @http_get('/restaurants/{restaurant_id}')
+    # def get_restaurant(self, restaurant_id: str):
+    #     """Return restaurant details for a specific ID"""
+    #     try:
+    #         with open(f'{restaurant_id}.json', 'r') as f:
+    #             return json.load(f)
+    #     except (FileNotFoundError, json.JSONDecodeError):
+    #         return {"error": "Restaurant not found"}
     
     @http_post('/restaurant_details', response={200: Dict, 400: Dict})
     def restaurant_details(self,request, data: TripAdvisorQuery):
@@ -893,7 +1021,7 @@ class TripAdvisorController:
            query = data.query
            print(query)
            executor = ThreadPoolExecutor()
-           future = executor.submit(run_scraper,query )
+           future = executor.submit(FetchAndStoreRestaurantData,query )
            return 200, {
                "message": "Success",
            }
