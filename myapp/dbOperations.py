@@ -71,10 +71,10 @@ def InsertRestaurantDetails(restaurant_data):
                     cuisines,
                     meal_types,
                     diets,
-                    menu_url,
-                    has_menu_provider
+                    menu_url
+                    
                 ) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             
             # Handle case where address might be in a single string format
@@ -176,8 +176,7 @@ def InsertRestaurantDetails(restaurant_data):
                     details.get("cuisines", []),
                     details.get("meal_types", []),
                     details.get("diets", []),
-                    menu_url,
-                    has_menu_provider
+                    menu_url
                 )
             )
             conn.commit()

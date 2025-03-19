@@ -315,34 +315,36 @@ def send_request_for_reviews(location_id, location_name):
             # Parse the response
             try:
                 response_data = response.json()
+                with open(f'{location_id}_{safe_location_name}_complete_response.json', 'w',encoding='utf-8') as f:
+                    json.dump(response.json(), f, ensure_ascii=False)
                 
                 # Add diagnostic logging for the specific location ID
-                if location_id == '4514949':
-                    print("DIAGNOSTIC INFO FOR UPLAND (ID: 4514949):")
-                    print(f"Response has {len(response_data)} items")
-                    if len(response_data) > 0:
-                        print(f"First item keys: {list(response_data[0].keys() if isinstance(response_data[0], dict) else [])}")
-                        data_obj = response_data[0].get('data', {})
-                        print(f"Data keys: {list(data_obj.keys() if isinstance(data_obj, dict) else [])}")
-                        
-                        locations = data_obj.get('locations', [])
-                        print(f"Locations length: {len(locations) if locations else 0}")
-                        if locations and len(locations) > 0:
-                            first_loc = locations[0]
-                            print(f"First location keys: {list(first_loc.keys() if isinstance(first_loc, dict) else [])}")
-                            if 'reviewListPage' in first_loc:
-                                review_page = first_loc.get('reviewListPage', {})
-                                print(f"ReviewListPage keys: {list(review_page.keys() if isinstance(review_page, dict) else [])}")
-                                print(f"Total count: {review_page.get('totalCount', 'N/A')}")
-                                reviews = review_page.get('reviews', [])
-                                print(f"Reviews length: {len(reviews) if reviews else 0}")
-                            else:
-                                print("No reviewListPage found in first location")
+               
+                if len(response_data) > 0:
+                    print(f"First item keys: {list(response_data[0].keys() if isinstance(response_data[0], dict) else [])}")
+                    data_obj = response_data[0].get('data', {})
+                    print(f"Data keys: {list(data_obj.keys() if isinstance(data_obj, dict) else [])}")
+                    
+                    locations = data_obj.get('locations', [])
+                    print(f"Locations length: {len(locations) if locations else 0}")
+                    if locations and len(locations) > 0:
+                        first_loc = locations[0]
+                        print(f"First location keys: {list(first_loc.keys() if isinstance(first_loc, dict) else [])}")
+                        if 'reviewListPage' in first_loc:
+                            review_page = first_loc.get('reviewListPage', {})
+                            print(f"ReviewListPage keys: {list(review_page.keys() if isinstance(review_page, dict) else [])}")
+                            print(f"Total count: {review_page.get('totalCount', 'N/A')}")
+                            reviews = review_page.get('reviews', [])
+                            print(f"Reviews length: {len(reviews) if reviews else 0}")
                         else:
-                            print("No locations found in data object")
-            except json.JSONDecodeError:
+                            print("No reviewListPage found in first location")
+                    else:
+                        print("No locations found in data object")
+            
+            except json.JSONDecodeError as e:
                 print(f"Error: Invalid JSON response")
                 print(f"Response text: {response.text[:200]}...")  # Print first 200 chars
+                print(f"Error details: {str(e)}")
                 break
                 
             # Validate response structure
@@ -351,173 +353,173 @@ def send_request_for_reviews(location_id, location_name):
                 break
             
             # Extract restaurant info with additional details (only once)
-            if restaurant_info is None and len(response_data) > 1:
-                try:
-                    restaurant_section = response_data[1].get("data", {})
-                    restaurants_key = None
-                    
-                    # Try to find the restaurant data using common keys
-                    for key in restaurant_section.keys():
-                        if "Restaurant" in key and isinstance(restaurant_section[key], dict) and "restaurants" in restaurant_section[key]:
-                            restaurants_key = key
-                            break
-                    
-                    if restaurants_key:
-                        restaurants = restaurant_section[restaurants_key].get("restaurants", [])
-                        if restaurants and len(restaurants) > 0:
-                            restaurant_data = restaurants[0]
-                            
-                            # Extract dining options
-                            dining_options = []
-                            if "dining_options" in restaurant_data and "items" in restaurant_data["dining_options"]:
-                                for item in restaurant_data["dining_options"]["items"]:
-                                    if "tag" in item and "localizedName" in item["tag"]:
-                                        dining_options.append(item["tag"]["localizedName"])
-                            
-                            # Extract cuisines
-                            cuisines = []
-                            if "cuisines" in restaurant_data and "items" in restaurant_data["cuisines"]:
-                                for item in restaurant_data["cuisines"]["items"]:
-                                    if "tag" in item and "localizedName" in item["tag"]:
-                                        cuisines.append(item["tag"]["localizedName"])
-                            
-                            # Extract meal types
-                            meal_types = []
-                            if "meal_types" in restaurant_data and "items" in restaurant_data["meal_types"]:
-                                for item in restaurant_data["meal_types"]["items"]:
-                                    if "tag" in item and "localizedName" in item["tag"]:
-                                        meal_types.append(item["tag"]["localizedName"])
-                            
-                            # Extract diet types
-                            diets = []
-                            if "diets" in restaurant_data and "items" in restaurant_data["diets"]:
-                                for item in restaurant_data["diets"]["items"]:
-                                    if "tag" in item and "localizedName" in item["tag"]:
-                                        diets.append(item["tag"]["localizedName"])
-                            
-                            # Extract menu info
-                            menu_info = None
-                            if "menu" in restaurant_data:
-                                menu_data = restaurant_data["menu"]
-                                menu_url = menu_data.get("menu_url", "")
-                                decoded_menu_url = decode_and_clean_url(menu_url) if menu_url else ""
-                                menu_info = {
-                                    "has_provider": menu_data.get("has_provider", False),
-                                    "menu_url": menu_url,
-                                    "decoded_menu_url": decoded_menu_url
-                                }
-                            
-                            # Get and decode restaurant URL
-                            restaurant_url = restaurant_data.get("url", "")
-                            decoded_restaurant_url = decode_and_clean_url(restaurant_url) if restaurant_url else ""
-                            
-
-                            restaurant_info = {
-                                "name": restaurant_data.get("name"),
-                                "description": restaurant_data.get("description"),
-                                "telephone": restaurant_data.get("telephone"),
-                                "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
-                                "schedule": restaurant_data.get("open_hours", {}).get("schedule"),
-                                "restaurant_url": restaurant_url,
-                                "restaurant_decoded_url": decoded_restaurant_url,
-                                "dining_options": dining_options,
-                                "meal_types": meal_types,
-                                "cuisines": cuisines, 
-                                "diets": diets,
-                                "menu": menu_info
-                            }
-                        else:
-                            print(f"No restaurant data found for location {location_id}")
-                    else:
-                        print(f"No restaurant section found in response for location {location_id}")
-                except Exception as resto_error:
-                    print(f"Error extracting restaurant data: {str(resto_error)}")
-                    
-            # Extract location info with additional details (only once)
-            if location_info is None and len(response_data) > 1:
-                try:
-                    location_section = response_data[1].get("data", {})
-                    location_data = None
-                    
-                    # Try to find location data in different possible keys
-                    if "locations" in location_section and location_section["locations"]:
-                        location_data = location_section["locations"][0]
-                    elif "location" in location_section:
-                        location_data = location_section["location"]
-                    
-                    if location_data:
-                        # Extract first location data from first response for additional details
-                        first_location = None
-                        if len(response_data) > 0:
-                            first_location = response_data[0].get("data", {}).get("locations", [{}])[0]
+            # if restaurant_info is None and len(response_data) > 1:
+            try:
+                restaurant_section = response_data[1].get("data", {})
+                restaurants_key = None
+                
+                # Try to find the restaurant data using common keys
+                for key in restaurant_section.keys():
+                    if "Restaurant" in key and isinstance(restaurant_section[key], dict) and "restaurants" in restaurant_section[key]:
+                        restaurants_key = key
+                        break
+                
+                if restaurants_key:
+                    restaurants = restaurant_section[restaurants_key].get("restaurants", [])
+                    if restaurants and len(restaurants) > 0:
+                        restaurant_data = restaurants[0]
                         
-                        # Extract thumbnail with custom size
-                        thumbnail = None
-                        if "thumbnail" in location_data and "photoSizeDynamic" in location_data["thumbnail"]:
-                            photo_data = location_data["thumbnail"]["photoSizeDynamic"]
-                            if "urlTemplate" in photo_data:
-                                # Replace {width} and {height} with desired dimensions
-                                thumbnail_url = photo_data["urlTemplate"].replace("{width}", "800").replace("{height}", "600")
-                                thumbnail = {
-                                    "url": thumbnail_url,
-                                    "width": 800,
-                                    "height": 600,
-                                    "original_width": photo_data.get("maxWidth"),
-                                    "original_height": photo_data.get("maxHeight")
-                                }
+                        # Extract dining options
+                        dining_options = []
+                        if "dining_options" in restaurant_data and "items" in restaurant_data["dining_options"]:
+                            for item in restaurant_data["dining_options"]["items"]:
+                                if "tag" in item and "localizedName" in item["tag"]:
+                                    dining_options.append(item["tag"]["localizedName"])
                         
-                        # Get basic location details
-                        location_details = {
-                            "locationId": location_data.get("locationId"),
-                            "name": location_data.get("name", ""),
-                            "placeType": first_location.get("placeType", ""),
-                            "url": first_location.get("url", ""),
-                            "topicCount": first_location.get("topicCount", 0),
-                        }
+                        # Extract cuisines
+                        cuisines = []
+                        if "cuisines" in restaurant_data and "items" in restaurant_data["cuisines"]:
+                            for item in restaurant_data["cuisines"]["items"]:
+                                if "tag" in item and "localizedName" in item["tag"]:
+                                    cuisines.append(item["tag"]["localizedName"])
                         
-                        # Extract review summary from the first location data (matching new.json structure)
-                        review_summary = None
-                        if first_location and "reviewSummary" in first_location:
-                            review_summary = {
-                                "alertStatusCount": first_location["reviewSummary"].get("alertStatusCount", 0),
-                                "rating": first_location["reviewSummary"].get("rating"),
-                                "count": first_location["reviewSummary"].get("count")
+                        # Extract meal types
+                        meal_types = []
+                        if "meal_types" in restaurant_data and "items" in restaurant_data["meal_types"]:
+                            for item in restaurant_data["meal_types"]["items"]:
+                                if "tag" in item and "localizedName" in item["tag"]:
+                                    meal_types.append(item["tag"]["localizedName"])
+                        
+                        # Extract diet types
+                        diets = []
+                        if "diets" in restaurant_data and "items" in restaurant_data["diets"]:
+                            for item in restaurant_data["diets"]["items"]:
+                                if "tag" in item and "localizedName" in item["tag"]:
+                                    diets.append(item["tag"]["localizedName"])
+                        
+                        # Extract menu info
+                        menu_info = None
+                        if "menu" in restaurant_data:
+                            menu_data = restaurant_data["menu"]
+                            menu_url = menu_data.get("menu_url", "")
+                            decoded_menu_url = decode_and_clean_url(menu_url) if menu_url else ""
+                            menu_info = {
+                                "has_provider": menu_data.get("has_provider", False),
+                                "menu_url": menu_url,
+                                "decoded_menu_url": decoded_menu_url
                             }
                         
-                        # Add review summary to location details
-                        location_details["reviewSummary"] = review_summary
+                        # Get and decode restaurant URL
+                        restaurant_url = restaurant_data.get("url", "")
+                        decoded_restaurant_url = decode_and_clean_url(restaurant_url) if restaurant_url else ""
                         
-                        # Extract review aggregations (including language counts)
-                        review_aggregations = None
-                        if first_location and "reviewAggregations" in first_location:
-                            agg_data = first_location["reviewAggregations"]
-                            review_aggregations = {
-                                "ratingCounts": agg_data.get("ratingCounts", []),
-                                "languageCounts": agg_data.get("languageCounts", {})
-                            }
-                        
-                        # Add review aggregations to location details
-                        location_details["reviewAggregations"] = review_aggregations
-                        
-                        # Add additional location info
-                        location_info = {
-                            **location_details,
-                            "localizedStreetAddress": location_data.get("localizedStreetAddress"),
-                            "isoCountryCode": location_data.get("isoCountryCode"),
-                            "parent": location_data.get("parent"),
-                            "email": location_data.get("email"),
-                            "thumbnail": thumbnail,
+                        restaurant_info = {
+                            "name": restaurant_data.get("name"),
+                            "description": restaurant_data.get("description"),
+                            "telephone": restaurant_data.get("telephone"),
+                            "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
+                            "schedule": restaurant_data.get("open_hours", {}).get("schedule"),
+                            "restaurant_url": restaurant_url,
+                            "restaurant_decoded_url": decoded_restaurant_url,
+                            "dining_options": dining_options,
+                            "meal_types": meal_types,
+                            "cuisines": cuisines, 
+                            "diets": diets,
+                            "menu": menu_info
                         }
                     else:
-                        print(f"No location data found in response for {location_id}")
-                except Exception as loc_error:
-                    print(f"Error extracting location data: {str(loc_error)}")
-                    # Create minimal location info to avoid further errors
-                    if not location_info:
-                        location_info = {
-                            "locationId": location_id,
-                            "name": safe_location_name.replace("_", " ")
+                        print(f"No restaurant data found for location {location_id}")
+                else:
+                    print(f"No restaurant section found in response for location {location_id}")
+            except Exception as resto_error:
+                print(f"Error extracting restaurant data: {str(resto_error)}")
+                    
+            # # Extract location info with additional details (only once)
+            # if location_info is None and len(response_data) > 1:
+            try:
+                location_section = response_data[1].get("data", {})
+                location_data = None
+                
+                # Try to find location data in different possible keys
+                if "locations" in location_section and location_section["locations"]:
+                    location_data = location_section["locations"][0]
+                elif "location" in location_section:
+                    location_data = location_section["location"]
+                
+                if location_data:
+                    # Extract first location data from first response for additional details
+                    first_location = None
+                    if len(response_data) > 0:
+                        first_location = response_data[0].get("data", {}).get("locations", [{}])[0]
+                    
+                    # Extract thumbnail with custom size
+                    thumbnail = None
+                    if "thumbnail" in location_data and "photoSizeDynamic" in location_data["thumbnail"]:
+                        photo_data = location_data["thumbnail"]["photoSizeDynamic"]
+                        if "urlTemplate" in photo_data:
+                            # Replace {width} and {height} with desired dimensions
+                            thumbnail_url = photo_data["urlTemplate"].replace("{width}", "800").replace("{height}", "600")
+                            thumbnail = {
+                                "url": thumbnail_url,
+                                "width": 800,
+                                "height": 600,
+                                "original_width": photo_data.get("maxWidth"),
+                                "original_height": photo_data.get("maxHeight")
+                            }
+                    
+                    # Get basic location details
+                    location_details = {
+                        "locationId": location_data.get("locationId"),
+                        "name": location_data.get("name", ""),
+                        "placeType": first_location.get("placeType", ""),
+                        "url": first_location.get("url", ""),
+                        "topicCount": first_location.get("topicCount", 0),
+                    }
+                    
+                    # Extract review summary from the first location data (matching new.json structure)
+                    review_summary = None
+                    if first_location and "reviewSummary" in first_location:
+                        review_summary = {
+                            "alertStatusCount": first_location["reviewSummary"].get("alertStatusCount", 0),
+                            "rating": first_location["reviewSummary"].get("rating"),
+                            "count": first_location["reviewSummary"].get("count")
                         }
+                    
+                    # Add review summary to location details
+                    location_details["reviewSummary"] = review_summary
+                    
+                    # Extract review aggregations (including language counts)
+                    review_aggregations = None
+                    if first_location and "reviewAggregations" in first_location:
+                        agg_data = first_location["reviewAggregations"]
+                        review_aggregations = {
+                            "ratingCounts": agg_data.get("ratingCounts", []),
+                            "languageCounts": agg_data.get("languageCounts", {})
+                        }
+                    
+                    # Add review aggregations to location details
+                    location_details["reviewAggregations"] = review_aggregations
+                    
+                    # Add additional location info
+                    location_info = {
+                        **location_details,
+                        "localizedStreetAddress": location_data.get("localizedStreetAddress"),
+                        "isoCountryCode": location_data.get("isoCountryCode"),
+                        "parent": location_data.get("parent"),
+                        "email": location_data.get("email"),
+                        "thumbnail": thumbnail,
+                        "reviewSummary": first_location.get("reviewSummary", {})
+                    }
+                else:
+                    print(f"No location data found in response for {location_id}")
+            except Exception as loc_error:
+                print(f"Error extracting location data: {str(loc_error)}")
+                # Create minimal location info to avoid further errors
+                if not location_info:
+                    location_info = {
+                        "locationId": location_id,
+                        "name": safe_location_name.replace("_", " ")
+                    }
             
             # Extract reviews and determine total count for pagination
             if response_data and len(response_data) > 0:
