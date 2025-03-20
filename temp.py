@@ -1,97 +1,666 @@
-# import requests
-# import json
-
-# url = "https://www.tripadvisor.com/data/graphql/ids"
-
-# payload = json.dumps([
-#   {
-#     "variables": {
-#       "locationId": 4648969,
-#       "offset": 0,
-#       "limit": 15,
-#       "keywordVariant": "location_keywords_v2_llr_order_30_en",
-#       "language": "en",
-#       "userId": "",
-#       "filters": [],
-#       "prefs": {},
-#       "initialPrefs": {}
-#     },
-#     "extensions": {
-#       "preRegisteredQueryId": "aaff0337570ed0aa"
-#     }
-#   },
-#   {
-#     "variables": {
-#       "rssId": "ta-4648969",
-#       "locationId": 4648969,
-#       "geoId": 32655,
-#       "locale": "en-US",
-#       "currency": "USD",
-#       "distanceUnitHotelsAndRestaurants": "MILES",
-#       "distanceUnitAttractions": "MILES",
-#       "numTimeslots": 6
-#     },
-#     "extensions": {
-#       "preRegisteredQueryId": "e50473638bca81f5"
-#     }
-#   }
-# ])
-# headers = {
-#   'accept': '*/*',
-#   'accept-language': 'en-US,en;q=0.9',
-#   'content-type': 'application/json',
-  
-# }
-# def parse_cookies(cookie_string):
-#     cookie_dict = {}
-#     for cookie in cookie_string.split('; '):
-#         if '=' in cookie:
-#             name, value = cookie.split('=', 1)
-#             cookie_dict[name] = value
-#     return cookie_dict
-
-# # read cookies from cookies.txt
-# with open('cookies.txt', 'r') as f:
-#     cookie_string = f.read()
-
-# # Parse cookies into dictionary
-# cookies = parse_cookies(cookie_string)
-# response = requests.request("POST", url, headers=headers,cookies=cookies, data=payload)
-
-# # print(response.json())
-
-# # save response to json file
-# with open('test_response.json', 'w') as f:
-#     json.dump(response.json(), f)
-
-
+import requests
 import json
+from googletrans import Translator
+import re
+import base64
+# Initialize translator
+try:
+    translator = Translator(service_urls=[
+        'translate.google.com',
+        'translate.google.co.jp',  # Japanese Google Translate
+        'translate.google.com.hk',  # Chinese Google Translate
+        'translate.google.com.tw',  # Chinese Google Translate
+        'translate.google.com.au',  # Australian Google Translate
+        'translate.google.com.sg',  # Singapore Google Translate
+        'translate.google.com.my',  # Malaysian Google Translate
+        'translate.google.com.ph',  # Philippine Google Translate
+        'translate.google.com.vn',  # Vietnamese Google Translate
+        'translate.google.com.br',  # Brazilian Google Translate
+        #french 
+        'translate.google.fr',
+        'translate.google.ca',
+        'translate.google.be',
+        'translate.google.lu',
+        'translate.google.ch',
+        'translate.google.co.uk',
+        
 
-# Load the complete response file
-complete_response_path = "346378_El_Monte__California_complete_response.json"
-with open(complete_response_path, "r", encoding="utf-8") as f:
-    complete_response = json.load(f)
+    ])
+except Exception as e:
+    print(f"Error initializing translator: {str(e)}")
+    translator = Translator()  # Fallback to default
 
-# Extract relevant data from the complete response
-location_data = complete_response[0].get("data", {}).get("locations", [{}])[0]
-review_summary = location_data.get("reviewSummary", {})
-email = location_data.get("email", None)
+def extract_location_id(url):
+    # Extract the location ID from the URL using regex
+    match = re.search(r'-d(\d+)-', url)
+    if match:
+        return match.group(1)
+    return None
 
-# Load the incomplete JSON file
-incomplete_file_path = "346378_El_Monte__California.json"
-with open(incomplete_file_path, "r", encoding="utf-8") as f:
-    incomplete_data = json.load(f)
+def parse_cookies(cookie_string):
+    cookie_dict = {}
+    for cookie in cookie_string.split('; '):
+        if '=' in cookie:
+            name, value = cookie.split('=', 1)
+            cookie_dict[name] = value
+    return cookie_dict
 
-# Update the incomplete data with missing fields
-if "restaurant" in incomplete_data:
-    incomplete_data["restaurant"]["email"] = email
+# read cookies from cookies.txt
+with open('cookies.txt', 'r') as f:
+    cookie_string = f.read()
 
-if "location" in incomplete_data:
-    incomplete_data["location"]["reviewSummary"] = review_summary
+# Parse cookies into dictionary
+cookies = parse_cookies(cookie_string)
 
-# Save the corrected JSON file
-corrected_file_path = "346378_El_Monte__California_fixed.json"
-with open(corrected_file_path, "w", encoding="utf-8") as f:
-    json.dump(incomplete_data, f, ensure_ascii=False, indent=4)
 
-corrected_file_path
+def decode_and_clean_url(encoded_url):
+    if not encoded_url:
+        return ""
+        
+    try:
+        # Decode Base64
+        decoded_bytes = base64.b64decode(encoded_url)
+        decoded_str = decoded_bytes.decode("utf-8")
+
+        # Remove redundant prefix (e.g., "5zh_" or "dEp_") using regex
+        cleaned_url = re.sub(r'^[a-zA-Z0-9]+_', '', decoded_str)
+
+        # Remove everything after the last "/"
+        cleaned_url = re.sub(r'/[^/]+/?$', '/', cleaned_url)
+
+        return cleaned_url
+    except Exception as e:
+        print(f"Error decoding URL {encoded_url}: {str(e)}")
+        return encoded_url
+
+def translate_text(text, source_lang='auto', dest_lang='en'):
+    """Translate text from source language to destination language."""
+    if not text:
+        print("No text to translate")
+        return text
+        
+    if source_lang == dest_lang:
+        print(f"Source language {source_lang} is the same as destination language, skipping translation")
+        return text
+    
+    # Special handling for Japanese text
+    if source_lang == 'ja' or (source_lang == 'auto' and any(ord(c) > 0x3000 for c in text)):
+        print("Detected Japanese text, using special handling")
+        try:
+            # Try using a Japanese-specific service URL
+            temp_translator = Translator(service_urls=['translate.google.co.jp'])
+            translation = temp_translator.translate(text, dest=dest_lang)
+            if translation and hasattr(translation, 'text') and translation.text:
+                result = translation.text
+                print(f"Japanese translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                return result
+        except Exception as jp_error:
+            print(f"Japanese-specific translation failed: {str(jp_error)}")
+            
+        # Fallback: Try direct request to Google Translate API
+        try:
+            print("Trying direct request method for Japanese text")
+            session = requests.Session()
+            session.headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            }
+            url = "https://translate.googleapis.com/translate_a/single"
+            params = {
+                "client": "gtx",
+                "sl": "ja",
+                "tl": "en",
+                "dt": "t",
+                "q": text
+            }
+            response = session.get(url, params=params)
+            if response.status_code == 200:
+                json_data = response.json()
+                if json_data and len(json_data) > 0 and len(json_data[0]) > 0:
+                    result = ''.join([t[0] for t in json_data[0] if t])
+                    print(f"Direct API translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                    return result
+        except Exception as direct_api_error:
+            print(f"Direct API translation failed: {str(direct_api_error)}")
+    
+    # Try multiple methods to handle different translation issues
+    try:
+        print(f"Translating from {source_lang} to {dest_lang}: '{text[:50]}{'...' if len(text) > 50 else ''}'")
+        
+        # Method 1: Direct translation with specified language
+        try:
+            translation = translator.translate(text, src=source_lang, dest=dest_lang)
+            if translation and hasattr(translation, 'text') and translation.text:
+                result = translation.text
+                print(f"Translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                return result
+            else:
+                print("Translation returned None or invalid response")
+        except Exception as e:
+            print(f"First translation attempt failed: {str(e)}")
+        
+        # Method 2: Try with 'auto' language detection
+        try:
+            print("Trying with auto language detection")
+            translation = translator.translate(text, src='auto', dest=dest_lang)
+            if translation and hasattr(translation, 'text') and translation.text:
+                result = translation.text
+                print(f"Auto detection translation result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                return result
+            else:
+                print("Auto detection translation returned None or invalid response")
+        except Exception as e:
+            print(f"Auto detection translation failed: {str(e)}")
+            
+        # Method 3: Try creating a new translator instance (sometimes helps)
+        try:
+            print("Trying with new translator instance")
+            new_translator = Translator()
+            translation = new_translator.translate(text, dest=dest_lang)
+            if translation and hasattr(translation, 'text') and translation.text:
+                result = translation.text
+                print(f"New translator instance result: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                return result
+            else:
+                print("New translator instance returned None or invalid response")
+        except Exception as e:
+            print(f"New translator instance failed: {str(e)}")
+            
+        # If everything fails, return original text
+        print("All translation methods failed, returning original text")
+        return text
+            
+    except Exception as main_error:
+        print(f"Main translation error: {str(main_error)}")
+        return text  # Return original text if all translation attempts fail
+
+
+def send_request_for_reviews(location_id, location_name):
+    
+    url = "https://www.tripadvisor.com/data/graphql/ids"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Content-Type": "application/json"
+    }
+    
+    # Initial batch size for reviews
+    batch_size = 15
+    offset = 0
+    
+    # Dictionary to store all reviews and avoid duplicates
+    all_reviews = {}
+    restaurant_info = None
+    location_info = None
+    total_count = None
+    
+    # Clean location name for filename
+    safe_location_name = location_name.replace(" ", "_")
+    safe_location_name = safe_location_name.replace(",", "_")
+    
+    # Check if file already exists, and load existing data if it does
+    filename = f"{location_id}_{safe_location_name}.json"
+    
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            existing_data = json.load(f)
+            # Load existing reviews into our dictionary using id as key
+            for review in existing_data.get("reviews", []):
+                if 'id' in review:
+                    all_reviews[str(review['id'])] = review
+            restaurant_info = existing_data.get("restaurant", {})
+            location_info = existing_data.get("location", {})
+            print(f"Loaded {len(all_reviews)} existing reviews from {filename}")
+    except (FileNotFoundError, json.JSONDecodeError):
+        print(f"No existing file found or invalid JSON. Starting fresh collection for {location_id}")
+    
+    # Fetch reviews in batches until we've retrieved all of them
+    while True:
+        print(f"Fetching reviews for location {location_id} - Offset: {offset}, Batch size: {batch_size}")
+        
+        # Construct the payload for this batch
+        
+        payload = [
+            {
+                "variables": {
+                    "locationId": int(location_id),
+                    "offset": offset,
+                    "limit": batch_size,
+                    "keywordVariant": "location_keywords_v2_llr_order_30_en",
+                    "language": "en",
+                    "userId": "",
+                    "filters": [],
+                    "prefs": {},
+                    "initialPrefs": {}
+                },
+                "extensions": {
+                    "preRegisteredQueryId": "aaff0337570ed0aa"
+                }
+            },
+            {
+                "variables": {
+                    "rssId": f"ta-{location_id}",
+                    "locationId": int(location_id),
+                    "geoId": 32655,
+                    "locale": "en-US",
+                    "currency": "USD",
+                    "distanceUnitHotelsAndRestaurants": "MILES",
+                    "distanceUnitAttractions": "MILES",
+                    "numTimeslots": 6
+                },
+                "extensions": {
+                    "preRegisteredQueryId": "e50473638bca81f5"
+                }
+            }
+        ]
+        
+        try:
+            # Send the request with proper JSON serialization
+            response = requests.post(
+                url, 
+                headers=headers, 
+                cookies=cookies, 
+                json=payload  # Use json parameter for automatic serialization
+            )
+            
+            if response.status_code != 200:
+                print(f"Error fetching reviews: Status code {response.status_code}")
+                print(f"Response: {response.text[:200]}...")  # Print first 200 chars of response
+                break
+            
+            # Parse the response
+            try:
+                response_data = response.json()
+                
+                # Add diagnostic logging for the specific location ID
+                
+                print("DIAGNOSTIC INFO FOR UPLAND (ID: 4514949):")
+                print(f"Response has {len(response_data)} items")
+                if len(response_data) > 0:
+                    print(f"First item keys: {list(response_data[0].keys() if isinstance(response_data[0], dict) else [])}")
+                    data_obj = response_data[0].get('data', {})
+                    print(f"Data keys: {list(data_obj.keys() if isinstance(data_obj, dict) else [])}")
+                    
+                    locations = data_obj.get('locations', [])
+                    print(f"Locations length: {len(locations) if locations else 0}")
+                    if locations and len(locations) > 0:
+                        first_loc = locations[0]
+                        print(f"First location keys: {list(first_loc.keys() if isinstance(first_loc, dict) else [])}")
+                        if 'reviewListPage' in first_loc:
+                            review_page = first_loc.get('reviewListPage', {})
+                            print(f"ReviewListPage keys: {list(review_page.keys() if isinstance(review_page, dict) else [])}")
+                            print(f"Total count: {review_page.get('totalCount', 'N/A')}")
+                            reviews = review_page.get('reviews', [])
+                            print(f"Reviews length: {len(reviews) if reviews else 0}")
+                        else:
+                            print("No reviewListPage found in first location")
+                    else:
+                        print("No locations found in data object")
+            except json.JSONDecodeError:
+                print(f"Error: Invalid JSON response")
+                print(f"Response text: {response.text[:200]}...")  # Print first 200 chars
+                break
+                
+            # Validate response structure
+            if not response_data or not isinstance(response_data, list) or len(response_data) == 0:
+                print(f"Error: Invalid response data format: {response_data}")
+                break
+            
+            # Extract restaurant info with additional details (only once)
+            if restaurant_info is None and len(response_data) > 1:
+                try:
+                    restaurant_section = response_data[1].get("data", {})
+                    restaurants_key = None
+                    
+                    # Try to find the restaurant data using common keys
+                    for key in restaurant_section.keys():
+                        if "Restaurant" in key and isinstance(restaurant_section[key], dict) and "restaurants" in restaurant_section[key]:
+                            restaurants_key = key
+                            break
+                    
+                    if restaurants_key:
+                        restaurants = restaurant_section[restaurants_key].get("restaurants", [])
+                        if restaurants and len(restaurants) > 0:
+                            restaurant_data = restaurants[0]
+                            
+                            # Extract dining options
+                            dining_options = []
+                            if "dining_options" in restaurant_data and "items" in restaurant_data["dining_options"]:
+                                for item in restaurant_data["dining_options"]["items"]:
+                                    if "tag" in item and "localizedName" in item["tag"]:
+                                        dining_options.append(item["tag"]["localizedName"])
+                            
+                            # Extract cuisines
+                            cuisines = []
+                            if "cuisines" in restaurant_data and "items" in restaurant_data["cuisines"]:
+                                for item in restaurant_data["cuisines"]["items"]:
+                                    if "tag" in item and "localizedName" in item["tag"]:
+                                        cuisines.append(item["tag"]["localizedName"])
+                            
+                            # Extract meal types
+                            meal_types = []
+                            if "meal_types" in restaurant_data and "items" in restaurant_data["meal_types"]:
+                                for item in restaurant_data["meal_types"]["items"]:
+                                    if "tag" in item and "localizedName" in item["tag"]:
+                                        meal_types.append(item["tag"]["localizedName"])
+                            
+                            # Extract menu info
+                            menu_info = None
+                            if "menu" in restaurant_data:
+                                menu_data = restaurant_data["menu"]
+                                menu_url = menu_data.get("menu_url", "")
+                                decoded_menu_url = decode_and_clean_url(menu_url) if menu_url else ""
+                                menu_info = {
+                                    "has_provider": menu_data.get("has_provider", False),
+                                    "menu_url": menu_url,
+                                    "decoded_menu_url": decoded_menu_url
+                                }
+                            
+                            # Get and decode restaurant URL
+                            restaurant_url = restaurant_data.get("url", "")
+                            decoded_restaurant_url = decode_and_clean_url(restaurant_url) if restaurant_url else ""
+                            
+                            restaurant_info = {
+                                "name": restaurant_data.get("name"),
+                                "description": restaurant_data.get("description"),
+                                "telephone": restaurant_data.get("telephone"),
+                                "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
+                                "schedule": restaurant_data.get("open_hours", {}).get("schedule"),
+                                "url": restaurant_url,
+                                "decoded_url": decoded_restaurant_url,
+                                "dining_options": dining_options,
+                                "cuisines": cuisines, 
+                                "meal_types": meal_types,
+                                "menu": menu_info
+                            }
+                        else:
+                            print(f"No restaurant data found for location {location_id}")
+                    else:
+                        print(f"No restaurant section found in response for location {location_id}")
+                except Exception as resto_error:
+                    print(f"Error extracting restaurant data: {str(resto_error)}")
+                    
+            # Extract location info with additional details (only once)
+            if location_info is None and len(response_data) > 1:
+                try:
+                    location_section = response_data[1].get("data", {})
+                    location_data = None
+                    
+                    # Try to find location data in different possible keys
+                    if "locations" in location_section and location_section["locations"]:
+                        location_data = location_section["locations"][0]
+                    elif "location" in location_section:
+                        location_data = location_section["location"]
+                    
+                    if location_data:
+                        # Extract first location data from first response for additional details
+                        first_location = None
+                        if len(response_data) > 0:
+                            first_location = response_data[0].get("data", {}).get("locations", [{}])[0]
+                        
+                        # Extract thumbnail with custom size
+                        thumbnail = None
+                        if "thumbnail" in location_data and location_data["thumbnail"] is not None and "photoSizeDynamic" in location_data["thumbnail"]:
+                            photo_data = location_data["thumbnail"]["photoSizeDynamic"]
+                            if "urlTemplate" in photo_data:
+                                # Replace {width} and {height} with desired dimensions
+                                thumbnail_url = photo_data["urlTemplate"].replace("{width}", "800").replace("{height}", "600")
+                                thumbnail = {
+                                    "url": thumbnail_url,
+                                    "width": 800,
+                                    "height": 600,
+                                    "original_width": photo_data.get("maxWidth"),
+                                    "original_height": photo_data.get("maxHeight")
+                                }
+                        
+                        # Get basic location details
+                        location_details = {
+                            "locationId": location_data.get("locationId"),
+                            "name": location_data.get("name", ""),
+                            "placeType": first_location.get("placeType", "") if first_location else "",
+                            "url": first_location.get("url", "") if first_location else "",
+                            "topicCount": first_location.get("topicCount", 0) if first_location else 0,
+                        }
+                        
+                        # Extract review summary from the first location data (matching new.json structure)
+                        review_summary = None
+                        if first_location and "reviewSummary" in first_location:
+                            summary_data = first_location["reviewSummary"]
+                            if summary_data is not None:  # Add check to ensure summary_data is not None
+                                review_summary = {
+                                    "alertStatusCount": summary_data.get("alertStatusCount", 0),
+                                    "rating": summary_data.get("rating"),
+                                    "count": summary_data.get("count")
+                                }
+                            else:
+                                review_summary = {
+                                    "alertStatusCount": 0,
+                                    "rating": None,
+                                    "count": 0
+                                }
+                        
+                        # Add review summary to location details
+                        location_details["reviewSummary"] = review_summary
+                        
+                        # Extract review aggregations (including language counts)
+                        review_aggregations = None
+                        if first_location and "reviewAggregations" in first_location:
+                            agg_data = first_location["reviewAggregations"]
+                            if agg_data is not None:  # Add check to ensure agg_data is not None
+                                review_aggregations = {
+                                    "ratingCounts": agg_data.get("ratingCounts", []),
+                                    "languageCounts": agg_data.get("languageCounts", {})
+                                }
+                            else:
+                                review_aggregations = {
+                                    "ratingCounts": [],
+                                    "languageCounts": {}
+                                }
+                        
+                        # Add review aggregations to location details
+                        location_details["reviewAggregations"] = review_aggregations
+                        
+                        # Process potentially problematic fields
+                        try:
+                            parent_info = {}
+                            if "parent" in location_data and location_data["parent"] is not None:
+                                parent_data = location_data["parent"]
+                                parent_info = {
+                                    "locationId": parent_data.get("locationId") if isinstance(parent_data, dict) else None,
+                                    "localizedName": parent_data.get("localizedName", "") if isinstance(parent_data, dict) else ""
+                                }
+                                
+                            neighborhoods = []
+                            if "neighborhoods" in location_data and location_data["neighborhoods"] is not None:
+                                neighborhoods_data = location_data["neighborhoods"]
+                                if isinstance(neighborhoods_data, list):
+                                    for neighborhood in neighborhoods_data:
+                                        if isinstance(neighborhood, dict) and "name" in neighborhood:
+                                            neighborhoods.append({"name": neighborhood["name"]})
+                                
+                            # Add additional location info
+                            location_info = {
+                                **location_details,
+                                "localizedStreetAddress": location_data.get("localizedStreetAddress", ""),
+                                "isoCountryCode": location_data.get("isoCountryCode", ""),
+                                "parent": parent_info,
+                                "email": location_data.get("email", ""),
+                                "thumbnail": thumbnail,
+                                "neighborhoods": neighborhoods
+                            }
+                        except Exception as inner_error:
+                            print(f"Error processing special fields: {str(inner_error)}")
+                            # Create a basic location_info if inner processing fails
+                            location_info = {
+                                **location_details,
+                                "localizedStreetAddress": "",
+                                "isoCountryCode": "",
+                                "parent": {},
+                                "email": "",
+                                "thumbnail": thumbnail
+                            }
+                    else:
+                        print(f"No location data found in response for {location_id}")
+                except Exception as loc_error:
+                    print(f"Error extracting location data: {str(loc_error)}")
+                    # Create minimal location info to avoid further errors
+                    if not location_info:
+                        location_info = {
+                            "locationId": location_id,
+                            "name": safe_location_name.replace("_", " ")
+                        }
+            
+            # Extract reviews and determine total count for pagination
+            if response_data and len(response_data) > 0:
+                location_data = response_data[0].get("data", {}).get("locations", [])
+                
+                # Check if location data is valid
+                if not location_data or len(location_data) == 0:
+                    print(f"Warning: No locations found in response data")
+                    break
+                    
+                # Get the first location 
+                first_location = location_data[0]
+                if not first_location:
+                    print(f"Warning: First location is empty")
+                    break
+                    
+                # Try to get review list page
+                review_list_page = first_location.get("reviewListPage", {})
+                if not review_list_page:
+                    print(f"Warning: No reviewListPage found for location")
+                    break
+                
+                # Get the total count if we don't have it yet
+                if total_count is None:
+                    total_count = review_list_page.get("totalCount", 0)
+                    print(f"Total reviews for location {location_id}: {total_count}")
+                    if total_count == 0:
+                        print("Warning: totalCount is 0, there may be an issue with the response structure")
+                        # Save what we have so far even if there are no reviews
+                        break
+                
+                # Process current batch of reviews
+                reviews_batch = review_list_page.get("reviews", [])
+                if reviews_batch is None:
+                    reviews_batch = []
+                    print("Warning: reviews is None, treating as empty list")
+                    
+                new_reviews_count = 0
+                
+                if not reviews_batch:
+                    print("Warning: No reviews found in this batch")
+                    if offset == 0:
+                        print("Failed to find any reviews, check the response structure")
+                        break
+                
+                for review in reviews_batch:
+                    review_id = str(review.get("id", ""))
+                    if review_id and review_id not in all_reviews:
+                        # Add only new reviews
+                        review_text = review.get("text", "")
+                        review_language = review.get("language", "en")
+                        review_title = review.get("title", "")
+                        
+                        # Extract review photos if available
+                        photos = []
+                        if "photos" in review and review["photos"]:
+                            for photo in review["photos"]:
+                                if "photoSizeDynamic" in photo and "urlTemplate" in photo["photoSizeDynamic"]:
+                                    photo_url = photo["photoSizeDynamic"]["urlTemplate"].replace("{width}", "800").replace("{height}", "600")
+                                    photos.append({
+                                        "id": photo.get("id"),
+                                        "url": photo_url,
+                                        "width": 800,
+                                        "height": 600
+                                    })
+                        
+                        # Prepare the review data structure
+                        review_data = {
+                            "userId": review.get("userId"),
+                            "id": review_id,
+                            "text": review_text,
+                            "locationId": review.get("locationId"),
+                            "title": review_title,
+                            "rating": review.get("rating"),
+                            "publishedDate": review.get("publishedDate"),
+                            "username": review.get("username"),
+                            "photos": photos,
+                            "language": review_language,
+                            "is_translated": False  # Default to not translated
+                        }
+                        
+                        # Translate review if not in English
+                        if review_language and review_language != "en":
+                            try:
+                                # Create a translation object within the review data
+                                translation = {
+                                    "language": "en"  # Target language
+                                }
+                                
+                                # Translate text
+                                if review_text:
+                                    translated_text = translate_text(review_text, source_lang=review_language, dest_lang='en')
+                                    if translated_text and translated_text != review_text:
+                                        translation["text"] = translated_text
+                                
+                                # Translate title if available
+                                if review_title:
+                                    print(f"Attempting to translate title: '{review_title}' from {review_language}")
+                                    try:
+                                        translated_title = translate_text(review_title, source_lang=review_language, dest_lang='en')
+                                        print(f"Title translation result: '{translated_title}'")
+                                        if translated_title and translated_title != review_title:
+                                            translation["title"] = translated_title
+                                            print(f"Added title translation for review {review_id}")
+                                    except Exception as e:
+                                        print(f"Error translating title for review {review_id}: {str(e)}")
+                                else:
+                                    print(f"No title to translate for review {review_id}")
+                                
+                                # Add the translation to the review data if we have any translated content
+                                if "text" in translation or "title" in translation:
+                                    review_data["translation"] = translation
+                                    review_data["is_translated"] = True
+                                    print(f"Translated review {review_id} from {review_language} to English")
+                                    
+                            except Exception as e:
+                                print(f"Error translating review {review_id}: {str(e)}")
+                        
+                        all_reviews[review_id] = review_data
+                        new_reviews_count += 1
+                
+                print(f"Added {new_reviews_count} new reviews in this batch")
+                
+                if reviews_batch and new_reviews_count == 0:
+                    print("Received reviews but all were duplicates, stopping pagination")
+                    break
+                
+                # Increment offset for next batch
+                offset += len(reviews_batch)
+                
+                # If we've fetched all reviews or this batch was empty, exit the loop
+                if len(reviews_batch) < batch_size or offset >= total_count:
+                    print(f"Reached the end of reviews at offset {offset}/{total_count}")
+                    break
+            else:
+                print("No location data in response, stopping pagination")
+                break
+                
+        except Exception as e:
+            print(f"Error processing batch: {str(e)}")
+            break
+    
+    # Prepare the final data structure
+    filtered_data = {
+        "reviews": list(all_reviews.values()),
+        "restaurant": restaurant_info or {},
+        "location": location_info or {}
+    }
+    
+    # Save the filtered response to a file
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(filtered_data, f, indent=4, ensure_ascii=False)
+    
+    print(f"Saved {len(all_reviews)} total reviews to {filename}")
+    return filtered_data
+
+send_request_for_reviews("4646186","Norwalk")
