@@ -1,26 +1,34 @@
-from concurrent.futures import ThreadPoolExecutor
 import requests
 import json
-from patchright.sync_api import sync_playwright
 import time
 import json
-from datetime import datetime
 import requests
 import re
-from typing import Dict
-from ninja_extra import api_controller, http_get, http_post, NinjaExtraAPI
-from myapp.schema import TripAdvisorQuery
 import base64
 from googletrans import Translator
-
-# Initialize the Ninja API
-api = NinjaExtraAPI(urls_namespace='Tripadvisor')
 
 # Initialize translator
 try:
     translator = Translator(service_urls=[
         'translate.google.com',
         'translate.google.co.jp',  # Japanese Google Translate
+        'translate.google.com.hk',  # Chinese Google Translate
+        'translate.google.com.tw',  # Chinese Google Translate
+        'translate.google.com.au',  # Australian Google Translate
+        'translate.google.com.sg',  # Singapore Google Translate
+        'translate.google.com.my',  # Malaysian Google Translate
+        'translate.google.com.ph',  # Philippine Google Translate
+        'translate.google.com.vn',  # Vietnamese Google Translate
+        'translate.google.com.br',  # Brazilian Google Translate
+        #french 
+        'translate.google.fr',
+        'translate.google.ca',
+        'translate.google.be',
+        'translate.google.lu',
+        'translate.google.ch',
+        'translate.google.co.uk',
+        
+
     ])
 except Exception as e:
     print(f"Error initializing translator: {str(e)}")
@@ -263,7 +271,8 @@ def send_request_for_reviews(location_id, location_name):
         print(f"Fetching reviews for location {location_id} - Offset: {offset}, Batch size: {batch_size}")
         
         # Construct the payload for this batch
-        
+        location_id = '4514949'
+        location_name = 'upland'
         payload = [
             {
                 "variables": {
@@ -317,29 +326,29 @@ def send_request_for_reviews(location_id, location_name):
                 response_data = response.json()
                 
                 # Add diagnostic logging for the specific location ID
-                
-                print("DIAGNOSTIC INFO FOR UPLAND (ID: 4514949):")
-                print(f"Response has {len(response_data)} items")
-                if len(response_data) > 0:
-                    print(f"First item keys: {list(response_data[0].keys() if isinstance(response_data[0], dict) else [])}")
-                    data_obj = response_data[0].get('data', {})
-                    print(f"Data keys: {list(data_obj.keys() if isinstance(data_obj, dict) else [])}")
-                    
-                    locations = data_obj.get('locations', [])
-                    print(f"Locations length: {len(locations) if locations else 0}")
-                    if locations and len(locations) > 0:
-                        first_loc = locations[0]
-                        print(f"First location keys: {list(first_loc.keys() if isinstance(first_loc, dict) else [])}")
-                        if 'reviewListPage' in first_loc:
-                            review_page = first_loc.get('reviewListPage', {})
-                            print(f"ReviewListPage keys: {list(review_page.keys() if isinstance(review_page, dict) else [])}")
-                            print(f"Total count: {review_page.get('totalCount', 'N/A')}")
-                            reviews = review_page.get('reviews', [])
-                            print(f"Reviews length: {len(reviews) if reviews else 0}")
+                if location_id == '4514949':
+                    print("DIAGNOSTIC INFO FOR UPLAND (ID: 4514949):")
+                    print(f"Response has {len(response_data)} items")
+                    if len(response_data) > 0:
+                        print(f"First item keys: {list(response_data[0].keys() if isinstance(response_data[0], dict) else [])}")
+                        data_obj = response_data[0].get('data', {})
+                        print(f"Data keys: {list(data_obj.keys() if isinstance(data_obj, dict) else [])}")
+                        
+                        locations = data_obj.get('locations', [])
+                        print(f"Locations length: {len(locations) if locations else 0}")
+                        if locations and len(locations) > 0:
+                            first_loc = locations[0]
+                            print(f"First location keys: {list(first_loc.keys() if isinstance(first_loc, dict) else [])}")
+                            if 'reviewListPage' in first_loc:
+                                review_page = first_loc.get('reviewListPage', {})
+                                print(f"ReviewListPage keys: {list(review_page.keys() if isinstance(review_page, dict) else [])}")
+                                print(f"Total count: {review_page.get('totalCount', 'N/A')}")
+                                reviews = review_page.get('reviews', [])
+                                print(f"Reviews length: {len(reviews) if reviews else 0}")
+                            else:
+                                print("No reviewListPage found in first location")
                         else:
-                            print("No reviewListPage found in first location")
-                    else:
-                        print("No locations found in data object")
+                            print("No locations found in data object")
             except json.JSONDecodeError:
                 print(f"Error: Invalid JSON response")
                 print(f"Response text: {response.text[:200]}...")  # Print first 200 chars
@@ -410,8 +419,8 @@ def send_request_for_reviews(location_id, location_name):
                                 "telephone": restaurant_data.get("telephone"),
                                 "localizedRealtimeAddress": restaurant_data.get("localizedRealtimeAddress"),
                                 "schedule": restaurant_data.get("open_hours", {}).get("schedule"),
-                                "restaurant_url": restaurant_url,
-                                "restaurant_decoded_url": decoded_restaurant_url,
+                                "url": restaurant_url,
+                                "decoded_url": decoded_restaurant_url,
                                 "dining_options": dining_options,
                                 "cuisines": cuisines, 
                                 "meal_types": meal_types,
@@ -444,7 +453,7 @@ def send_request_for_reviews(location_id, location_name):
                         
                         # Extract thumbnail with custom size
                         thumbnail = None
-                        if "thumbnail" in location_data and location_data["thumbnail"] is not None and "photoSizeDynamic" in location_data["thumbnail"]:
+                        if "thumbnail" in location_data and "photoSizeDynamic" in location_data["thumbnail"]:
                             photo_data = location_data["thumbnail"]["photoSizeDynamic"]
                             if "urlTemplate" in photo_data:
                                 # Replace {width} and {height} with desired dimensions
@@ -461,27 +470,19 @@ def send_request_for_reviews(location_id, location_name):
                         location_details = {
                             "locationId": location_data.get("locationId"),
                             "name": location_data.get("name", ""),
-                            "placeType": first_location.get("placeType", "") if first_location else "",
-                            "url": first_location.get("url", "") if first_location else "",
-                            "topicCount": first_location.get("topicCount", 0) if first_location else 0,
+                            "placeType": first_location.get("placeType", ""),
+                            "url": first_location.get("url", ""),
+                            "topicCount": first_location.get("topicCount", 0),
                         }
                         
                         # Extract review summary from the first location data (matching new.json structure)
                         review_summary = None
                         if first_location and "reviewSummary" in first_location:
-                            summary_data = first_location["reviewSummary"]
-                            if summary_data is not None:  # Add check to ensure summary_data is not None
-                                review_summary = {
-                                    "alertStatusCount": summary_data.get("alertStatusCount", 0),
-                                    "rating": summary_data.get("rating"),
-                                    "count": summary_data.get("count")
-                                }
-                            else:
-                                review_summary = {
-                                    "alertStatusCount": 0,
-                                    "rating": None,
-                                    "count": 0
-                                }
+                            review_summary = {
+                                "alertStatusCount": first_location["reviewSummary"].get("alertStatusCount", 0),
+                                "rating": first_location["reviewSummary"].get("rating"),
+                                "count": first_location["reviewSummary"].get("count")
+                            }
                         
                         # Add review summary to location details
                         location_details["reviewSummary"] = review_summary
@@ -490,59 +491,23 @@ def send_request_for_reviews(location_id, location_name):
                         review_aggregations = None
                         if first_location and "reviewAggregations" in first_location:
                             agg_data = first_location["reviewAggregations"]
-                            if agg_data is not None:  # Add check to ensure agg_data is not None
-                                review_aggregations = {
-                                    "ratingCounts": agg_data.get("ratingCounts", []),
-                                    "languageCounts": agg_data.get("languageCounts", {})
-                                }
-                            else:
-                                review_aggregations = {
-                                    "ratingCounts": [],
-                                    "languageCounts": {}
-                                }
+                            review_aggregations = {
+                                "ratingCounts": agg_data.get("ratingCounts", []),
+                                "languageCounts": agg_data.get("languageCounts", {})
+                            }
                         
                         # Add review aggregations to location details
                         location_details["reviewAggregations"] = review_aggregations
                         
-                        # Process potentially problematic fields
-                        try:
-                            parent_info = {}
-                            if "parent" in location_data and location_data["parent"] is not None:
-                                parent_data = location_data["parent"]
-                                parent_info = {
-                                    "locationId": parent_data.get("locationId") if isinstance(parent_data, dict) else None,
-                                    "localizedName": parent_data.get("localizedName", "") if isinstance(parent_data, dict) else ""
-                                }
-                                
-                            neighborhoods = []
-                            if "neighborhoods" in location_data and location_data["neighborhoods"] is not None:
-                                neighborhoods_data = location_data["neighborhoods"]
-                                if isinstance(neighborhoods_data, list):
-                                    for neighborhood in neighborhoods_data:
-                                        if isinstance(neighborhood, dict) and "name" in neighborhood:
-                                            neighborhoods.append({"name": neighborhood["name"]})
-                                
-                            # Add additional location info
-                            location_info = {
-                                **location_details,
-                                "localizedStreetAddress": location_data.get("localizedStreetAddress", ""),
-                                "isoCountryCode": location_data.get("isoCountryCode", ""),
-                                "parent": parent_info,
-                                "email": location_data.get("email", ""),
-                                "thumbnail": thumbnail,
-                                "neighborhoods": neighborhoods
-                            }
-                        except Exception as inner_error:
-                            print(f"Error processing special fields: {str(inner_error)}")
-                            # Create a basic location_info if inner processing fails
-                            location_info = {
-                                **location_details,
-                                "localizedStreetAddress": "",
-                                "isoCountryCode": "",
-                                "parent": {},
-                                "email": "",
-                                "thumbnail": thumbnail
-                            }
+                        # Add additional location info
+                        location_info = {
+                            **location_details,
+                            "localizedStreetAddress": location_data.get("localizedStreetAddress"),
+                            "isoCountryCode": location_data.get("isoCountryCode"),
+                            "parent": location_data.get("parent"),
+                            "email": location_data.get("email"),
+                            "thumbnail": thumbnail,
+                        }
                     else:
                         print(f"No location data found in response for {location_id}")
                 except Exception as loc_error:
@@ -910,159 +875,5 @@ def translate_existing_reviews(location_id):
         print(f"Error processing file {filename}: {str(e)}")
         return False
 
-########################################################
-from myapp.dbOperations import InsertRestaurantDetails, InsertRestaurantReviews, ProcessTripadvisorData
-import sys
 
-def FetchAndStoreRestaurantData(restaurant_query):
-    """
-    Fetches restaurant data from TripAdvisor and stores it in the database.
-    
-    This function:
-    1. Uses the trip.py module's send_request_location_data function to get restaurant location data
-    2. Uses send_request_for_reviews to fetch reviews for each restaurant
-    3. Processes and stores the data in the database
-    
-    Args:
-        restaurant_query (str): The restaurant name to search for
-        
-    Returns:
-        list: List of dictionaries containing processed restaurant IDs and review counts
-    """
-    
-    results = []
-    
-    try:
-        # Step 1: Get restaurant location data
-        print(f"Searching for restaurant: {restaurant_query}")
-        locations = send_request_location_data(restaurant_query)
-        
-        if not locations or len(locations) == 0:
-            print(f"No restaurants found for query: {restaurant_query}")
-            return results
-            
-        # Step 2: Process each restaurant
-        for location in locations:
-            location_id = location.get("locationId")
-            location_name = location.get("locationName")
-            
-            if not location_id:
-                print(f"Missing location ID for restaurant: {location_name}")
-                continue
-                
-            print(f"Processing restaurant: {location_name} (ID: {location_id})")
-            
-            # Step 3: Fetch detailed data including reviews
-            restaurant_data = send_request_for_reviews(location_id, location_name)
-            
-            if not restaurant_data:
-                print(f"Failed to get reviews for restaurant: {location_name}")
-                continue
-                
-            # Step 4: Insert restaurant details
-            stored_location_id = InsertRestaurantDetails(restaurant_data)
-            
-            if not stored_location_id:
-                print(f"Failed to store restaurant details for: {location_name}")
-                continue
-                
-            # Step 5: Insert reviews
-            review_count = InsertRestaurantReviews(restaurant_data, stored_location_id)
-            
-            # Record results
-            results.append({
-                "location_id": stored_location_id,
-                "name": location_name,
-                "reviews_inserted": review_count
-            })
-            
-            print(f"Successfully processed restaurant: {location_name} - Inserted {review_count} reviews")
-    
-    except Exception as e:
-        print(f"Error in FetchAndStoreRestaurantData: {str(e)}", file=sys.stderr)
-    
-    return results
-
-
-def ProcessExistingJsonFiles():
-    """
-    Processes all existing TripAdvisor JSON files in the current directory
-    and stores their data in the database.
-    
-    Returns:
-        int: Number of files processed
-    """
-    import glob
-    import os
-    
-    json_files = glob.glob('*.json')
-    processed_count = 0
-    
-    for json_file in json_files:
-        # Skip files that don't match the TripAdvisor pattern (should start with a number)
-        if not json_file[0].isdigit() or not json_file.endswith('.json'):
-            continue
-            
-        print(f"Processing file: {json_file}")
-        
-        try:
-            location_id, review_count = ProcessTripadvisorData(json_file)
-            
-            if location_id:
-                processed_count += 1
-                print(f"Successfully processed {json_file}: location_id {location_id}, {review_count} reviews inserted")
-            else:
-                print(f"Failed to process {json_file}")
-                
-        except Exception as e:
-            print(f"Error processing {json_file}: {str(e)}", file=sys.stderr)
-    
-    print(f"Completed processing {processed_count} files")
-    return processed_count
-########################################################
-
-
-
-
-
-
-
-
-
-@api_controller("", tags=["TripAdvisor"])
-class TripAdvisorController:
-    
-    # @http_get('/restaurants')
-    # def get_restaurants(self):
-    #     """Return a list of all restaurant IDs"""
-    #     import glob
-    #     json_files = glob.glob('*.json')
-    #     restaurant_ids = [f.split('.')[0] for f in json_files if f[0].isdigit()]
-    #     return {"restaurant_ids": restaurant_ids}
-    
-    # @http_get('/restaurants/{restaurant_id}')
-    # def get_restaurant(self, restaurant_id: str):
-    #     """Return restaurant details for a specific ID"""
-    #     try:
-    #         with open(f'{restaurant_id}.json', 'r') as f:
-    #             return json.load(f)
-    #     except (FileNotFoundError, json.JSONDecodeError):
-    #         return {"error": "Restaurant not found"}
-    
-    @http_post('/restaurant_details', response={200: Dict, 400: Dict})
-    def restaurant_details(self,request, data: TripAdvisorQuery):
-        """Return restaurant details for a specific ID"""
-        try:
-           query = data.query
-           print(query)
-           executor = ThreadPoolExecutor()
-           future = executor.submit(FetchAndStoreRestaurantData,query )
-           return 200, {
-               "message": "Success",
-           }
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {"error": "Restaurant not found"}
-    
-
-# Register controllers
-api.register_controllers(TripAdvisorController)
+run_scraper("shakey's pizza parlor")

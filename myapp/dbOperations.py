@@ -163,7 +163,7 @@ def InsertRestaurantDetails(restaurant_data):
                     street,
                     city,
                     state,
-                    location.get("isoCountryCode"),
+                    location.get("isoCountryCode") or "US",
                     postal_code,
                     details.get("telephone", ""),
                     location.get("email"),
