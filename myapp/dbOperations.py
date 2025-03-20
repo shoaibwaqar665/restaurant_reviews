@@ -10,7 +10,7 @@ from myapp.environment import Scraping
 
 Scraping = Scraping
 
-def InsertRestaurantDetails(restaurant_data):
+def InsertRestaurantDetails(restaurant_data, restaurant_query):
     """
     Insert restaurant details from Tripadvisor JSON data into the trip_restaurants_details table.
     
@@ -71,10 +71,11 @@ def InsertRestaurantDetails(restaurant_data):
                     cuisines,
                     meal_types,
                     diets,
-                    menu_url
+                    menu_url,
+                    restaurant_name
                     
                 ) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             
             # Handle case where address might be in a single string format
@@ -176,7 +177,8 @@ def InsertRestaurantDetails(restaurant_data):
                     details.get("cuisines", []),
                     details.get("meal_types", []),
                     details.get("diets", []),
-                    menu_url
+                    menu_url,
+                    restaurant_query
                 )
             )
             conn.commit()

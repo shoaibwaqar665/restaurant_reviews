@@ -220,7 +220,7 @@ def send_request_location_data(query="shakey's pizza parlor"):
 ############################location data extraction end ############################
 
 ############################# review data extraction #################################
-def send_request_for_reviews(location_id, location_name):
+def send_request_for_reviews(location_id, location_name, query):
     
     url = "https://www.tripadvisor.com/data/graphql/ids"
     headers = {
@@ -243,7 +243,7 @@ def send_request_for_reviews(location_id, location_name):
     safe_location_name = safe_location_name.replace(",", "_")
     
     # Check if file already exists, and load existing data if it does
-    filename = f"{location_id}_{safe_location_name}.json"
+    filename = f"{location_id}_{safe_location_name}_{query}.json"
     
     try:
         with open(filename, 'r', encoding='utf-8') as f:
@@ -953,14 +953,14 @@ def FetchAndStoreRestaurantData(restaurant_query):
             print(f"Processing restaurant: {location_name} (ID: {location_id})")
             
             # Step 3: Fetch detailed data including reviews
-            restaurant_data = send_request_for_reviews(location_id, location_name)
+            restaurant_data = send_request_for_reviews(location_id, location_name, restaurant_query)
             
             if not restaurant_data:
                 print(f"Failed to get reviews for restaurant: {location_name}")
                 continue
                 
             # Step 4: Insert restaurant details
-            stored_location_id = InsertRestaurantDetails(restaurant_data)
+            stored_location_id = InsertRestaurantDetails(restaurant_data, restaurant_query)
             
             if not stored_location_id:
                 print(f"Failed to store restaurant details for: {location_name}")
