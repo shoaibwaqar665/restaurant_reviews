@@ -128,7 +128,7 @@ def InsertRestaurantDetails(restaurant_data):
                 
             # Get thumbnail URL
             thumbnail = None
-            if "thumbnail" in location and "url" in location["thumbnail"]:
+            if "thumbnail" in location and location["thumbnail"] is not None and isinstance(location["thumbnail"], dict) and "url" in location["thumbnail"]:
                 thumbnail = location["thumbnail"]["url"]
                 
             # Get review stats
@@ -137,7 +137,7 @@ def InsertRestaurantDetails(restaurant_data):
             if "reviewSummary" in location:
                 review_rating = location["reviewSummary"].get("rating")
                 review_count = location["reviewSummary"].get("count")
-                
+            print(f"Review rating: {review_rating}, Review count: {review_count}")        
             # Menu info
             menu_url = None
             has_menu_provider = False
@@ -150,7 +150,8 @@ def InsertRestaurantDetails(restaurant_data):
             if "restaurant_decoded_url" in details:
                 website = details["restaurant_decoded_url"]
             
-            
+           
+            print(f"Email: {location.get('email')}")
             # Convert schedule to JSON
             schedule_json = json.dumps(schedule_data) if schedule_data else None
             
@@ -158,7 +159,6 @@ def InsertRestaurantDetails(restaurant_data):
                 insert_query,
                 (
                     location_id,
-                    # If name is not present, use the city name and state name
                     location.get("name") or f"{city} {state}".strip(),
                     street,
                     city,
@@ -186,7 +186,32 @@ def InsertRestaurantDetails(restaurant_data):
         
         return location_id
     except Exception as e:
+        import traceback
+        error_line = traceback.extract_tb(sys.exc_info()[2])[-1].lineno
         print(f"Error inserting restaurant details: {str(e)}", file=sys.stderr)
+        print(f"Error occurred at line: {error_line}", file=sys.stderr)
+        print(f"Error type: {type(e).__name__}", file=sys.stderr)
+        print(f"Full traceback:", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        
+        # Print the problematic data
+        print('Restaurant data:', file=sys.stderr)
+        try:
+            print(f"Location ID: {restaurant_data['location'].get('locationId')}", file=sys.stderr)
+            print(f"Name: {restaurant_data['location'].get('name')}", file=sys.stderr)
+            if 'thumbnail' in restaurant_data['location']:
+                print(f"Thumbnail type: {type(restaurant_data['location']['thumbnail'])}", file=sys.stderr)
+                print(f"Thumbnail value: {restaurant_data['location']['thumbnail']}", file=sys.stderr)
+            
+            # Check array fields
+            restaurant = restaurant_data.get('restaurant', {})
+            print(f"dining_options type: {type(restaurant.get('dining_options'))}", file=sys.stderr)
+            print(f"cuisines type: {type(restaurant.get('cuisines'))}", file=sys.stderr)
+            print(f"meal_types type: {type(restaurant.get('meal_types'))}", file=sys.stderr)
+            print(f"diets type: {type(restaurant.get('diets'))}", file=sys.stderr)
+        except Exception as debug_error:
+            print(f"Error while debugging: {str(debug_error)}", file=sys.stderr)
+            
         return None
     finally:
         if cursor:
