@@ -276,6 +276,10 @@ def InsertRestaurantReviews(restaurant_data, location_id):
                     translated_title = review["translation"].get("title")
                     translated_text = review["translation"].get("text")
                 
+                # Use original title as fallback for translated_title if it's null
+                if translated_title is None:
+                    translated_title = review.get("title", "")
+                
                 # Insert review
                 insert_query = """
                     INSERT INTO trip_reviews (
