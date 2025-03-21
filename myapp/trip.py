@@ -318,7 +318,7 @@ def send_request_for_reviews(location_id, location_name, query):
                 
                 # Add diagnostic logging for the specific location ID
                 
-                print("DIAGNOSTIC INFO FOR UPLAND (ID: 4514949):")
+                
                 print(f"Response has {len(response_data)} items")
                 if len(response_data) > 0:
                     print(f"First item keys: {list(response_data[0].keys() if isinstance(response_data[0], dict) else [])}")
@@ -619,6 +619,38 @@ def send_request_for_reviews(location_id, location_name, query):
                                         "height": 600
                                     })
                         
+                        # Extract additional ratings
+                        additional_ratings = []
+                        if "additionalRatings" in review and review["additionalRatings"]:
+                            additional_ratings = review["additionalRatings"]
+                        
+                        # Extract avatar 
+                        avatar = None
+                        if "userProfile" in review and review["userProfile"] and "avatar" in review["userProfile"] and review["userProfile"]["avatar"]:
+                            avatar_data = review["userProfile"]["avatar"]
+                            if "photoSizeDynamic" in avatar_data and "urlTemplate" in avatar_data["photoSizeDynamic"]:
+                                avatar_url = avatar_data["photoSizeDynamic"]["urlTemplate"].replace("{width}", "800").replace("{height}", "600")
+                                avatar = {
+                                    "id": avatar_data.get("id"),
+                                    "url": avatar_url,
+                                    "width": 800,
+                                    "height": 600
+                                }
+                        
+                        # Extract contribution counts
+                        contribution_counts = {}
+                        helpful_votes = review.get("helpfulVotes", 0)
+                        if "userProfile" in review and review["userProfile"] and "contributionCounts" in review["userProfile"]:
+                            contribution_counts = review["userProfile"]["contributionCounts"]
+                            # Add helpfulVotes if not present in contributionCounts
+                            if "helpfulVote" not in contribution_counts:
+                                contribution_counts["helpfulVote"] = helpful_votes
+                        else:
+                            # Create minimal contribution counts with just helpful votes
+                            contribution_counts = {
+                                "helpfulVote": helpful_votes
+                            }
+                        
                         # Prepare the review data structure
                         review_data = {
                             "userId": review.get("userId"),
@@ -631,7 +663,11 @@ def send_request_for_reviews(location_id, location_name, query):
                             "username": review.get("username"),
                             "photos": photos,
                             "language": review_language,
-                            "is_translated": False  # Default to not translated
+                            "is_translated": False,  # Default to not translated
+                            "additionalRatings": additional_ratings,
+                            "avatar": avatar,
+                            "contributionCounts": contribution_counts,
+                            "helpfulVotes": helpful_votes
                         }
                         
                         # Translate review if not in English
@@ -709,11 +745,6 @@ def send_request_for_reviews(location_id, location_name, query):
     print(f"Saved {len(all_reviews)} total reviews to {filename}")
     return filtered_data
 
-def run_scraper(query: str):
-    location_data = send_request_location_data(query)
-    for location in location_data:
-        print(f"Processing location {location['locationName']} with ID {location['locationId']}")
-        send_request_for_reviews(location["locationId"],location["locationName"])
 
 def decode_and_clean_url(encoded_url):
     if not encoded_url:
@@ -1024,30 +1055,9 @@ def ProcessExistingJsonFiles():
 
 
 
-
-
-
-
-
 @api_controller("", tags=["TripAdvisor"])
 class TripAdvisorController:
     
-    # @http_get('/restaurants')
-    # def get_restaurants(self):
-    #     """Return a list of all restaurant IDs"""
-    #     import glob
-    #     json_files = glob.glob('*.json')
-    #     restaurant_ids = [f.split('.')[0] for f in json_files if f[0].isdigit()]
-    #     return {"restaurant_ids": restaurant_ids}
-    
-    # @http_get('/restaurants/{restaurant_id}')
-    # def get_restaurant(self, restaurant_id: str):
-    #     """Return restaurant details for a specific ID"""
-    #     try:
-    #         with open(f'{restaurant_id}.json', 'r') as f:
-    #             return json.load(f)
-    #     except (FileNotFoundError, json.JSONDecodeError):
-    #         return {"error": "Restaurant not found"}
     
     @http_post('/restaurant_details', response={200: Dict, 400: Dict})
     def restaurant_details(self,request, data: TripAdvisorQuery):

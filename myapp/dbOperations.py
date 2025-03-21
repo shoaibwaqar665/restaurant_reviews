@@ -290,9 +290,12 @@ def InsertRestaurantReviews(restaurant_data, location_id):
                         is_translated,
                         rating,
                         published_date,
-                        language
+                        language,
+                        additional_rating,
+                        contribution,
+                        avatar
                     ) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                 """
                 
@@ -303,6 +306,14 @@ def InsertRestaurantReviews(restaurant_data, location_id):
                         published_date = datetime.strptime(review["publishedDate"], "%Y-%m-%d").date()
                     except ValueError:
                         published_date = None
+                
+                # Prepare additional data for insert
+                additional_ratings_json = json.dumps(review.get("additionalRatings", [])) if review.get("additionalRatings") else None
+                contribution_counts_json = json.dumps(review.get("contributionCounts", {})) if review.get("contributionCounts") else None
+                helpful_votes = review.get("helpfulVotes", 0)
+                avatar_url = None
+                if review.get("avatar") and isinstance(review["avatar"], dict):
+                    avatar_url = review["avatar"].get("url")
                 
                 cursor.execute(
                     insert_query,
@@ -318,7 +329,10 @@ def InsertRestaurantReviews(restaurant_data, location_id):
                         is_translated,
                         review.get("rating"),
                         published_date,
-                        review.get("language")
+                        review.get("language"),
+                        additional_ratings_json,
+                        helpful_votes,
+                        avatar_url
                     )
                 )
                 
