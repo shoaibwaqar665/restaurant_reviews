@@ -1,6 +1,7 @@
 from patchright.sync_api import sync_playwright
 import time
 import json
+import os
 
 def search_and_log_reviews():
     with sync_playwright() as p:
@@ -9,23 +10,41 @@ def search_and_log_reviews():
         context = browser.new_context(viewport={'width': 1280, 'height': 800})
         page = context.new_page()
 
-        # Capture review-related responses
+        # Log all requests and capture response for specific URL
+        def log_request(request):
+            print(f"Request URL: {request.url}")
+
         def capture_response(response):
-            if 'https://www.google.com/maps/rpc/listugcposts?' in response.url:
-                print("Captured review response.")
+            if 'https://www.google.com/maps/rpc/listugcposts' in response.url:
+                print(f"Captured Response URL: {response.url}")
+                print(f"Status: {response.status}")
                 try:
-                    if 'application/json' in response.headers.get('content-type', ''):
-                        response_data = response.json()
-                        with open('gmb.json', 'w', encoding='utf-8') as f:
-                            json.dump(response_data, f, ensure_ascii=False, indent=4)
-                        print("Review data saved to gmb.json")
-                    else:
-                        print("Response is not JSON. Skipping.")
+                    # Get the response as text
+                    response_data = response.text()
+
+                    # Remove Google Maps prefix if it exists
+                    if response_data.startswith(")]}'\n"):
+                        response_data = response_data[5:]
+
+                    # Parse it as JSON
+                    parsed_data = json.loads(response_data)
+
+                    # Save it as a formatted JSON file
+                    if not os.path.exists("responses"):
+                        os.makedirs("responses")
+
+                    file_name = f"responses/ugcposts_{int(time.time())}.json"
+                    with open(file_name, 'w', encoding='utf-8') as f:
+                        json.dump(parsed_data, f, ensure_ascii=False, indent=4)
+
+                    print(f"Response saved to {file_name}")
+
                 except Exception as e:
-                    print(f"Error capturing response: {e}")
-        
-        page.on("response", capture_response)
-        
+                    print(f"Error processing response: {e}")
+
+        page.on('request', log_request)
+        page.on('response', capture_response)
+
         # Navigate to Google Maps
         page.goto('https://maps.google.com')
         page.wait_for_load_state('networkidle')
@@ -61,12 +80,10 @@ def search_and_log_reviews():
             print("Could not find reviews selector. Taking screenshot.")
             page.screenshot(path="no_reviews_found.png")
         else:
-           
             time.sleep(5)
             samole_click = page.query_selector('div[class*="cVwbnc IlRKB"]')
             samole_click.click()
 
-            # Press 'End' key to load more reviews
             print("Pressing 'End' key to load reviews...")
             for i in range(35):
                 print(i)
