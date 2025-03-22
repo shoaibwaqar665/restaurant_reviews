@@ -153,6 +153,11 @@ def InsertRestaurantDetails(restaurant_data, restaurant_query):
             
            
             print(f"Email: {location.get('email')}")
+            parent_location_name = ""
+            if "parent" in location and location["parent"] is not None and isinstance(location["parent"], dict):
+                parent_location_name = location["parent"].get("localizedName", "")
+                print(f"Parent location: {parent_location_name}")
+                
             # Convert schedule to JSON
             schedule_json = json.dumps(schedule_data) if schedule_data else None
             
@@ -160,7 +165,7 @@ def InsertRestaurantDetails(restaurant_data, restaurant_query):
                 insert_query,
                 (
                     location_id,
-                    location.get("name") or f"{city} {state}".strip(),
+                    parent_location_name or location.get("name") or f"{city} {state}".strip(),
                     street,
                     city,
                     state,
@@ -295,11 +300,15 @@ def InsertRestaurantReviews(restaurant_data, location_id):
                         rating,
                         published_date,
                         language,
-                        additional_rating,
+                        value_rating,
+                        service_rating,
+                        food_rating,
+                        atmosphere_rating,
                         contribution,
+                        likes,
                         avatar
                     ) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                 """
                 
@@ -311,10 +320,33 @@ def InsertRestaurantReviews(restaurant_data, location_id):
                     except ValueError:
                         published_date = None
                 
-                # Prepare additional data for insert
-                additional_ratings_json = json.dumps(review.get("additionalRatings", [])) if review.get("additionalRatings") else None
-                contribution_counts_json = json.dumps(review.get("contributionCounts", {})) if review.get("contributionCounts") else None
+                # Extract individual ratings from additionalRatings
+                value_rating = None
+                service_rating = None
+                food_rating = None
+                atmosphere_rating = None
+                
+                if review.get("additionalRatings"):
+                    for rating_item in review["additionalRatings"]:
+                        if rating_item.get("ratingLabel") == "Value":
+                            value_rating = rating_item.get("rating")
+                        elif rating_item.get("ratingLabel") == "Service":
+                            service_rating = rating_item.get("rating")
+                        elif rating_item.get("ratingLabel") == "Food":
+                            food_rating = rating_item.get("rating")
+                        elif rating_item.get("ratingLabel") == "Atmosphere":
+                            atmosphere_rating = rating_item.get("rating")
+                
+                # Prepare other data for insert
+                contribution_counts = review.get("contributionCounts", {})
+                sum_all_ugc = None
                 helpful_votes = review.get("helpfulVotes", 0)
+                
+                # Extract sumAllUgc from contributionCounts
+                if contribution_counts and isinstance(contribution_counts, dict):
+                    sum_all_ugc = contribution_counts.get("sumAllUgc")
+                
+
                 avatar_url = None
                 if review.get("avatar") and isinstance(review["avatar"], dict):
                     avatar_url = review["avatar"].get("url")
@@ -334,7 +366,11 @@ def InsertRestaurantReviews(restaurant_data, location_id):
                         review.get("rating"),
                         published_date,
                         review.get("language"),
-                        additional_ratings_json,
+                        value_rating,
+                        service_rating,
+                        food_rating,
+                        atmosphere_rating,
+                        sum_all_ugc,
                         helpful_votes,
                         avatar_url
                     )
@@ -369,7 +405,14 @@ def InsertRestaurantReviews(restaurant_data, location_id):
         print(f"Inserted {new_reviews_count} new reviews for location_id: {location_id}")
         return new_reviews_count
     except Exception as e:
+        import traceback
         print(f"Error inserting reviews: {str(e)}", file=sys.stderr)
+        error_line = traceback.extract_tb(sys.exc_info()[2])[-1].lineno
+        print(f"Error inserting reviews: {str(e)}", file=sys.stderr)
+        print(f"Error occurred at line: {error_line}", file=sys.stderr)
+        print(f"Error type: {type(e).__name__}", file=sys.stderr)
+        print(f"Full traceback:", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         return 0
     finally:
         if cursor:
