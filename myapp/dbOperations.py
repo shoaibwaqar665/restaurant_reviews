@@ -1,8 +1,6 @@
-import uuid
 import psycopg2  
 import psycopg2.extras  
 import sys 
-import requests
 import json
 from datetime import datetime
 
