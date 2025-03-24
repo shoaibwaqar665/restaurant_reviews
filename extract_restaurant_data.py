@@ -69,23 +69,63 @@ def is_address(data):
     
     # Look for common address patterns
     address_keywords = ['Ave', 'Blvd', 'St', 'Road', 'Dr', 'Street', 'Avenue', 'Boulevard', 'Drive', 'Ln', 'Lane', 'Hwy', 'Highway']
-    return any(keyword in data for keyword in address_keywords) or re.search(r'\b[A-Z]{2}\s+\d{5}\b', data)
+    
+    # More specific address pattern matching
+    has_street_number = bool(re.search(r'\d+\s+[A-Za-z]', data))
+    has_address_keyword = any(keyword in data for keyword in address_keywords)
+    has_zip = bool(re.search(r'\b\d{5}\b', data))
+    has_state = bool(re.search(r'\b[A-Z]{2}\b', data))
+    
+    # Exclude common false positives
+    false_positives = ['Pacific Standard Time', 'http', 'www', '.com', '.org', '.net']
+    if any(fp in data for fp in false_positives):
+        return False
+    
+    return (has_street_number and has_address_keyword) or (has_zip and has_state)
 
 def is_phone_number(data):
     """Check if an item might be a phone number."""
     if not isinstance(data, str):
         return False
     
+    # Clean the string
+    cleaned = re.sub(r'[^\d]', '', data)
+    
+    # Valid phone numbers should be 10 or 11 digits (with country code)
+    if len(cleaned) not in [10, 11]:
+        return False
+    
     # Look for common phone number patterns
-    return re.search(r'(?:\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}', data) is not None
+    phone_patterns = [
+        r'\(?[2-9]\d{2}\)?[-.\s]?[2-9]\d{2}[-.\s]?\d{4}',  # (555) 555-5555 or similar
+        r'\+?1[-.\s]?[2-9]\d{2}[-.\s]?[2-9]\d{2}[-.\s]?\d{4}'  # +1 555-555-5555 or similar
+    ]
+    
+    return any(re.match(pattern, data) for pattern in phone_patterns)
 
 def is_website(data):
     """Check if an item might be a website URL."""
     if not isinstance(data, str):
         return False
     
+    # Exclude common false positives
+    false_positives = [
+        'google.com/maps',
+        'gstatic.com',
+        'googleapis.com',
+        '/images/',
+        '/icons/',
+        '.png',
+        '.jpg',
+        '.gif'
+    ]
+    
+    if any(fp in data.lower() for fp in false_positives):
+        return False
+    
     # Look for common URL patterns
-    return ('http' in data or 'www' in data or '.com' in data or '.org' in data or '.net' in data)
+    url_pattern = r'https?://(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:/[^\s]*)?'
+    return bool(re.match(url_pattern, data))
 
 def is_review_count(item):
     """Check if an item might be a review count."""
@@ -105,6 +145,65 @@ def is_review_count(item):
     except ValueError:
         return False
 
+def extract_metadata(data):
+    """Extract metadata like rating, review count, etc."""
+    metadata = {}
+    
+    def process_item(item, context=None):
+        nonlocal metadata
+        
+        if isinstance(item, (list, tuple)):
+            # Look for rating and review count pattern
+            if len(item) >= 2:
+                rating = safe_get(item, 0)
+                review_count = safe_get(item, 1)
+                
+                if isinstance(rating, (int, float)) and 1 <= float(rating) <= 5:
+                    if 'rating' not in metadata:  # Only update if not already found
+                        metadata['rating'] = float(rating)
+                    
+                    if isinstance(review_count, (int, str)):
+                        try:
+                            count = str(review_count).replace(',', '')
+                            if count.isdigit() and 0 < int(count) < 1000000:
+                                if 'review_count' not in metadata:  # Only update if not already found
+                                    metadata['review_count'] = int(count)
+                        except (ValueError, TypeError):
+                            pass
+            
+            # Process each item in the list
+            for i, subitem in enumerate(item):
+                process_item(subitem, context=item)
+        
+        elif isinstance(item, dict):
+            for value in item.values():
+                process_item(value)
+        
+        elif isinstance(item, str):
+            # Look for address
+            if is_address(item) and ('address' not in metadata or len(item) > len(metadata['address'])):
+                metadata['address'] = item
+            
+            # Look for phone number
+            if is_phone_number(item) and ('phone' not in metadata or len(item) > len(metadata['phone'])):
+                # Format phone number consistently
+                cleaned = re.sub(r'[^\d]', '', item)
+                if len(cleaned) == 10:
+                    metadata['phone'] = f"({cleaned[:3]}) {cleaned[3:6]}-{cleaned[6:]}"
+                elif len(cleaned) == 11 and cleaned[0] == '1':
+                    metadata['phone'] = f"+1 ({cleaned[1:4]}) {cleaned[4:7]}-{cleaned[7:]}"
+            
+            # Look for website
+            if is_website(item):
+                metadata['website'] = item
+            
+            # Look for price level
+            if all(c == '$' for c in item) and 1 <= len(item) <= 4:
+                metadata['price_level'] = len(item)
+    
+    process_item(data)
+    return metadata
+
 def extract_restaurant_data(restaurant_data, index):
     """Extract data from a restaurant entry."""
     result = {}
@@ -120,387 +219,120 @@ def extract_restaurant_data(restaurant_data, index):
     else:
         # If name is not a string, this may not be a valid restaurant entry
         return None
-    
-    # Helper function to recursively search for patterns
-    def search_for_pattern(data, pattern_func, key_name, limit=None):
-        found_items = []
-        
-        def _search(item, depth=0):
-            if depth > 10:  # Limit recursion depth
-                return
-            
-            if pattern_func(item):
-                found_items.append(item)
-                if limit and len(found_items) >= limit:
-                    return
-            
-            if isinstance(item, list):
-                for subitem in item:
-                    _search(subitem, depth + 1)
-            elif isinstance(item, dict):
-                for subitem in item.values():
-                    _search(subitem, depth + 1)
-        
-        _search(data)
-        
-        if found_items:
-            if limit == 1:
-                result[key_name] = found_items[0]
-            else:
-                result[key_name] = found_items
-    
-    # Search for address (strings containing address-like patterns)
-    def is_address(item):
-        if not isinstance(item, str):
-            return False
-        address_patterns = [
-            r'\d+\s+[A-Za-z0-9\s]+(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Drive|Dr|Lane|Ln|Court|Ct|Place|Pl|Terrace|Ter)',
-            r'[A-Za-z\s]+,\s*[A-Z]{2}\s*\d{5}'
-        ]
-        return any(re.search(pattern, item) for pattern in address_patterns) or "Blvd" in item or "Ave" in item or "St " in item
 
-    # Search for phone numbers (improved pattern)
-    def is_phone(item):
-        if not isinstance(item, str):
-            return False
-        # Pattern to match standard US phone numbers
-        phone_pattern = r'(?:\+1\s?)?\(?(?:(?:9\d\d)|(?:(?:[2-9]\d\d)))\)?[-.\s]?[2-9]\d\d[-.\s]?\d{4}'
-        return re.search(phone_pattern, item) is not None and not item.startswith('http')
+    # Extract basic metadata (rating, review count, etc.)
+    metadata = extract_metadata(restaurant_data)
+    result.update(metadata)
 
-    # Search for websites
-    def is_website(item):
-        if not isinstance(item, str):
-            return False
-        # Only consider actual websites, not Google Maps URLs
-        return ((item.startswith('http') or item.startswith('www.')) and
-                '.' in item and
-                'google.com/maps' not in item and
-                'google.com/local' not in item)
-
-    # Search for menu links
-    def is_menu(item):
-        if not isinstance(item, str):
-            return False
-        return ((item.startswith('http') or item.startswith('www.')) and
-                'menu' in item.lower())
-
-    # Search for ratings
-    def is_rating(item):
-        if not isinstance(item, (int, float)):
-            return False
-        return 1 <= item <= 5 and (isinstance(item, float) or (isinstance(item, str) and '.' in item))
-
-    # Search for review texts
-    def is_review(item):
-        if not isinstance(item, str):
-            return False
-        return len(item) > 20 and item.startswith('"') and item.endswith('"')
-
-    # Search for hours of operation (improved pattern)
-    def is_hours(item):
-        if not isinstance(item, str):
-            return False
-        hours_patterns = [
-            r'\d{1,2}(?::\d{2})?\s*(?:AM|PM)\s*[-–]\s*\d{1,2}(?::\d{2})?\s*(?:AM|PM)',
-            r'(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Mon|Tue|Wed|Thu|Fri|Sat|Sun)[:-].*\d{1,2}\s*(?:AM|PM)'
-        ]
-        return any(re.search(pattern, item, re.IGNORECASE) for pattern in hours_patterns)
-
-    # Search for weekly schedule
-    def is_schedule(item):
-        if not isinstance(item, str):
-            return False
-        return any(day in item for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-
-    # Search for features/categories
-    def is_feature(item):
-        if not isinstance(item, str):
-            return False
-        # Consider common restaurant features
-        features = ['Restaurant', 'Bar', 'Diner', 'Cafe', 'Bistro', 'Pizza', 'Italian', 'Mexican', 
-                   'Chinese', 'Indian', 'Thai', 'Japanese', 'Fast Food', 'Fine Dining', 'Casual',
-                   'Buffet', 'Takeout', 'Delivery', 'Family']
-        
-        # Exclude URLs, long descriptions, and irrelevant data
-        if (item.startswith('http') or 
-            len(item) > 100 or 
-            item.startswith('Search') or 
-            item.startswith('/geo') or
-            item == name or  # Skip the restaurant name
-            'TYPE_' in item):
-            return False
-            
-        return any(feature.lower() in item.lower() for feature in features)
-
-    # Search for descriptions/about sections
-    def is_description(item):
-        if not isinstance(item, str):
-            return False
-        return len(item) > 100 and len(item.split()) > 20 and not item.startswith('http')
-
-    # Search for accessibility information
-    def is_accessibility(item):
-        if not isinstance(item, str):
-            return False
-        accessibility_keywords = [
-            'wheelchair', 'accessible', 'accessibility', 'disabled', 'elevator',
-            'ramp', 'restroom', 'service animal', 'parking', 'entrance'
-        ]
-        return any(keyword in item.lower() for keyword in accessibility_keywords)
-
-    # Search for parking information
-    def is_parking(item):
-        if not isinstance(item, str):
-            return False
-        parking_keywords = ['parking', 'lot', 'garage', 'valet', 'street parking', 'free parking']
-        return any(keyword in item.lower() for keyword in parking_keywords)
-
-    # Search for review counts
-    def find_review_count(data, depth=0):
-        if depth > 10:
-            return None
-        
-        if isinstance(data, (int, str)):
-            if is_review_count(data):
-                return int(str(data).replace(',', ''))
-        
+    # Extract schedule
+    def extract_schedule(data):
+        schedule = {}
         if isinstance(data, list):
-            for i, item in enumerate(data):
-                # Check if current item is a rating and next item is a review count
-                if isinstance(item, (int, float)) and 1 <= item <= 5:
-                    if i + 1 < len(data) and is_review_count(data[i + 1]):
-                        return int(str(data[i + 1]).replace(',', ''))
-                
-                result = find_review_count(item, depth + 1)
-                if result:
-                    return result
+            for item in data:
+                if isinstance(item, list) and len(item) >= 4:
+                    day = item[0]
+                    if isinstance(day, str) and day in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]:
+                        time_data = item[3]
+                        if isinstance(time_data, list) and len(time_data) > 0:
+                            if isinstance(time_data[0], list) and len(time_data[0]) > 0:
+                                time_str = time_data[0][0]
+                                if isinstance(time_str, str):
+                                    # Format: Day: Open Time - Close Time
+                                    schedule[day] = time_str
+        return schedule
+
+    # Extract features by category
+    def extract_features(data):
+        features = {}
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, list) and len(item) >= 3:
+                    category = item[0]
+                    if isinstance(category, str) and isinstance(item[2], list):
+                        feature_list = set()  # Use set to store unique values
+                        for feature in item[2]:
+                            if isinstance(feature, list) and len(feature) >= 2:
+                                feature_name = feature[1]
+                                if isinstance(feature_name, str):
+                                    feature_list.add(feature_name)
+                        if feature_list:
+                            features[category] = sorted(list(feature_list))  # Convert back to sorted list
+        return features
+
+    # Recursively search through the data structure
+    def search_data(data, depth=0):
+        if depth > 10:  # Prevent infinite recursion
+            return
+            
+        if isinstance(data, list):
+            # First, try to extract metadata at this level
+            metadata = extract_metadata(data)
+            result.update(metadata)
+            
+            for item in data:
+                if isinstance(item, list):
+                    # Extract schedule
+                    schedule = extract_schedule(item)
+                    if schedule:
+                        if "schedule" not in result:
+                            result["schedule"] = {}
+                        result["schedule"].update(schedule)
+                    
+                    # Extract features
+                    features = extract_features(item)
+                    if features:
+                        if "features" not in result:
+                            result["features"] = {}
+                        for category, feature_list in features.items():
+                            if category not in result["features"]:
+                                result["features"][category] = []
+                            result["features"][category].extend(feature_list)
+                            # Remove duplicates while preserving order
+                            result["features"][category] = list(dict.fromkeys(result["features"][category]))
+                    
+                    # Recursively search nested lists
+                    search_data(item, depth + 1)
         elif isinstance(data, dict):
-            for v in data.values():
-                result = find_review_count(v, depth + 1)
-                if result:
-                    return result
-        
-        return None
+            for value in data.values():
+                search_data(value, depth + 1)
 
-    # Extract all the different types of data
-    search_for_pattern(restaurant_data, is_address, "address", 1)
-    search_for_pattern(restaurant_data, is_phone, "phone", 1)
-    search_for_pattern(restaurant_data, is_website, "website", 1)
-    search_for_pattern(restaurant_data, is_menu, "menu_url", 1)
-    search_for_pattern(restaurant_data, is_rating, "rating", 1)
-    search_for_pattern(restaurant_data, is_review, "reviews", 5)  # Get up to 5 reviews
-    search_for_pattern(restaurant_data, is_hours, "hours", 1)
-    search_for_pattern(restaurant_data, is_schedule, "schedule", 7)  # Up to 7 days
-    search_for_pattern(restaurant_data, is_feature, "features")
-    search_for_pattern(restaurant_data, is_description, "description", 1)
-    search_for_pattern(restaurant_data, is_accessibility, "accessibility_features", 5)
-    search_for_pattern(restaurant_data, is_parking, "parking_info", 3)
+    # Start the recursive search
+    search_data(restaurant_data)
 
-    # Extract review count
-    review_count = find_review_count(restaurant_data)
-    if review_count:
-        result["review_count"] = review_count
+    # Format schedule for better readability
+    if "schedule" in result:
+        formatted_schedule = {}
+        for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]:
+            if day in result["schedule"]:
+                formatted_schedule[day] = result["schedule"][day]
+        result["schedule"] = formatted_schedule
 
-    # Try to find specific data structures
-    if len(restaurant_data) > 1 and isinstance(restaurant_data[1], list):
-        subdata = restaurant_data[1]
+    # Clean up and organize the data
+    if "features" in result:
+        # Group similar features together
+        grouped_features = {}
         
-        # Look for nested structures that might contain useful data
-        for item in subdata:
-            if isinstance(item, list) and len(item) > 0:
-                # Look for address data
-                for subitem in item:
-                    if isinstance(subitem, list) and len(subitem) >= 3:
-                        # Check for a sequence of strings that look like address parts
-                        address_parts = [part for part in subitem if isinstance(part, str) and len(part) > 5]
-                        if len(address_parts) >= 2:
-                            if "address" not in result:
-                                result["address"] = ", ".join(address_parts)
-                
-                # Look for rating and review count
-                for i, subitem in enumerate(item):
-                    if isinstance(subitem, (int, float)) and 1 <= subitem <= 5:
-                        if i+1 < len(item) and isinstance(item[i+1], int) and item[i+1] > 10:
-                            if "rating" not in result:
-                                result["rating"] = subitem
-                            if "review_count" not in result:
-                                result["review_count"] = item[i+1]
-                
-                # Look for operating hours (daily)
-                days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-                weekly_hours = {}
-                
-                for subitem in item:
-                    if isinstance(subitem, list) and len(subitem) >= 2:
-                        day = safe_get(subitem, 0)
-                        hours = safe_get(subitem, 1, 0)
-                        
-                        if isinstance(day, str) and day in days_of_week and hours:
-                            if isinstance(hours, list) and len(hours) > 0:
-                                weekly_hours[day] = hours[0] if isinstance(hours[0], str) else None
-                
-                if weekly_hours and len(weekly_hours) > 0:
-                    result["weekly_hours"] = weekly_hours
-    
-    # Special handler for menu data
-    # Since menu URLs often require specific pattern matching
-    menu_patterns = [
-        r'https?://(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+(?:/[^/]+)*?/menu/?',
-        r'https?://(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[^/]*menu[^/]*'
-    ]
-    
-    for pattern in menu_patterns:
-        menu_urls = []
-        for item in restaurant_data:
-            if isinstance(item, list):
-                for subitem in item:
-                    if isinstance(subitem, str) and re.search(pattern, subitem):
-                        menu_urls.append(subitem)
+        # Define feature categories for better organization
+        categories = {
+            "basic_info": ["price_level", "cuisine", "restaurant_type"],
+            "services": ["delivery", "takeout", "dine-in", "reservations"],
+            "amenities": ["parking", "wifi", "outdoor_seating", "accessibility"],
+            "atmosphere": ["casual", "family-friendly", "romantic", "trendy"],
+            "payment_options": ["credit_cards", "debit_cards", "cash_only"],
+            "special_features": ["happy_hour", "live_music", "sports_tv", "catering"]
+        }
         
-        if menu_urls and "menu_url" not in result:
-            result["menu_url"] = menu_urls[0]
-    
-    # Find the correct phone number - highest priority is a properly formatted US phone number
-    if "description" in result:
-        # Look for phone numbers in the description
-        phone_matches = re.findall(r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', result["description"])
-        if phone_matches:
-            result["phone"] = phone_matches[0]
-    
-    # If we still don't have a phone, look more broadly
-    if "phone" not in result or not re.match(r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', str(result["phone"])):
-        def find_phone(data, depth=0):
-            if depth > 10:
-                return None
-            
-            if isinstance(data, str):
-                match = re.search(r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', data)
-                if match:
-                    return match.group(0)
-            
-            if isinstance(data, list):
-                for item in data:
-                    result = find_phone(item, depth + 1)
-                    if result:
-                        return result
-            elif isinstance(data, dict):
-                for v in data.values():
-                    result = find_phone(v, depth + 1)
-                    if result:
-                        return result
-            
-            return None
-        
-        phone = find_phone(restaurant_data)
-        if phone:
-            result["phone"] = phone
-    
-    # Clean up the extracted data
-    
-    # If we found string reviews, clean them up
-    if "reviews" in result and isinstance(result["reviews"], list):
-        cleaned_reviews = []
-        for review in result["reviews"]:
-            # Remove quotes and clean extra whitespace
-            cleaned_review = review.strip('"').strip()
-            if cleaned_review and not cleaned_review.startswith('http'):
-                cleaned_reviews.append(cleaned_review)
-        result["reviews"] = cleaned_reviews
-    
-    # Clean up features to remove duplicates and irrelevant items
-    if "features" in result and isinstance(result["features"], list):
-        # Remove duplicates while preserving order
-        unique_features = []
-        seen = set()
-        
-        # Preprocess features
-        for feature in result["features"]:
-            if isinstance(feature, str):
-                # Skip duplicates, URLs, and exact name matches
-                feature_lower = feature.lower()
-                if (feature_lower not in seen and 
-                    not feature.startswith('http') and 
-                    not feature.startswith('/') and
-                    not feature.startswith('See') and
-                    feature.lower() != name.lower() and
-                    'type_' not in feature_lower and
-                    '\"' not in feature):
-                    
-                    # Clean up some common prefixes
-                    if feature.startswith('pizza_'):
-                        feature = feature.replace('pizza_', '')
-                    if feature.startswith('buffet_'):
-                        feature = feature.replace('buffet_', '')
-                    if feature.startswith('family_'):
-                        feature = feature.replace('family_', '')
-                    
-                    # Change underscore to space and capitalize
-                    if '_' in feature:
-                        feature = feature.replace('_', ' ').title()
-                    
-                    seen.add(feature_lower)
-                    unique_features.append(feature)
-        
-        # Categorize features more clearly
-        cuisine_types = ["Pizza", "Italian", "Mexican", "Chinese", "Japanese", "Thai", "Indian", "American"]
-        establishment_types = ["Restaurant", "Bar", "Diner", "Cafe", "Bistro", "Buffet"]
-        service_types = ["Takeout", "Delivery", "No-contact", "Dine-in"]
-        
-        categories = []
-        cuisines = []
-        services = []
-        amenities = []
-        
-        for feature in unique_features:
-            lower_feature = feature.lower()
-            
-            # Categorize by type
-            if any(cuisine.lower() in lower_feature for cuisine in cuisine_types):
-                cuisines.append(feature)
-            elif any(estab.lower() in lower_feature for estab in establishment_types):
-                categories.append(feature)
-            elif any(service.lower() in lower_feature for service in service_types):
-                services.append(feature)
+        for category, features in result["features"].items():
+            # Skip raw category paths and use cleaned up versions
+            if category.startswith("/geo/type/"):
+                clean_category = category.split("/")[-1].replace("_", " ").title()
             else:
-                amenities.append(feature)
+                clean_category = category
+            
+            grouped_features[clean_category] = features
         
-        if categories:
-            result["restaurant_type"] = categories
-        if cuisines:
-            result["cuisine"] = cuisines
-        if services:
-            result["services"] = services
-        if amenities:
-            result["amenities"] = amenities
-        
-        # Remove the original mixed features list
-        del result["features"]
-    
-    # Clean up the description
-    if "description" in result:
-        result["description"] = result["description"].strip()
-        
-        # If we haven't found "about" but there's a description, use it
-        if "about" not in result:
-            result["about"] = result["description"]
-    
-    # Format weekly hours into a more readable format
-    if "weekly_hours" in result:
-        formatted_hours = []
-        for day, hours in result["weekly_hours"].items():
-            formatted_hours.append(f"{day}: {hours}")
-        result["formatted_hours"] = formatted_hours
-    
-    # Extract price level if present (usually shown as $ symbols)
-    def is_price_level(item):
-        if not isinstance(item, str):
-            return False
-        return re.match(r'^[\$]{1,4}$', item) is not None
-    
-    price_levels = find_in_nested_data(restaurant_data, is_price_level)
-    if price_levels:
-        result["price_level"] = price_levels[0][1]
-    
+        result["features"] = grouped_features
+
     return result
 
 def main():
