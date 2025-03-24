@@ -70,10 +70,10 @@ def InsertRestaurantDetails(restaurant_data, restaurant_query):
                     meal_types,
                     diets,
                     menu_url,
-                    restaurant_name
-                    
+                    restaurant_name,
+                    restaurant_key
                 ) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             
             # Handle case where address might be in a single string format
@@ -149,7 +149,6 @@ def InsertRestaurantDetails(restaurant_data, restaurant_query):
             if "restaurant_decoded_url" in details:
                 website = details["restaurant_decoded_url"]
             
-           
             print(f"Email: {location.get('email')}")
             parent_location_name = ""
             if "parent" in location and location["parent"] is not None and isinstance(location["parent"], dict):
@@ -159,31 +158,33 @@ def InsertRestaurantDetails(restaurant_data, restaurant_query):
             # Convert schedule to JSON
             schedule_json = json.dumps(schedule_data) if schedule_data else None
             
-            cursor.execute(
-                insert_query,
-                (
-                    location_id,
-                    parent_location_name or location.get("name") or f"{city} {state}".strip(),
-                    street,
-                    city,
-                    state,
-                    location.get("isoCountryCode") or "US",
-                    postal_code,
-                    details.get("telephone", ""),
-                    location.get("email"),
-                    website,
-                    schedule_json,
-                    thumbnail,
-                    review_rating,
-                    review_count,
-                    details.get("dining_options", []),
-                    details.get("cuisines", []),
-                    details.get("meal_types", []),
-                    details.get("diets", []),
-                    menu_url,
-                    restaurant_query
-                )
+            # Prepare the values tuple
+            restaurant_key = parent_location_name +'_'+ restaurant_query
+            values = (
+                location_id,
+                parent_location_name or location.get("name") or f"{city} {state}".strip(),
+                street,
+                city,
+                state,
+                location.get("isoCountryCode") or "US",
+                postal_code,
+                details.get("telephone", ""),
+                location.get("email"),
+                website,
+                schedule_json,
+                thumbnail,
+                review_rating,
+                review_count,
+                details.get("dining_options", []),
+                details.get("cuisines", []),
+                details.get("meal_types", []),
+                details.get("diets", []),
+                menu_url,
+                restaurant_query,
+                restaurant_key
             )
+            
+            cursor.execute(insert_query, values)
             conn.commit()
             print(f"Restaurant details added to the database for location_id: {location_id}")
         else:
@@ -225,7 +226,7 @@ def InsertRestaurantDetails(restaurant_data, restaurant_query):
             conn.close()
 
 
-def InsertRestaurantReviews(restaurant_data, location_id):
+def InsertRestaurantReviews(restaurant_data, location_id,restaurant_key):
     """
     Insert reviews from Tripadvisor JSON data into the trip_reviews and trip_review_photos tables.
     Stops processing if 5 consecutive reviews already exist in the database.
@@ -304,9 +305,10 @@ def InsertRestaurantReviews(restaurant_data, location_id):
                         atmosphere_rating,
                         contribution,
                         likes,
-                        avatar
+                        avatar,
+                        restaurant_key
                     ) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                 """
                 
@@ -370,7 +372,8 @@ def InsertRestaurantReviews(restaurant_data, location_id):
                         atmosphere_rating,
                         sum_all_ugc,
                         helpful_votes,
-                        avatar_url
+                        avatar_url,
+                        restaurant_key
                     )
                 )
                 

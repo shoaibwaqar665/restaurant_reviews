@@ -998,7 +998,13 @@ def FetchAndStoreRestaurantData(restaurant_query):
                 continue
                 
             # Step 5: Insert reviews
-            review_count = InsertRestaurantReviews(restaurant_data, stored_location_id)
+            location = restaurant_data["location"]
+            parent_location_name = ""
+            if "parent" in location and location["parent"] is not None and isinstance(location["parent"], dict):
+                parent_location_name = location["parent"].get("localizedName", "")
+                
+            restaurant_key = parent_location_name+'_'+restaurant_query
+            review_count = InsertRestaurantReviews(restaurant_data, stored_location_id ,restaurant_key)
             
             # Record results
             results.append({
