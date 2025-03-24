@@ -110,7 +110,41 @@ def is_website(data):
     
     # Exclude common false positives
     false_positives = [
+        'google.com',
+        'gstatic.com',
+        'googleapis.com',
+        '/images/',
+        '/icons/',
+        '.png',
+        '.jpg',
+        '.gif',
+        'local guide program'
+    ]
+    
+    if any(fp in data.lower() for fp in false_positives):
+        return False
+    
+    # Look for common URL patterns using simpler approach
+    has_url_pattern = ('http' in data or 'www' in data or '.com' in data or '.org' in data or '.net' in data)
+    
+    # Additional validation to ensure it's a real website
+    if has_url_pattern:
+        # Check if it's a direct restaurant website (not a search or maps URL)
+        if '/search' in data.lower() or '/maps' in data.lower() or '/place' in data.lower():
+            return False
+        return True
+    
+    return False
+
+def is_menu_url(data):
+    """Check if an item might be a menu URL."""
+    if not isinstance(data, str):
+        return False
+    
+    # Exclude common false positives
+    false_positives = [
         'google.com/maps',
+        'google.com/search',
         'gstatic.com',
         'googleapis.com',
         '/images/',
@@ -121,6 +155,11 @@ def is_website(data):
     ]
     
     if any(fp in data.lower() for fp in false_positives):
+        return False
+    
+    # Look for menu-specific patterns
+    menu_keywords = ['menu', 'menus', 'food', 'order', 'ordering']
+    if not any(keyword in data.lower() for keyword in menu_keywords):
         return False
     
     # Look for common URL patterns
@@ -144,6 +183,33 @@ def is_review_count(item):
         return 1 <= num <= 1000000
     except ValueError:
         return False
+
+def find_review_count(data, depth=0):
+    """Find the review count in the data structure."""
+    if depth > 10:
+        return None
+    
+    if isinstance(data, (int, str)):
+        if is_review_count(data):
+            return int(str(data).replace(',', ''))
+    
+    if isinstance(data, list):
+        for i, item in enumerate(data):
+            # Check if current item is a rating and next item is a review count
+            if isinstance(item, (int, float)) and 1 <= item <= 5:
+                if i + 1 < len(data) and is_review_count(data[i + 1]):
+                    return int(str(data[i + 1]).replace(',', ''))
+            
+            result = find_review_count(item, depth + 1)
+            if result:
+                return result
+    elif isinstance(data, dict):
+        for v in data.values():
+            result = find_review_count(v, depth + 1)
+            if result:
+                return result
+    
+    return None
 
 def extract_metadata(data):
     """Extract metadata like rating, review count, etc."""
@@ -193,9 +259,14 @@ def extract_metadata(data):
                 elif len(cleaned) == 11 and cleaned[0] == '1':
                     metadata['phone'] = f"+1 ({cleaned[1:4]}) {cleaned[4:7]}-{cleaned[7:]}"
             
-            # Look for website
-            if is_website(item):
+            # Look for website (prioritize non-menu URLs)
+            if is_website(item) and 'website' not in metadata:
                 metadata['website'] = item
+            
+            # Look for menu URL (prefer main menu URLs)
+            if is_menu_url(item):
+                if 'menu_url' not in metadata or '/menu/' in item.lower():
+                    metadata['menu_url'] = item
             
             # Look for price level
             if all(c == '$' for c in item) and 1 <= len(item) <= 4:
@@ -223,6 +294,11 @@ def extract_restaurant_data(restaurant_data, index):
     # Extract basic metadata (rating, review count, etc.)
     metadata = extract_metadata(restaurant_data)
     result.update(metadata)
+
+    # Try to find review count in specific patterns
+    review_count = find_review_count(restaurant_data)
+    if review_count:
+        result['review_count'] = review_count
 
     # Extract schedule
     def extract_schedule(data):
