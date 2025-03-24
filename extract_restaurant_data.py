@@ -87,6 +87,24 @@ def is_website(data):
     # Look for common URL patterns
     return ('http' in data or 'www' in data or '.com' in data or '.org' in data or '.net' in data)
 
+def is_review_count(item):
+    """Check if an item might be a review count."""
+    if not isinstance(item, (int, str)):
+        return False
+    
+    # Convert to string for consistent handling
+    item_str = str(item)
+    
+    # Remove any commas from the string
+    item_str = item_str.replace(',', '')
+    
+    # Check if it's a reasonable number (between 1 and 1 million)
+    try:
+        num = int(item_str)
+        return 1 <= num <= 1000000
+    except ValueError:
+        return False
+
 def extract_restaurant_data(restaurant_data, index):
     """Extract data from a restaurant entry."""
     result = {}
@@ -237,6 +255,33 @@ def extract_restaurant_data(restaurant_data, index):
         parking_keywords = ['parking', 'lot', 'garage', 'valet', 'street parking', 'free parking']
         return any(keyword in item.lower() for keyword in parking_keywords)
 
+    # Search for review counts
+    def find_review_count(data, depth=0):
+        if depth > 10:
+            return None
+        
+        if isinstance(data, (int, str)):
+            if is_review_count(data):
+                return int(str(data).replace(',', ''))
+        
+        if isinstance(data, list):
+            for i, item in enumerate(data):
+                # Check if current item is a rating and next item is a review count
+                if isinstance(item, (int, float)) and 1 <= item <= 5:
+                    if i + 1 < len(data) and is_review_count(data[i + 1]):
+                        return int(str(data[i + 1]).replace(',', ''))
+                
+                result = find_review_count(item, depth + 1)
+                if result:
+                    return result
+        elif isinstance(data, dict):
+            for v in data.values():
+                result = find_review_count(v, depth + 1)
+                if result:
+                    return result
+        
+        return None
+
     # Extract all the different types of data
     search_for_pattern(restaurant_data, is_address, "address", 1)
     search_for_pattern(restaurant_data, is_phone, "phone", 1)
@@ -250,6 +295,11 @@ def extract_restaurant_data(restaurant_data, index):
     search_for_pattern(restaurant_data, is_description, "description", 1)
     search_for_pattern(restaurant_data, is_accessibility, "accessibility_features", 5)
     search_for_pattern(restaurant_data, is_parking, "parking_info", 3)
+
+    # Extract review count
+    review_count = find_review_count(restaurant_data)
+    if review_count:
+        result["review_count"] = review_count
 
     # Try to find specific data structures
     if len(restaurant_data) > 1 and isinstance(restaurant_data[1], list):
