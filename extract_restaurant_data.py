@@ -458,7 +458,13 @@ def main():
     # Extract rating and reviews
         result = extract_rating_and_reviews(json_string)
         print(result)
-        
+        # append rating and reviews to the output file
+        with open(output_file, 'w') as f:
+            # f.write(f"Rating: {result['rating']}\n")
+            # f.write(f"Number of reviews: {result['reviews']}\n")
+            restaurant_data.append(result)
+            json.dump(restaurant_data, f, indent=2, ensure_ascii=False)
+
             
         
     except Exception as e:
