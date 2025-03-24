@@ -11,12 +11,6 @@ headers = {
 }
 
 response = requests.request("GET", url, headers=headers, data=payload)
-# if response.headers.get('Content-Type') == 'application/json':
-#     print(response.json())
-# else:
-#     print("Received non-JSON response. Check the content.")
-#     print(response.text[:500])  # Print first 500 characters for a quick look
-
 
 def clean_and_parse_google_response(response_text):
     try:
