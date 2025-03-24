@@ -215,6 +215,7 @@ def extract_metadata(data):
     """Extract metadata like rating, review count, etc."""
     metadata = {}
     
+    
     def process_item(item, context=None):
         nonlocal metadata
         
@@ -410,7 +411,19 @@ def extract_restaurant_data(restaurant_data, index):
         result["features"] = grouped_features
 
     return result
-
+def extract_rating_and_reviews(json_string):
+    
+    simple_pattern = r'(\d+\.\d+)\s*,\s*(\d+)\s*,\s*null\s*,\s*"Moderately expensive"'
+    simple_match = re.search(simple_pattern, json_string)
+    if simple_match:
+        print("Found match with simpler pattern!")
+        rating = simple_match.group(1)
+        reviews = simple_match.group(2)
+        return {
+            'rating': float(rating),
+            'reviews': int(reviews)
+        }
+    
 def main():
     # Input and output file paths
     input_file = "cleaned_google_response.json"
@@ -420,6 +433,8 @@ def main():
     try:
         with open(input_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
+            # json_string = f.read()
+
     except Exception as e:
         print(f"Error reading input file: {e}")
         return
@@ -436,6 +451,16 @@ def main():
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(restaurant_data, f, indent=2, ensure_ascii=False)
         print(f"Successfully extracted data for {len(restaurant_data)} restaurants to {output_file}")
+        # Extract rating and reviews
+        with open(input_file, 'r') as file:
+            json_string = file.read()
+    
+    # Extract rating and reviews
+        result = extract_rating_and_reviews(json_string)
+        print(result)
+        
+            
+        
     except Exception as e:
         print(f"Error writing output file: {e}")
 
