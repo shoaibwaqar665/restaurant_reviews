@@ -31,15 +31,39 @@ def get_food_quality(content):
         return safe_get(content, 6, 0, 11, 0)
     if safe_get(content, 6, 3, 5)=="Food":
         return safe_get(content, 6, 3, 11, 0)
+    if safe_get(content, 6, 3, 5)=="Food":
+        return safe_get(content, 6, 3, 11, 0)
+    if safe_get(content, 6, 1, 5)=="Food":
+        return safe_get(content, 6, 1, 11,0)
+    if safe_get(content, 6, 4, 5)=="Food":
+        return safe_get(content, 6, 4, 11,0)
+    if safe_get(content, 6, 4, 5)=="Food":
+        return safe_get(content, 6, 4, 11, 0)
+    if safe_get(content, 6, 2, 5)=="Food":
+        return safe_get(content, 6, 2, 11,0)
+    if safe_get(content, 6, 5, 5)=="Food":
+        return safe_get(content, 6, 5, 11,0)
     else:
         return None
 def get_service(content):
+    if safe_get(content, 6, 2, 5)=="Service":
+        return safe_get(content, 6, 2, 11, 0)
+    if safe_get(content, 6, 0, 5)=="Service":
+        return safe_get(content, 6, 0, 11, 0)
+    if safe_get(content, 6, 3, 5)=="Service":
+        return safe_get(content, 6, 3, 11, 0)
     if safe_get(content, 6, 3, 5)=="Service":
         return safe_get(content, 6, 3, 11, 0)
     if safe_get(content, 6, 1, 5)=="Service":
         return safe_get(content, 6, 1, 11,0)
     if safe_get(content, 6, 4, 5)=="Service":
         return safe_get(content, 6, 4, 11,0)
+    if safe_get(content, 6, 4, 5)=="Service":
+        return safe_get(content, 6, 4, 11, 0)
+    if safe_get(content, 6, 2, 5)=="Service":
+        return safe_get(content, 6, 2, 11,0)
+    if safe_get(content, 6, 5, 5)=="Service":
+        return safe_get(content, 6, 5, 11,0)
     else:
         return None
 def get_atmosphere(content):
@@ -49,6 +73,25 @@ def get_atmosphere(content):
         return safe_get(content, 6, 2, 11,0)
     if safe_get(content, 6, 5, 5)=="Atmosphere":
         return safe_get(content, 6, 5, 11,0)
+    if safe_get(content, 6, 2, 5)=="Atmosphere":
+        return safe_get(content, 6, 2, 11, 0)
+    if safe_get(content, 6, 0, 5)=="Atmosphere":
+        return safe_get(content, 6, 0, 11, 0)
+    if safe_get(content, 6, 3, 5)=="Atmosphere":
+        return safe_get(content, 6, 3, 11, 0)
+    if safe_get(content, 6, 3, 5)=="Atmosphere":
+        return safe_get(content, 6, 3, 11, 0)
+    if safe_get(content, 6, 1, 5)=="Atmosphere":
+        return safe_get(content, 6, 1, 11,0)
+    if safe_get(content, 6, 4, 5)=="Atmosphere":
+        return safe_get(content, 6, 4, 11,0)
+    if safe_get(content, 6, 4, 5)=="Atmosphere":
+        return safe_get(content, 6, 4, 11, 0)
+    if safe_get(content, 6, 2, 5)=="Atmosphere":
+        return safe_get(content, 6, 2, 11,0)
+    if safe_get(content, 6, 5, 5)=="Atmosphere":
+        return safe_get(content, 6, 5, 11,0)
+    
     else:
         return None
 def extract_review_data(review_entry):
