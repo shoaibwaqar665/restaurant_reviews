@@ -1,5 +1,13 @@
 import json
 from datetime import datetime
+def convert_timestamp(timestamp):
+    if timestamp:
+        try:
+            return datetime.fromtimestamp(timestamp / 1e6).strftime('%Y-%m-%d')
+        except Exception as e:
+            print(f"Error converting timestamp: {e}")
+            return None
+    return None
 
 def safe_get(data, *indices, default=None):
     """Safely get nested data from a structure, returning default if any index is invalid."""
@@ -46,8 +54,8 @@ def extract_review_data(review_entry):
         review_data = {
             "rating": safe_get(review_content, 0, 0),  # Rating is in [2][0][0]
             "timestamp": {
-                "created": safe_get(review_metadata, 2),
-                "modified": safe_get(review_metadata, 3)
+                "created": convert_timestamp(safe_get(review_metadata, 2)),
+                "modified": convert_timestamp(safe_get(review_metadata, 3))
             },
             "review_text": safe_get(review_content, 15, 0, 0),  # Review text is in [2][1][0][0][0]
             "attributes": {},
@@ -56,9 +64,9 @@ def extract_review_data(review_entry):
         }
         # print('Review content: ', safe_get(review_content,9))
 
-        print('Review content: ',review_entry[2][15][0][0])
-        ### the response is in [3][14][0][0]
-        print('Review content: ',review_entry[3][14][0][0])
+        # print('Review content: ',review_entry[2][15][0][0])
+        # ### the response is in [3][14][0][0]
+        # print('Review content: ',review_entry[3][14][0][0])
         
         # Extract photos if they exist
         photos = safe_get(review_content, 2)
@@ -123,7 +131,8 @@ def main():
         if (isinstance(source_data, list) and len(source_data) > 2 and 
             isinstance(source_data[2], list) and len(source_data[2]) > 0):
             
-            review_entries = source_data[2][0]
+            review_entries = source_data[2][1]
+            print('Review entries: ', review_entries)
             if isinstance(review_entries, list):
                 for entry in review_entries:
                     if isinstance(entry, list) and len(entry) > 0:
