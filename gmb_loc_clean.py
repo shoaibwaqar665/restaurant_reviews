@@ -490,6 +490,16 @@ def InsertRestaurantDetails(restaurant_data):
         amenities = features.get("amenities", [])
         dining_options = features.get("dining_options", [])
         schedule = restaurant_data.get("schedule", {})
+        check_query = """
+                    SELECT COUNT(*) FROM google_restaurant_details 
+                    WHERE phone = %s AND address = %s
+                """
+        cursor.execute(check_query, (phone, address))
+        existing_count = cursor.fetchone()[0]
+
+        if existing_count > 0:
+            print(f"Restaurant already exists: {name}")
+            return
 
         # Insert data into table
         insert_query = """
@@ -524,11 +534,6 @@ def InsertRestaurantDetails(restaurant_data):
         if conn:
             conn.close()
 
-# # Example usage
-# with open('gmb_loc_cleaned.json', 'r') as file:
-#     restaurant_data_list = json.load(file)
-#     for restaurant_data in restaurant_data_list:
-#         InsertRestaurantDetails(restaurant_data)  
 
 ###### storing data in database ######
 
