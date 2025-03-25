@@ -402,9 +402,8 @@ def extract_rating_and_reviews(json_string):
         }
     return None
 
-
 def main():
-    # Input file path
+    # Input and output file paths
     input_file = "gmb_loc_response.json"
     output_file = "gmb_loc_cleaned.json"
     
@@ -417,6 +416,7 @@ def main():
         return
     
     restaurant_data = []
+    
     # Process and insert each restaurant entry directly
     for i, entry in enumerate(data):
         restaurant_info = extract_restaurant_data(entry, i)
@@ -425,13 +425,22 @@ def main():
             result = extract_rating_and_reviews(entry)
             if result:
                 restaurant_info.update(result)
+            
             # Insert into database
             InsertRestaurantDetails(restaurant_info)
+            
+            # Save to list for writing to a file
+            restaurant_data.append(restaurant_info)
     
-    print("Data insertion completed.")
-
-
-
+    # Write cleaned data to file
+    try:
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(restaurant_data, f, indent=2, ensure_ascii=False)
+        print(f"Successfully wrote data for {len(restaurant_data)} restaurants to {output_file}")
+    except Exception as e:
+        print(f"Error writing to output file: {e}")
+    
+    print("Data insertion and file writing completed.")
 
 
 ###### storing data in database ######
