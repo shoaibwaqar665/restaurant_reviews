@@ -133,7 +133,7 @@ def extract_review_data(review_entry):
 def main():
     try:
         # Read the source JSON file
-        folder_path = 'responses/'
+        folder_path = f'responses_D\'Amores_Famous_Pizza_Anaheim/'
         reviews = []
         for filename in os.listdir(folder_path):
             if filename.endswith('.json'):
@@ -169,7 +169,7 @@ def main():
                     import traceback
                     print(traceback.format_exc())
         # Write extracted reviews to output file
-        with open('gmb_reviews.json', 'a', encoding='utf-8') as f:
+        with open('gmb_reviews_anehime.json', 'a', encoding='utf-8') as f:
             json.dump({
                 "reviews": reviews,
                 "total_number_of_reviews": len(reviews),

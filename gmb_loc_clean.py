@@ -1,6 +1,5 @@
 import json
 import re
-from typing import Dict, List, Any, Optional
 
 def safe_get(data, *indices, default=None):
     """Safely access nested elements in a dictionary or list.
@@ -220,24 +219,7 @@ def extract_metadata(data):
         nonlocal metadata
         
         if isinstance(item, (list, tuple)):
-            # Look for rating and review count pattern
-            if len(item) >= 2:
-                rating = safe_get(item, 0)
-                review_count = safe_get(item, 1)
-                
-                if isinstance(rating, (int, float)) and 1 <= float(rating) <= 5:
-                    if 'rating' not in metadata:  # Only update if not already found
-                        metadata['rating'] = float(rating)
-                    
-                    if isinstance(review_count, (int, str)):
-                        try:
-                            count = str(review_count).replace(',', '')
-                            if count.isdigit() and 0 < int(count) < 1000000:
-                                if 'review_count' not in metadata:  # Only update if not already found
-                                    metadata['review_count'] = int(count)
-                        except (ValueError, TypeError):
-                            pass
-            
+           
             # Process each item in the list
             for i, subitem in enumerate(item):
                 process_item(subitem, context=item)
@@ -296,10 +278,6 @@ def extract_restaurant_data(restaurant_data, index):
     metadata = extract_metadata(restaurant_data)
     result.update(metadata)
 
-    # Try to find review count in specific patterns
-    review_count = find_review_count(restaurant_data)
-    if review_count:
-        result['review_count'] = review_count
 
     # Extract schedule
     def extract_schedule(data):
@@ -389,16 +367,6 @@ def extract_restaurant_data(restaurant_data, index):
         # Group similar features together
         grouped_features = {}
         
-        # Define feature categories for better organization
-        categories = {
-            "basic_info": ["price_level", "cuisine", "restaurant_type"],
-            "services": ["delivery", "takeout", "dine-in", "reservations"],
-            "amenities": ["parking", "wifi", "outdoor_seating", "accessibility"],
-            "atmosphere": ["casual", "family-friendly", "romantic", "trendy"],
-            "payment_options": ["credit_cards", "debit_cards", "cash_only"],
-            "special_features": ["happy_hour", "live_music", "sports_tv", "catering"]
-        }
-        
         for category, features in result["features"].items():
             # Skip raw category paths and use cleaned up versions
             if category.startswith("/geo/type/"):
@@ -408,11 +376,20 @@ def extract_restaurant_data(restaurant_data, index):
             
             grouped_features[clean_category] = features
         
-        result["features"] = grouped_features
+    result["features"] = grouped_features
 
     return result
+import re
+import json
+
 def extract_rating_and_reviews(json_string):
-    
+    # Ensure input is a string
+    if not isinstance(json_string, str):
+        try:
+            json_string = json.dumps(json_string)
+        except (TypeError, ValueError):
+            return None
+
     simple_pattern = r'(\d+\.\d+)\s*,\s*(\d+)\s*,\s*null\s*,\s*"Moderately expensive"'
     simple_match = re.search(simple_pattern, json_string)
     if simple_match:
@@ -423,7 +400,9 @@ def extract_rating_and_reviews(json_string):
             'rating': float(rating),
             'reviews': int(reviews)
         }
-    
+    return None
+
+
 def main():
     # Input and output file paths
     input_file = "cleaned_google_response.json"
@@ -433,8 +412,6 @@ def main():
     try:
         with open(input_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            # json_string = f.read()
-
     except Exception as e:
         print(f"Error reading input file: {e}")
         return
@@ -444,6 +421,9 @@ def main():
     for i, entry in enumerate(data):
         restaurant_info = extract_restaurant_data(entry, i)
         if restaurant_info and "name" in restaurant_info:
+            result = extract_rating_and_reviews(entry)
+            if result:
+                restaurant_info.update(result)
             restaurant_data.append(restaurant_info)
     
     # Write the extracted data to the output file
@@ -451,24 +431,103 @@ def main():
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(restaurant_data, f, indent=2, ensure_ascii=False)
         print(f"Successfully extracted data for {len(restaurant_data)} restaurants to {output_file}")
-        # Extract rating and reviews
-        with open(input_file, 'r') as file:
-            json_string = file.read()
-    
-    # Extract rating and reviews
-        result = extract_rating_and_reviews(json_string)
-        print(result)
-        # append rating and reviews to the output file
-        with open(output_file, 'w') as f:
-            # f.write(f"Rating: {result['rating']}\n")
-            # f.write(f"Number of reviews: {result['reviews']}\n")
-            restaurant_data.append(result)
-            json.dump(restaurant_data, f, indent=2, ensure_ascii=False)
-
-            
-        
     except Exception as e:
-        print(f"Error writing output file: {e}")
+        print(f"Error writing output file: {e}")# Extract rating and reviews
+        
+
+
+
+
+###### storing data in database ######
+import psycopg2
+import json
+
+def InsertRestaurantDetails(restaurant_data):
+    """
+    Insert restaurant details from Google JSON data into the google_restaurant_details table.
+
+    Args:
+        restaurant_data (dict): The restaurant data extracted from Google
+    """
+    conn = None
+    cursor = None
+
+    try:
+        # Database connection
+        conn = psycopg2.connect(
+            dbname="restaurants_reviews",
+            user="neondb_owner",
+            password="sLdJyF0w2Unv",
+            host="ep-wild-wave-a1nsn7ul.ap-southeast-1.aws.neon.tech",
+            port="5432"
+        )
+        cursor = conn.cursor()
+
+        # Extract data from restaurant_data
+        name = restaurant_data.get("name")
+        address = restaurant_data.get("address")
+        price_level = restaurant_data.get("price_level")
+        website = restaurant_data.get("website")
+        menu_url = restaurant_data.get("menu_url")
+        phone = restaurant_data.get("phone")
+        rating = str(restaurant_data.get("rating", ""))
+        reviews = str(restaurant_data.get("reviews", ""))
+
+        # Extract features
+        features = restaurant_data.get("features", {})
+        service_options = features.get("service_options", [])
+        parking = features.get("parking", [])
+        children = features.get("children", [])
+        payments = features.get("payments", [])
+        planning = features.get("planning", [])
+        crowd = features.get("crowd", [])
+        atmosphere = features.get("atmosphere", [])
+        amenities = features.get("amenities", [])
+        dining_options = features.get("dining_options", [])
+        schedule = restaurant_data.get("schedule", {})
+
+        # Insert data into table
+        insert_query = """
+            INSERT INTO google_restaurant_details (
+                name, address, price_level, website, menu_url, phone, 
+                service_options, parking, children, payments, planning, 
+                crowd, atmosphere, amenities, dining_options, schedule, 
+                rating, reviews
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, 
+                %s, %s, %s, %s, %s, 
+                %s, %s, %s, %s, %s, 
+                %s, %s
+            )
+        """
+
+        cursor.execute(insert_query, (
+            name, address, price_level, website, menu_url, phone,
+            service_options, parking, children, payments, planning,
+            crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
+            rating, reviews
+        ))
+        conn.commit()
+        print(f"Inserted data for restaurant: {name}")
+
+    except Exception as e:
+        print(f"Error inserting restaurant details: {e}")
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+# Example usage
+with open('extracted_restaurant_data.json', 'r') as file:
+    restaurant_data_list = json.load(file)
+    for restaurant_data in restaurant_data_list:
+        InsertRestaurantDetails(restaurant_data)  
+
+###### storing data in database ######
+
+
 
 if __name__ == "__main__":
     main() 

@@ -2,6 +2,8 @@ from patchright.sync_api import sync_playwright
 import time
 import json
 import os
+query = "D'Amores Famous Pizza Anaheim"
+folder_name = query.replace(" ", "_")
 
 def search_and_log_reviews():
     with sync_playwright() as p:
@@ -30,10 +32,10 @@ def search_and_log_reviews():
                     parsed_data = json.loads(response_data)
 
                     # Save it as a formatted JSON file
-                    if not os.path.exists("responses"):
-                        os.makedirs("responses")
+                    if not os.path.exists(f"responses_{folder_name}"):
+                        os.makedirs(f"responses_{folder_name}")
 
-                    file_name = f"responses/ugcposts_{int(time.time())}.json"
+                    file_name = f"responses_{folder_name}/{folder_name}_{int(time.time())}.json"
                     with open(file_name, 'w', encoding='utf-8') as f:
                         json.dump(parsed_data, f, ensure_ascii=False, indent=4)
 
@@ -56,15 +58,15 @@ def search_and_log_reviews():
         # Perform search
         search_box = page.locator('input[name="q"]')
         search_box.click()
-        search_box.fill("Shakey's Pizza Parlor Brea")
+        search_box.fill(query)
         page.keyboard.press('Enter')
         page.wait_for_load_state('networkidle')
         print("Search results loaded")
 
         # Wait for the place's info panel
-        page.wait_for_selector('h1:has-text("Shakey\'s Pizza")', state='visible', timeout=10000)
-        print("Found Shakey's Pizza in results")
-
+        # page.wait_for_selector(f'h1:has-text("{query}")', state='visible', timeout=10000)
+        # print(f"Found {query} in results")
+        time.sleep(10)
         # Click on reviews
         reviews_selector = ['button:has-text("reviews")', 'a:has-text("reviews")', '[aria-label*="reviews"]']
         clicked_reviews = False
