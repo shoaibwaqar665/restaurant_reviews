@@ -23,9 +23,9 @@ def clean_and_parse_google_response(response_text):
         print("Successfully parsed JSON data.")
         
         # Save cleaned JSON to a file
-        with open('cleaned_google_response.json', 'w', encoding='utf-8') as f:
+        with open('gmb_loc_response.json', 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4)
-        print("Cleaned data saved to cleaned_google_response.json")
+        print("Cleaned data saved to gmb_loc_response.json")
         
         return data
     except json.JSONDecodeError as e:

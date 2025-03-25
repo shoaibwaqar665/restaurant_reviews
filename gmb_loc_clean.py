@@ -404,9 +404,9 @@ def extract_rating_and_reviews(json_string):
 
 
 def main():
-    # Input and output file paths
-    input_file = "cleaned_google_response.json"
-    output_file = "extracted_restaurant_data.json"
+    # Input file path
+    input_file = "gmb_loc_response.json"
+    output_file = "gmb_loc_cleaned.json"
     
     # Read the input JSON file
     try:
@@ -416,24 +416,20 @@ def main():
         print(f"Error reading input file: {e}")
         return
     
-    # Process each restaurant entry
     restaurant_data = []
+    # Process and insert each restaurant entry directly
     for i, entry in enumerate(data):
         restaurant_info = extract_restaurant_data(entry, i)
         if restaurant_info and "name" in restaurant_info:
+            # Extract and update rating and reviews directly
             result = extract_rating_and_reviews(entry)
             if result:
                 restaurant_info.update(result)
-            restaurant_data.append(restaurant_info)
+            # Insert into database
+            InsertRestaurantDetails(restaurant_info)
     
-    # Write the extracted data to the output file
-    try:
-        with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(restaurant_data, f, indent=2, ensure_ascii=False)
-        print(f"Successfully extracted data for {len(restaurant_data)} restaurants to {output_file}")
-    except Exception as e:
-        print(f"Error writing output file: {e}")# Extract rating and reviews
-        
+    print("Data insertion completed.")
+
 
 
 
@@ -519,11 +515,11 @@ def InsertRestaurantDetails(restaurant_data):
         if conn:
             conn.close()
 
-# Example usage
-with open('extracted_restaurant_data.json', 'r') as file:
-    restaurant_data_list = json.load(file)
-    for restaurant_data in restaurant_data_list:
-        InsertRestaurantDetails(restaurant_data)  
+# # Example usage
+# with open('gmb_loc_cleaned.json', 'r') as file:
+#     restaurant_data_list = json.load(file)
+#     for restaurant_data in restaurant_data_list:
+#         InsertRestaurantDetails(restaurant_data)  
 
 ###### storing data in database ######
 
