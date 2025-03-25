@@ -49,10 +49,16 @@ def extract_review_data(review_entry):
                 "created": safe_get(review_metadata, 2),
                 "modified": safe_get(review_metadata, 3)
             },
-            "text": safe_get(review_content, 1, 0, 0, 0) if safe_get(review_content, 1) else "",  # Review text is in [2][1][0][0][0]
+            "review_text": safe_get(review_content, 15, 0, 0),  # Review text is in [2][1][0][0][0]
             "attributes": {},
-            "photos": []
+            "photos": [],
+            "response_text": review_entry[3][14][0][0]
         }
+        # print('Review content: ', safe_get(review_content,9))
+
+        print('Review content: ',review_entry[2][15][0][0])
+        ### the response is in [3][14][0][0]
+        print('Review content: ',review_entry[3][14][0][0])
         
         # Extract photos if they exist
         photos = safe_get(review_content, 2)
