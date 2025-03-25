@@ -25,78 +25,21 @@ def safe_get(data, *indices, default=None):
     except (IndexError, KeyError, TypeError):
         return default
     # review_entry[2][6][0][5]
+def get_attribute_value(content, attribute_name):
+    for i in range(6):
+        if safe_get(content, 6, i, 5) == attribute_name and safe_get(content, 6, i, 11, 0) is not None:
+            return safe_get(content, 6, i, 11, 0)
+    return None
+
 def get_food_quality(content):
-    if safe_get(content, 6, 2, 5)=="Food" and safe_get(content, 6, 2, 11, 0) != None:
-        return safe_get(content, 6, 2, 11, 0)
-    if safe_get(content, 6, 0, 5)=="Food" and safe_get(content, 6, 0, 11, 0) != None:
-        return safe_get(content, 6, 0, 11, 0)
-    if safe_get(content, 6, 3, 5)=="Food" and safe_get(content, 6, 3, 11, 0) != None:
-        return safe_get(content, 6, 3, 11, 0)
-    if safe_get(content, 6, 3, 5)=="Food" and safe_get(content, 6, 3, 11, 0) != None:
-        return safe_get(content, 6, 3, 11, 0)
-    if safe_get(content, 6, 1, 5)=="Food" and safe_get(content, 6, 1, 11, 0) != None:
-        return safe_get(content, 6, 1, 11,0)
-    if safe_get(content, 6, 4, 5)=="Food" and safe_get(content, 6, 4, 11, 0) != None:
-        return safe_get(content, 6, 4, 11,0)
-    if safe_get(content, 6, 4, 5)=="Food" and safe_get(content, 6, 4, 11, 0) != None:
-        return safe_get(content, 6, 4, 11, 0)
-    if safe_get(content, 6, 2, 5)=="Food" and safe_get(content, 6, 2, 11, 0) != None:
-        return safe_get(content, 6, 2, 11,0)
-    if safe_get(content, 6, 5, 5)=="Food" and safe_get(content, 6, 5, 11, 0) != None:
-        return safe_get(content, 6, 5, 11,0)
-    else:
-        return None
-    
+    return get_attribute_value(content, "Food")
+
 def get_service(content):
-   
-    if safe_get(content, 6, 2, 5)=="Service" and safe_get(content, 6, 2, 11, 0) != None:
-        return safe_get(content, 6, 2, 11, 0)
-    if safe_get(content, 6, 0, 5)=="Service" and safe_get(content, 6, 0, 11, 0) != None:
-        return safe_get(content, 6, 0, 11, 0)
-    if safe_get(content, 6, 3, 5)=="Service" and safe_get(content, 6, 3, 11, 0) != None:
-        return safe_get(content, 6, 3, 11, 0)
-    if safe_get(content, 6, 3, 5)=="Service" and safe_get(content, 6, 3, 11, 0) != None:
-        return safe_get(content, 6, 3, 11, 0)
-    if safe_get(content, 6, 1, 5)=="Service" and safe_get(content, 6, 1, 11, 0) != None:
-        return safe_get(content, 6, 1, 11,0)
-    if safe_get(content, 6, 4, 5)=="Service" and safe_get(content, 6, 4, 11, 0) != None:
-        return safe_get(content, 6, 4, 11,0)
-    if safe_get(content, 6, 4, 5)=="Service" and safe_get(content, 6, 4, 11, 0) != None:
-        return safe_get(content, 6, 4, 11, 0)
-    if safe_get(content, 6, 2, 5)=="Service" and safe_get(content, 6, 2, 11, 0) != None:
-        return safe_get(content, 6, 2, 11,0)
-    if safe_get(content, 6, 5, 5)=="Service" and safe_get(content, 6, 5, 11, 0) != None:
-        return safe_get(content, 6, 5, 11,0)
-    else:
-        return None
+    return get_attribute_value(content, "Service")
+
 def get_atmosphere(content):
-    if safe_get(content, 6, 4, 5)=="Atmosphere" and safe_get(content, 6, 4, 11, 0) != None:
-        return safe_get(content, 6, 4, 11, 0)
-    if safe_get(content, 6, 2, 5)=="Atmosphere" and safe_get(content, 6, 2, 11, 0) != None:
-        return safe_get(content, 6, 2, 11,0)
-    if safe_get(content, 6, 5, 5)=="Atmosphere" and safe_get(content, 6, 5, 11, 0) != None:
-        return safe_get(content, 6, 5, 11,0)
-    if safe_get(content, 6, 2, 5)=="Atmosphere" and safe_get(content, 6, 2, 11, 0) != None:
-        return safe_get(content, 6, 2, 11, 0)
-    if safe_get(content, 6, 0, 5)=="Atmosphere" and safe_get(content, 6, 0, 11, 0) != None:
-        return safe_get(content, 6, 0, 11, 0)
-    if safe_get(content, 6, 3, 5)=="Atmosphere" and safe_get(content, 6, 3, 11, 0) != None:
-        return safe_get(content, 6, 3, 11, 0)
-    if safe_get(content, 6, 3, 5)=="Atmosphere" and safe_get(content, 6, 3, 11, 0) != None:
-        return safe_get(content, 6, 3, 11, 0)
-    if safe_get(content, 6, 1, 5)=="Atmosphere" and safe_get(content, 6, 1, 11, 0) != None:
-        return safe_get(content, 6, 1, 11,0)
-    if safe_get(content, 6, 4, 5)=="Atmosphere" and safe_get(content, 6, 4, 11, 0) != None:
-        return safe_get(content, 6, 4, 11,0)
-    if safe_get(content, 6, 4, 5)=="Atmosphere" and safe_get(content, 6, 4, 11, 0) != None:
-        return safe_get(content, 6, 4, 11, 0)
-    if safe_get(content, 6, 2, 5)=="Atmosphere" and safe_get(content, 6, 2, 11, 0) != None:
-        return safe_get(content, 6, 2, 11,0)
-    if safe_get(content, 6, 5, 5)=="Atmosphere" and safe_get(content, 6, 5, 11, 0) != None:
-        return safe_get(content, 6, 5, 11,0)
-    
-    else:
-        return None
+    return get_attribute_value(content, "Atmosphere")
+
 def extract_review_data(review_entry):
     """Extract review data from a single review entry."""
     try:
