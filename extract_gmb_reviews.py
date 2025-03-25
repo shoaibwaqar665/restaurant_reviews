@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import os
 def convert_timestamp(timestamp):
     if timestamp:
         try:
@@ -189,38 +190,48 @@ def extract_review_data(review_entry):
 def main():
     try:
         # Read the source JSON file
-        with open('responses/ugcposts_1742678933.json', 'r', encoding='utf-8') as f:
-            source_data = json.load(f)
-            print("Successfully loaded JSON file")
-        
-        # Find and extract all reviews
+        folder_path = 'responses/'
         reviews = []
-        
-        # The reviews are in source_data[2][0]
-        if (isinstance(source_data, list) and len(source_data) > 2 and 
-            isinstance(source_data[2], list) and len(source_data[2]) > 0):
-            print('source data length: ', len(source_data[2]))
-            for i in range(len(source_data[2])):
-                review_entries = source_data[2][i]
+        for filename in os.listdir(folder_path):
+            if filename.endswith('.json'):
+                file_path = os.path.join(folder_path, filename)
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        source_data = json.load(f)
+                        print(f"Successfully loaded {filename}")
 
-            # print('Review entries: ', review_entries)
-                if isinstance(review_entries, list):
-                    for entry in review_entries:
-                        if isinstance(entry, list) and len(entry) > 0:
-                            review_data = extract_review_data(entry)
-                            if review_data:
-                                reviews.append(review_data)
-                                print(f"Successfully extracted review {len(reviews)}")
-        
+                    # Find and extract all reviews
+
+                    # The reviews are in source_data[2][0]
+                    if (isinstance(source_data, list) and len(source_data) > 2 and 
+                        isinstance(source_data[2], list) and len(source_data[2]) > 0):
+                        print('source data length: ', len(source_data[2]))
+                        for i in range(len(source_data[2])):
+                            review_entries = source_data[2][i]
+
+                        # print('Review entries: ', review_entries)
+                            if isinstance(review_entries, list):
+                                for entry in review_entries:
+                                    if isinstance(entry, list) and len(entry) > 0:
+                                        review_data = extract_review_data(entry)
+                                        if review_data:
+                                            reviews.append(review_data)
+                                            print(f"Successfully extracted review {len(reviews)}")
+
+                    
+                        
+                    print(f"Successfully extracted {len(reviews)} reviews to gmb_reviews.json")
+                except Exception as e:
+                    print(f"Error processing {filename}: {str(e)}")
+                    import traceback
+                    print(traceback.format_exc())
         # Write extracted reviews to output file
         with open('gmb_reviews.json', 'a', encoding='utf-8') as f:
             json.dump({
                 "reviews": reviews,
-                "total_reviews": len(reviews),
+                "total_number_of_reviews": len(reviews),
                 "extraction_date": datetime.now().isoformat()
             }, f, indent=4, ensure_ascii=False)
-            
-        print(f"Successfully extracted {len(reviews)} reviews to gmb_reviews.json")
         
     except Exception as e:
         print(f"Error processing reviews: {str(e)}")
