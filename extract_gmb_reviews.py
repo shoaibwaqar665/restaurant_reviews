@@ -136,11 +136,6 @@ def extract_review_data(review_entry):
             "photos": [],
             "response_text": safe_get(review_entry, 3, 14, 0, 0) if safe_get(review_entry, 3) else None
         }
-        # print('Review content: ', safe_get(review_content,9))
-
-        # print('Review content: ',review_entry[2][15][0][0])
-        # ### the response is in [3][14][0][0]
-        print('Review content:-'+review_entry[2][6][0][5]+'-')
         
         # Extract photos if they exist
         photos = safe_get(review_content, 2)
@@ -204,19 +199,21 @@ def main():
         # The reviews are in source_data[2][0]
         if (isinstance(source_data, list) and len(source_data) > 2 and 
             isinstance(source_data[2], list) and len(source_data[2]) > 0):
-            
-            review_entries = source_data[2][1]
+            print('source data length: ', len(source_data[2]))
+            for i in range(len(source_data[2])):
+                review_entries = source_data[2][i]
+
             # print('Review entries: ', review_entries)
-            if isinstance(review_entries, list):
-                for entry in review_entries:
-                    if isinstance(entry, list) and len(entry) > 0:
-                        review_data = extract_review_data(entry)
-                        if review_data:
-                            reviews.append(review_data)
-                            print(f"Successfully extracted review {len(reviews)}")
+                if isinstance(review_entries, list):
+                    for entry in review_entries:
+                        if isinstance(entry, list) and len(entry) > 0:
+                            review_data = extract_review_data(entry)
+                            if review_data:
+                                reviews.append(review_data)
+                                print(f"Successfully extracted review {len(reviews)}")
         
         # Write extracted reviews to output file
-        with open('gmb_reviews.json', 'w', encoding='utf-8') as f:
+        with open('gmb_reviews.json', 'a', encoding='utf-8') as f:
             json.dump({
                 "reviews": reviews,
                 "total_reviews": len(reviews),
