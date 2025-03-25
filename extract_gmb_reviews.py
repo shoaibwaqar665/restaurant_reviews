@@ -133,7 +133,7 @@ def extract_review_data(review_entry):
 def main():
     try:
         # Read the source JSON file
-        folder_path = f'responses_D\'Amores_Famous_Pizza_Anaheim/'
+        folder_path = f'responses/'
         reviews = []
         for filename in os.listdir(folder_path):
             if filename.endswith('.json'):
@@ -169,7 +169,10 @@ def main():
                     import traceback
                     print(traceback.format_exc())
         # Write extracted reviews to output file
-        with open('gmb_reviews_anehime.json', 'a', encoding='utf-8') as f:
+        extracted_reviews = [extract_review_data_to_insert(review) for review in reviews]
+        for review in extracted_reviews:
+            insert_data(review)
+        with open('gmb_reviews.json', 'a', encoding='utf-8') as f:
             json.dump({
                 "reviews": reviews,
                 "total_number_of_reviews": len(reviews),
@@ -180,6 +183,95 @@ def main():
         print(f"Error processing reviews: {str(e)}")
         import traceback
         print(traceback.format_exc())
+
+
+#### storing data in database ######
+import json
+
+def extract_review_data_to_insert(data):
+    # convert data to json
+    
+
+    extracted_data = {
+        "review_id": data.get("review_id"),
+        "reviewer_name": data.get("reviewer", {}).get("name"),
+        "profile_image": data.get("reviewer", {}).get("profile_image"),
+        "profile_url": data.get("reviewer", {}).get("profile_url"),
+        "user_id": data.get("reviewer", {}).get("user_id"),
+        "total_reviews": data.get("reviewer", {}).get("total_reviews"),
+        "total_photos": data.get("reviewer", {}).get("total_photos"),
+        "local_guide_info": data.get("reviewer", {}).get("local_guide_info"),
+        "rating": data.get("review", {}).get("rating"),
+        "created_timestamp": data.get("review", {}).get("timestamp", {}).get("created"),
+        "modified_timestamp": data.get("review", {}).get("timestamp", {}).get("modified"),
+        "review_text": data.get("review", {}).get("review_text"),
+        "food_quality": data.get("review", {}).get("food_quality"),
+        "service": data.get("review", {}).get("service"),
+        "atmosphere": data.get("review", {}).get("atmosphere"),
+        "photos": [{
+            "url": photo.get("url"),
+            "dimensions": photo.get("dimensions")
+        } for photo in data.get("review", {}).get("photos", [])],
+        "response_text": data.get("review", {}).get("response_text"),
+        "business_response_date": data.get("business_response", {}).get("date"),
+        "business_response_text": data.get("business_response", {}).get("text"),
+        "extracted_date": data.get("metadata", {}).get("extracted_date")
+    }
+    return extracted_data
+
+# Assuming reviews is your array of review data
+# extracted_reviews = [extract_review_data(review) for review in reviews]
+
+# print(extracted_reviews)
+
+import psycopg2
+
+def insert_data(review_data):
+    try:
+        conn = psycopg2.connect(
+            dbname="restaurants_reviews",
+            user="neondb_owner",
+            password="sLdJyF0w2Unv",
+            host="ep-wild-wave-a1nsn7ul.ap-southeast-1.aws.neon.tech",
+            port="5432"
+        )
+        cursor = conn.cursor()
+
+        # Insert review data
+        cursor.execute("""
+            INSERT INTO google_reviews (
+                review_id, user_id, username, text, rating, published_date,
+                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text
+            ) VALUES (
+                %(review_id)s, %(user_id)s, %(reviewer_name)s, %(review_text)s,
+                %(rating)s, %(created_timestamp)s, %(extracted_date)s, %(profile_image)s,
+                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s
+            )
+        """, review_data)
+
+        # Insert photos
+        for photo in review_data['photos']:
+            cursor.execute("""
+                INSERT INTO google_reviews_photos (
+                    review_id, photo_url
+                ) VALUES (
+                    %(review_id)s, %(photo_url)s
+                )
+            """, {'review_id': review_data['review_id'], 'photo_url': photo['url']})
+
+        conn.commit()
+        print("Data inserted successfully.")
+    except Exception as e:
+        print("Error:", e)
+    finally:
+        cursor.close()
+        conn.close()
+
+# # Example usage
+# for review in extracted_reviews:
+#     insert_data(review)
+
+#### storing data in database ######
 
 if __name__ == "__main__":
     main() 
