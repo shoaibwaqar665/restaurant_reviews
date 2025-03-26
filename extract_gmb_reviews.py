@@ -170,8 +170,8 @@ def main():
                     print(traceback.format_exc())
         # Write extracted reviews to output file
         extracted_reviews = [extract_review_data_to_insert(review) for review in reviews]
-        for review in extracted_reviews:
-            insert_data(review)
+        # for review in extracted_reviews:
+        #     insert_data(review)
         with open('gmb_reviews.json', 'a', encoding='utf-8') as f:
             json.dump({
                 "reviews": reviews,
@@ -189,9 +189,6 @@ def main():
 import json
 
 def extract_review_data_to_insert(data):
-    # convert data to json
-    
-
     extracted_data = {
         "review_id": data.get("review_id"),
         "reviewer_name": data.get("reviewer", {}).get("name"),
@@ -217,12 +214,8 @@ def extract_review_data_to_insert(data):
         "business_response_text": data.get("business_response", {}).get("text"),
         "extracted_date": data.get("metadata", {}).get("extracted_date")
     }
+    insert_data(extracted_data)
     return extracted_data
-
-# Assuming reviews is your array of review data
-# extracted_reviews = [extract_review_data(review) for review in reviews]
-
-# print(extracted_reviews)
 
 import psycopg2
 
@@ -260,18 +253,13 @@ def insert_data(review_data):
             """, {'review_id': review_data['review_id'], 'photo_url': photo['url']})
 
         conn.commit()
-        print("Data inserted successfully.")
+        print("Data inserted successfully.", review_data)
     except Exception as e:
         print("Error:", e)
     finally:
         cursor.close()
         conn.close()
 
-# # Example usage
-# for review in extracted_reviews:
-#     insert_data(review)
-
-#### storing data in database ######
 
 if __name__ == "__main__":
     main() 
