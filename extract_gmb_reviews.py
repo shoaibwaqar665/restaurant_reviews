@@ -229,7 +229,11 @@ def insert_data(review_data):
             port="5432"
         )
         cursor = conn.cursor()
-
+         # Check for existing review by review_id
+        cursor.execute("SELECT 1 FROM google_reviews WHERE review_id = %s", (review_data['review_id'],))
+        if cursor.fetchone():
+            print(f"Review with ID {review_data['review_id']} already exists. Skipping insertion.")
+            return
         # Insert review data
         cursor.execute("""
             INSERT INTO google_reviews (
