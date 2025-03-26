@@ -2,6 +2,7 @@ from patchright.sync_api import sync_playwright
 import time
 import json
 import os
+import math
 query = "D'Amores Famous Pizza Anaheim"
 folder_name = query.replace(" ", "_")
 
@@ -87,7 +88,12 @@ def search_and_log_reviews():
             samole_click.click()
 
             print("Pressing 'End' key to load reviews...")
-            for i in range(35):
+            total_reviews = 378
+            const_val = 0.0873
+            end_btn_range = round(total_reviews * const_val)
+            print('end_btn_range: ', end_btn_range)
+
+            for i in range(end_btn_range):
                 print(i)
                 page.keyboard.press('End')
                 time.sleep(2)
