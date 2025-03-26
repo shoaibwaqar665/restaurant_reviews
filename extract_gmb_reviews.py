@@ -1,3 +1,4 @@
+import psycopg2
 import json
 from datetime import datetime
 import os
@@ -169,9 +170,8 @@ def main():
                     import traceback
                     print(traceback.format_exc())
         # Write extracted reviews to output file
-        extracted_reviews = [extract_review_data_to_insert(review) for review in reviews]
-        # for review in extracted_reviews:
-        #     insert_data(review)
+        [extract_review_data_to_insert(review) for review in reviews]
+
         with open('gmb_reviews.json', 'a', encoding='utf-8') as f:
             json.dump({
                 "reviews": reviews,
@@ -185,8 +185,7 @@ def main():
         print(traceback.format_exc())
 
 
-#### storing data in database ######
-import json
+#### storing data in database #####
 
 def extract_review_data_to_insert(data):
     extracted_data = {
@@ -217,7 +216,6 @@ def extract_review_data_to_insert(data):
     insert_data(extracted_data)
     return extracted_data
 
-import psycopg2
 
 def insert_data(review_data):
     try:
@@ -238,11 +236,11 @@ def insert_data(review_data):
         cursor.execute("""
             INSERT INTO google_reviews (
                 review_id, user_id, username, text, rating, published_date,
-                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text
+                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text,contribution
             ) VALUES (
                 %(review_id)s, %(user_id)s, %(reviewer_name)s, %(review_text)s,
                 %(rating)s, %(created_timestamp)s, %(extracted_date)s, %(profile_image)s,
-                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s
+                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s, %(total_reviews)s
             )
         """, review_data)
 
