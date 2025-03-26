@@ -17,8 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from myapp.trip import api
-
+from myapp.gmb import gmb_api
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('tripadvisor/', api.urls),
+    path('google-maps/', gmb_api.urls),
 ]

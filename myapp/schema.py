@@ -6,3 +6,6 @@ class TripAdvisorQuery(Schema):
     
 class ValidCheck(Schema):
     valid: str
+
+class GoogleMapsQuery(Schema):
+    query: str

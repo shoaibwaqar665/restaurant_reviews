@@ -174,7 +174,7 @@ def main():
         # Write extracted reviews to output file
         [extract_review_data_to_insert(review) for review in reviews]
 
-        with open('gmb_reviews.json', 'a', encoding='utf-8') as f:
+        with open('gmb_reviews.json', 'w', encoding='utf-8') as f:
             json.dump({
                 "reviews": reviews,
                 "total_number_of_reviews": len(reviews),
