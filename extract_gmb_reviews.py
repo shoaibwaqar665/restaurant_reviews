@@ -75,11 +75,13 @@ def extract_review_data(review_entry):
                 "modified": convert_timestamp(safe_get(review_metadata, 3))
             },
             "review_text": safe_get(review_content, 15, 0, 0),  # Review text is in [2][1][0][0][0]
+            "translated_text": safe_get(review_content, 15, 1, 0),
             "food_quality": get_food_quality(review_content),
             "service": get_service(review_content),
             "atmosphere": get_atmosphere(review_content),
             "photos": [],
-            "response_text": safe_get(review_entry, 3, 14, 0, 0) if safe_get(review_entry, 3) else None
+            "response_text": safe_get(review_entry, 3, 14, 0, 0) if safe_get(review_entry, 3) else None,
+            "is_translated": True if safe_get(review_content, 15, 1, 0) is not None else False
         }
         
         # Extract photos if they exist
@@ -201,6 +203,8 @@ def extract_review_data_to_insert(data):
         "created_timestamp": data.get("review", {}).get("timestamp", {}).get("created"),
         "modified_timestamp": data.get("review", {}).get("timestamp", {}).get("modified"),
         "review_text": data.get("review", {}).get("review_text"),
+        "translated_text": data.get("review", {}).get("translated_text"),
+        "is_translated": data.get("review", {}).get("is_translated"),
         "food_quality": data.get("review", {}).get("food_quality"),
         "service": data.get("review", {}).get("service"),
         "atmosphere": data.get("review", {}).get("atmosphere"),
@@ -236,11 +240,11 @@ def insert_data(review_data):
         cursor.execute("""
             INSERT INTO google_reviews (
                 review_id, user_id, username, text, rating, published_date,
-                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text,contribution
+                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text,contribution,is_translated,translated_text
             ) VALUES (
                 %(review_id)s, %(user_id)s, %(reviewer_name)s, %(review_text)s,
                 %(rating)s, %(created_timestamp)s, %(extracted_date)s, %(profile_image)s,
-                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s, %(total_reviews)s
+                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s, %(total_reviews)s, %(is_translated)s, %(translated_text)s
             )
         """, review_data)
 
