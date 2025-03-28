@@ -451,3 +451,138 @@ def ProcessTripadvisorData(json_file_path):
         print(f"Error processing JSON file: {str(e)}", file=sys.stderr)
         return None, 0
 
+
+
+def InsertRestaurantDetails(restaurant_data):
+    """
+    Insert restaurant details from Google JSON data into the google_restaurant_details table.
+
+    Args:
+        restaurant_data (dict): The restaurant data extracted from Google
+    """
+    conn = None
+    cursor = None
+
+    try:
+        # Database connection
+        conn = psycopg2.connect(
+            dbname="restaurants_reviews",
+            user="neondb_owner",
+            password="sLdJyF0w2Unv",
+            host="ep-wild-wave-a1nsn7ul.ap-southeast-1.aws.neon.tech",
+            port="5432"
+        )
+        cursor = conn.cursor()
+
+        # Extract data from restaurant_data
+        name = restaurant_data.get("name")
+        address = restaurant_data.get("address")
+        price_level = restaurant_data.get("price_level")
+        website = restaurant_data.get("website")
+        menu_url = restaurant_data.get("menu_url")
+        phone = restaurant_data.get("phone")
+        rating = str(restaurant_data.get("rating", ""))
+        reviews = str(restaurant_data.get("reviews", ""))
+
+        # Extract features
+        features = restaurant_data.get("features", {})
+        service_options = features.get("service_options", [])
+        parking = features.get("parking", [])
+        children = features.get("children", [])
+        payments = features.get("payments", [])
+        planning = features.get("planning", [])
+        crowd = features.get("crowd", [])
+        atmosphere = features.get("atmosphere", [])
+        amenities = features.get("amenities", [])
+        dining_options = features.get("dining_options", [])
+        schedule = restaurant_data.get("schedule", {})
+        check_query = """
+                    SELECT COUNT(*) FROM google_restaurant_details 
+                    WHERE phone = %s AND address = %s
+                """
+        cursor.execute(check_query, (phone, address))
+        existing_count = cursor.fetchone()[0]
+
+        if existing_count > 0:
+            print(f"Restaurant already exists: {name}")
+            return
+
+        # Insert data into table
+        insert_query = """
+            INSERT INTO google_restaurant_details (
+                name, address, price_level, website, menu_url, phone, 
+                service_options, parking, children, payments, planning, 
+                crowd, atmosphere, amenities, dining_options, schedule, 
+                rating, reviews
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, 
+                %s, %s, %s, %s, %s, 
+                %s, %s, %s, %s, %s, 
+                %s, %s
+            )
+        """
+
+        cursor.execute(insert_query, (
+            name, address, price_level, website, menu_url, phone,
+            service_options, parking, children, payments, planning,
+            crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
+            rating, reviews
+        ))
+        conn.commit()
+        print(f"Inserted data for restaurant: {name}")
+
+    except Exception as e:
+        print(f"Error inserting restaurant details: {e}")
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def insert_data(review_data):
+    try:
+        conn = psycopg2.connect(
+            dbname="restaurants_reviews",
+            user="neondb_owner",
+            password="sLdJyF0w2Unv",
+            host="ep-wild-wave-a1nsn7ul.ap-southeast-1.aws.neon.tech",
+            port="5432"
+        )
+        cursor = conn.cursor()
+         # Check for existing review by review_id
+        cursor.execute("SELECT 1 FROM google_reviews WHERE review_id = %s", (review_data['review_id'],))
+        if cursor.fetchone():
+            print(f"Review with ID {review_data['review_id']} already exists. Skipping insertion.")
+            return
+        # Insert review data
+        cursor.execute("""
+            INSERT INTO google_reviews (
+                review_id, user_id, username, text, rating, published_date,
+                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text,contribution,is_translated,translated_text
+            ) VALUES (
+                %(review_id)s, %(user_id)s, %(reviewer_name)s, %(review_text)s,
+                %(rating)s, %(created_timestamp)s, %(extracted_date)s, %(profile_image)s,
+                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s, %(total_reviews)s, %(is_translated)s, %(translated_text)s
+            )
+        """, review_data)
+
+        # Insert photos
+        for photo in review_data['photos']:
+            cursor.execute("""
+                INSERT INTO google_reviews_photos (
+                    review_id, photo_url
+                ) VALUES (
+                    %(review_id)s, %(photo_url)s
+                )
+            """, {'review_id': review_data['review_id'], 'photo_url': photo['url']})
+
+        conn.commit()
+        print("Data inserted successfully.", review_data)
+    except Exception as e:
+        print("Error:", e)
+    finally:
+        cursor.close()
+        conn.close()
+

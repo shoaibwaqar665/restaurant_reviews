@@ -2,6 +2,8 @@ import psycopg2
 import json
 from datetime import datetime
 import os
+
+from myapp.dbOperations import insert_data
 def convert_timestamp(timestamp):
     if timestamp:
         try:
@@ -219,52 +221,6 @@ def extract_review_data_to_insert(data):
     }
     insert_data(extracted_data)
     return extracted_data
-
-
-def insert_data(review_data):
-    try:
-        conn = psycopg2.connect(
-            dbname="restaurants_reviews",
-            user="neondb_owner",
-            password="sLdJyF0w2Unv",
-            host="ep-wild-wave-a1nsn7ul.ap-southeast-1.aws.neon.tech",
-            port="5432"
-        )
-        cursor = conn.cursor()
-         # Check for existing review by review_id
-        cursor.execute("SELECT 1 FROM google_reviews WHERE review_id = %s", (review_data['review_id'],))
-        if cursor.fetchone():
-            print(f"Review with ID {review_data['review_id']} already exists. Skipping insertion.")
-            return
-        # Insert review data
-        cursor.execute("""
-            INSERT INTO google_reviews (
-                review_id, user_id, username, text, rating, published_date,
-                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text,contribution,is_translated,translated_text
-            ) VALUES (
-                %(review_id)s, %(user_id)s, %(reviewer_name)s, %(review_text)s,
-                %(rating)s, %(created_timestamp)s, %(extracted_date)s, %(profile_image)s,
-                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s, %(total_reviews)s, %(is_translated)s, %(translated_text)s
-            )
-        """, review_data)
-
-        # Insert photos
-        for photo in review_data['photos']:
-            cursor.execute("""
-                INSERT INTO google_reviews_photos (
-                    review_id, photo_url
-                ) VALUES (
-                    %(review_id)s, %(photo_url)s
-                )
-            """, {'review_id': review_data['review_id'], 'photo_url': photo['url']})
-
-        conn.commit()
-        print("Data inserted successfully.", review_data)
-    except Exception as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
 
 
 if __name__ == "__main__":

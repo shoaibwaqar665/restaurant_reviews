@@ -1,6 +1,8 @@
 import json
 import re
 
+from myapp.dbOperations import InsertRestaurantDetails
+
 def safe_get(data, *indices, default=None):
     """Safely access nested elements in a dictionary or list.
     
@@ -379,8 +381,7 @@ def extract_restaurant_data(restaurant_data, index):
     result["features"] = grouped_features
 
     return result
-import re
-import json
+
 
 def extract_rating_and_reviews(json_string):
     # Ensure input is a string
@@ -442,100 +443,6 @@ def main():
     
     print("Data insertion and file writing completed.")
 
-
-###### storing data in database ######
-import psycopg2
-import json
-
-def InsertRestaurantDetails(restaurant_data):
-    """
-    Insert restaurant details from Google JSON data into the google_restaurant_details table.
-
-    Args:
-        restaurant_data (dict): The restaurant data extracted from Google
-    """
-    conn = None
-    cursor = None
-
-    try:
-        # Database connection
-        conn = psycopg2.connect(
-            dbname="restaurants_reviews",
-            user="neondb_owner",
-            password="sLdJyF0w2Unv",
-            host="ep-wild-wave-a1nsn7ul.ap-southeast-1.aws.neon.tech",
-            port="5432"
-        )
-        cursor = conn.cursor()
-
-        # Extract data from restaurant_data
-        name = restaurant_data.get("name")
-        address = restaurant_data.get("address")
-        price_level = restaurant_data.get("price_level")
-        website = restaurant_data.get("website")
-        menu_url = restaurant_data.get("menu_url")
-        phone = restaurant_data.get("phone")
-        rating = str(restaurant_data.get("rating", ""))
-        reviews = str(restaurant_data.get("reviews", ""))
-
-        # Extract features
-        features = restaurant_data.get("features", {})
-        service_options = features.get("service_options", [])
-        parking = features.get("parking", [])
-        children = features.get("children", [])
-        payments = features.get("payments", [])
-        planning = features.get("planning", [])
-        crowd = features.get("crowd", [])
-        atmosphere = features.get("atmosphere", [])
-        amenities = features.get("amenities", [])
-        dining_options = features.get("dining_options", [])
-        schedule = restaurant_data.get("schedule", {})
-        check_query = """
-                    SELECT COUNT(*) FROM google_restaurant_details 
-                    WHERE phone = %s AND address = %s
-                """
-        cursor.execute(check_query, (phone, address))
-        existing_count = cursor.fetchone()[0]
-
-        if existing_count > 0:
-            print(f"Restaurant already exists: {name}")
-            return
-
-        # Insert data into table
-        insert_query = """
-            INSERT INTO google_restaurant_details (
-                name, address, price_level, website, menu_url, phone, 
-                service_options, parking, children, payments, planning, 
-                crowd, atmosphere, amenities, dining_options, schedule, 
-                rating, reviews
-            ) VALUES (
-                %s, %s, %s, %s, %s, %s, 
-                %s, %s, %s, %s, %s, 
-                %s, %s, %s, %s, %s, 
-                %s, %s
-            )
-        """
-
-        cursor.execute(insert_query, (
-            name, address, price_level, website, menu_url, phone,
-            service_options, parking, children, payments, planning,
-            crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
-            rating, reviews
-        ))
-        conn.commit()
-        print(f"Inserted data for restaurant: {name}")
-
-    except Exception as e:
-        print(f"Error inserting restaurant details: {e}")
-
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-
-
-###### storing data in database ######
 
 
 

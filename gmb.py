@@ -3,7 +3,7 @@ import time
 import json
 import os
 import math
-query = "D'Amores Famous Pizza Anaheim"
+query = "Shakey's Pizza Parlor Brea"
 folder_name = query.replace(" ", "_")
 
 def search_and_log_reviews():
