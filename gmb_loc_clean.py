@@ -365,6 +365,7 @@ def extract_restaurant_data(restaurant_data, index):
         result["schedule"] = formatted_schedule
 
     # Clean up and organize the data
+    grouped_features = {}  # Initialize to avoid UnboundLocalError
     if "features" in result:
         # Group similar features together
         grouped_features = {}

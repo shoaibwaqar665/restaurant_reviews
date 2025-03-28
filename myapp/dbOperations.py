@@ -586,3 +586,31 @@ def InsertRestaurantReviewsForGoogle(review_data):
         cursor.close()
         conn.close()
 
+
+# write code to select name from trip_restaurants_details table
+def select_name_from_trip_restaurants_details(query):
+    conn = psycopg2.connect(
+        dbname=Scraping["Database"],
+        user=Scraping["Username"],
+        password=Scraping["Password"],
+        host=Scraping["Host"],
+        port=Scraping["Port"]
+    )
+    cursor = conn.cursor()
+    query = query.lower()
+    cursor.execute("SELECT name FROM trip_restaurants_details WHERE restaurant_name = %s", (query,))
+    
+    results = cursor.fetchall()
+    names = [row[0] for row in results]  # Extract names from tuples
+    
+    cursor.close()
+    conn.close()
+    
+    return names  # Return a clean list
+
+
+# call the function
+# print(select_name_from_trip_restaurants_details("Shakey's Pizza Parlor"))
+# call the function and print the result one by one
+# for name in select_name_from_trip_restaurants_details("Shakey's Pizza Parlor"):
+#     print(name)
