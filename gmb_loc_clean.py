@@ -404,7 +404,7 @@ def extract_rating_and_reviews(json_string):
         }
     return None
 
-def location_data_cleaning(input_file, output_file):
+def location_data_cleaning(input_file, output_file,restaurant_name,location_name):
     # Input and output file paths
     # input_file = "gmb_loc_google_response.json"
     # output_file = "gmb_loc_cleaned.json"
@@ -429,7 +429,7 @@ def location_data_cleaning(input_file, output_file):
                 restaurant_info.update(result)
             
             # Insert into database
-            InsertRestaurantDetailsForGoogle(restaurant_info)
+            InsertRestaurantDetailsForGoogle(restaurant_info,restaurant_name,location_name)
             
             # Save to list for writing to a file
             restaurant_data.append(restaurant_info)

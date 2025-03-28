@@ -6,8 +6,8 @@ from myapp.dbOperations import select_name_from_trip_restaurants_details
 
 query = "Shakey's Pizza Parlor"
 restaurant_name = select_name_from_trip_restaurants_details(query)
-for name in restaurant_name:
-    url = "https://www.google.com/search?tbm=map&authuser=0&hl=en&q=" + query+" "+name
+for location_name in restaurant_name:
+    url = "https://www.google.com/search?tbm=map&authuser=0&hl=en&q=" + query+" "+location_name
     payload = {}
     headers = {
       'accept': '*/*',
@@ -16,7 +16,8 @@ for name in restaurant_name:
     }
     file_name = query.replace(" ", "_")
     file_name = file_name.replace("'", "")
-    input_file = f'{file_name}_{name}_google_loc_response.json'
+    location_name = location_name.replace(" ","_")
+    input_file = f'{file_name}_{location_name}_google_loc_response.json'
     response = requests.request("GET", url, headers=headers, data=payload)
     
     def clean_and_parse_google_response(response_text):
@@ -43,5 +44,5 @@ for name in restaurant_name:
     # Example: Pass the response text as a string to this function
     response_text = response.text
     cleaned_data = clean_and_parse_google_response(response_text)
-    output_file = f'{file_name}_{name}_google_loc_cleaned.json'
-    location_data_cleaning(input_file, output_file)
+    output_file = f'{file_name}_{location_name}_google_loc_cleaned.json'
+    location_data_cleaning(input_file, output_file,query,location_name)

@@ -454,7 +454,7 @@ def ProcessTripadvisorData(json_file_path):
 
 
 
-def InsertRestaurantDetailsForGoogle(restaurant_data):
+def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_name):
     """
     Insert restaurant details from Google JSON data into the google_restaurant_details table.
 
@@ -496,6 +496,13 @@ def InsertRestaurantDetailsForGoogle(restaurant_data):
         amenities = features.get("amenities", [])
         dining_options = features.get("dining_options", [])
         schedule = restaurant_data.get("schedule", {})
+
+        address_key = address.replace(" ","_")
+        restaurant_name = restaurant_name.replace(" ","_")
+        restaurant_name = restaurant_name.replace("'","")
+        location_name = location_name.replace(" ","_")
+        business_key = location_name+"_"+address_key+"_"+restaurant_name
+        
         check_query = """
                     SELECT COUNT(*) FROM google_restaurant_details 
                     WHERE phone = %s AND address = %s
@@ -513,12 +520,12 @@ def InsertRestaurantDetailsForGoogle(restaurant_data):
                 name, address, website, menu_url, phone, 
                 service_options, parking, children, payments, planning, 
                 crowd, atmosphere, amenities, dining_options, schedule, 
-                review_rating, review_count
+                review_rating, review_count,restaurant_name,business_key
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
-                %s
+                %s,%s,%s
             )
         """
 
@@ -526,13 +533,19 @@ def InsertRestaurantDetailsForGoogle(restaurant_data):
             name, address, website, menu_url, phone,
             service_options, parking, children, payments, planning,
             crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
-            rating, reviews
+            rating, reviews,restaurant_name,business_key
         ))
         conn.commit()
         print(f"Inserted data for restaurant: {name}")
 
     except Exception as e:
         print(f"Error inserting restaurant details: {e}")
+    # delete the record from google_restaurant_details table where address is null
+    try:
+        cursor.execute("DELETE FROM google_restaurant_details WHERE address IS NULL")
+        conn.commit()
+    except Exception as e:
+        print(f"Error deleting records: {e}")
 
     finally:
         if cursor:
