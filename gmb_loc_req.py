@@ -24,8 +24,8 @@ for location_name in restaurant_name:
     }
     file_name = query.replace(" ", "_")
     file_name = file_name.replace("'", "")
-    location_name = location_name.replace(" ","_")
-    input_file = f'{file_name}_{location_name}_google_loc_response.json'
+    new_location_name = location_name.replace(" ","_")
+    input_file = f'{file_name}_{new_location_name}_google_loc_response.json'
     response = requests.request("GET", url, headers=headers, data=payload)
 
     def clean_and_parse_google_response(response_text):
@@ -52,5 +52,6 @@ for location_name in restaurant_name:
     # Example: Pass the response text as a string to this function
     response_text = response.text
     cleaned_data = clean_and_parse_google_response(response_text)
-    output_file = f'{file_name}_{location_name}_google_loc_cleaned.json'
+    output_file = f'{file_name}_{new_location_name}_google_loc_cleaned.json'
+    
     location_data_cleaning(input_file, output_file,query,location_name)

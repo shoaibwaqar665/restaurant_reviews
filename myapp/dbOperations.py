@@ -511,6 +511,8 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         dining_options = features.get("dining_options", [])
         schedule = restaurant_data.get("schedule", {})
 
+
+        google_review_name = restaurant_name + " " + location_name
         address_key = address.replace(" ","_")
         real_loc = location_name
         restaurant_name = restaurant_name.replace(" ","_")
@@ -525,12 +527,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         postal_code = address_data.get("postal_code", "")
         country = address_data.get("country", "")
 
-        print("Street:", street)
-        print("City:", city)
-        print("State:", state)
-        print("Postal Code:", postal_code)
-        print("Country:", country)
-
+       
         check_query = """
                     SELECT COUNT(*) FROM google_restaurant_details 
                     WHERE phone = %s AND address = %s
@@ -558,7 +555,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         """
 
         cursor.execute(insert_query, (
-            real_loc.replace("_"," "), address, website, menu_url, phone,
+            google_review_name, address, website, menu_url, phone,
             service_options, parking, children, payments, planning,
             crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
             rating, reviews,restaurant_name,business_key,
