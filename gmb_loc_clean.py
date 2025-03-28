@@ -76,13 +76,14 @@ def is_address(data):
     has_address_keyword = any(keyword in data for keyword in address_keywords)
     has_zip = bool(re.search(r'\b\d{5}\b', data))
     has_state = bool(re.search(r'\b[A-Z]{2}\b', data))
-    
+    country_pattern = r",\s*(United States|USA|Canada|UK|Australia|India)$" 
+    has_country = bool(re.search(country_pattern, data))
     # Exclude common false positives
     false_positives = ['Pacific Standard Time', 'http', 'www', '.com', '.org', '.net']
     if any(fp in data for fp in false_positives):
         return False
     
-    return (has_street_number and has_address_keyword) or (has_zip and has_state)
+    return (has_street_number and has_address_keyword and has_state and has_zip and has_country) or (has_zip and has_state)
 
 def is_phone_number(data):
     """Check if an item might be a phone number."""

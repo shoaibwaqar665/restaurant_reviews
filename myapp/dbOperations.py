@@ -4,9 +4,23 @@ import sys
 import json
 from datetime import datetime
 
+import usaddress
 from myapp.environment import Scraping
 
 Scraping = Scraping
+
+def split_us_address(address):
+    try:
+        parsed = usaddress.tag(address)[0]
+        return {
+            "street": parsed.get("AddressNumber", "") + " " + parsed.get("StreetName", ""),
+            "city": parsed.get("PlaceName", ""),
+            "state": parsed.get("StateName", ""),
+            "postal_code": parsed.get("ZipCode", ""),
+            "country": "United States"  # Since usaddress is US-specific
+        }
+    except usaddress.RepeatedLabelError:
+        return {"error": "Could not parse address"}
 
 def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
     """
@@ -504,8 +518,18 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         location_name = location_name.replace(" ","_")
         business_key = location_name+"_"+address_key+"_"+restaurant_name
         
-        address = address+" "+real_loc
+        address_data = split_us_address(address) or {}  # Ensure it's a dictionary
+        street = address_data.get("street", "")
+        city = address_data.get("city", "")
+        state = address_data.get("state", "")
+        postal_code = address_data.get("postal_code", "")
+        country = address_data.get("country", "")
 
+        print("Street:", street)
+        print("City:", city)
+        print("State:", state)
+        print("Postal Code:", postal_code)
+        print("Country:", country)
 
         check_query = """
                     SELECT COUNT(*) FROM google_restaurant_details 
@@ -524,32 +548,37 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
                 name, address, website, menu_url, phone, 
                 service_options, parking, children, payments, planning, 
                 crowd, atmosphere, amenities, dining_options, schedule, 
-                review_rating, review_count,restaurant_name,business_key,city
+                review_rating, review_count,restaurant_name,business_key,city,state,country,postal_code
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
-                %s,%s,%s,%s
+                %s,%s,%s,%s,%s,%s,%s
             )
         """
 
         cursor.execute(insert_query, (
-            real_loc, address, website, menu_url, phone,
+            real_loc.replace("_"," "), address, website, menu_url, phone,
             service_options, parking, children, payments, planning,
             crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
-            rating, reviews,restaurant_name,business_key,real_loc
+            rating, reviews,restaurant_name,business_key,
+            city, state, country,postal_code
         ))
         conn.commit()
         print(f"Inserted data for restaurant: {name}")
 
     except Exception as e:
         print(f"Error inserting restaurant details: {e}")
-    # delete the record from google_restaurant_details table where address is null
+    # delete the record from google_restaurant_details table 
+        import traceback
+        print(traceback.format_exc())  # Print full traceback for debuggingwhere address is null
     try:
         cursor.execute("DELETE FROM google_restaurant_details WHERE address IS NULL")
         conn.commit()
     except Exception as e:
         print(f"Error deleting records: {e}")
+        import traceback
+        print(traceback.format_exc())  # Print full traceback for debugging
 
     finally:
         if cursor:
