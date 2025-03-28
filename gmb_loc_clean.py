@@ -1,7 +1,7 @@
 import json
 import re
 
-from myapp.dbOperations import InsertRestaurantDetails
+from myapp.dbOperations import InsertRestaurantDetailsForGoogle
 
 def safe_get(data, *indices, default=None):
     """Safely access nested elements in a dictionary or list.
@@ -428,7 +428,7 @@ def main():
                 restaurant_info.update(result)
             
             # Insert into database
-            InsertRestaurantDetails(restaurant_info)
+            InsertRestaurantDetailsForGoogle(restaurant_info)
             
             # Save to list for writing to a file
             restaurant_data.append(restaurant_info)

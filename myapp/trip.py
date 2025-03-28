@@ -1,17 +1,18 @@
 from concurrent.futures import ThreadPoolExecutor
 import requests
 import json
-from patchright.sync_api import sync_playwright
 import time
 import json
-from datetime import datetime
 import requests
 import re
 from typing import Dict
-from ninja_extra import api_controller, http_get, http_post, NinjaExtraAPI
+from ninja_extra import api_controller, http_post, NinjaExtraAPI
 from myapp.schema import TripAdvisorQuery
 import base64
 from googletrans import Translator
+from myapp.dbOperations import InsertRestaurantDetailsForTripadvisor, InsertRestaurantReviewsForTripAdvisor, ProcessTripadvisorData
+import sys
+
 
 # Initialize the Ninja API
 api = NinjaExtraAPI(urls_namespace='Tripadvisor')
@@ -942,8 +943,6 @@ def translate_existing_reviews(location_id):
         return False
 
 ########################################################
-from myapp.dbOperations import InsertRestaurantDetails, InsertRestaurantReviews, ProcessTripadvisorData
-import sys
 
 def FetchAndStoreRestaurantData(restaurant_query):
     """
@@ -991,7 +990,9 @@ def FetchAndStoreRestaurantData(restaurant_query):
                 continue
                 
             # Step 4: Insert restaurant details
-            stored_location_id = InsertRestaurantDetails(restaurant_data, restaurant_query)
+            restaurant_query = restaurant_query.replace(" ", "_")
+            restaurant_query = restaurant_query.replace("'", "")
+            stored_location_id = InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query)
             
             if not stored_location_id:
                 print(f"Failed to store restaurant details for: {location_name}")
@@ -1002,9 +1003,11 @@ def FetchAndStoreRestaurantData(restaurant_query):
             parent_location_name = ""
             if "parent" in location and location["parent"] is not None and isinstance(location["parent"], dict):
                 parent_location_name = location["parent"].get("localizedName", "")
-                
+            restaurant_query = restaurant_query.replace(" ", "_")
+            restaurant_query = restaurant_query.replace("'", "")
             restaurant_key = parent_location_name+'_'+restaurant_query
-            review_count = InsertRestaurantReviews(restaurant_data, stored_location_id ,restaurant_key)
+            
+            review_count = InsertRestaurantReviewsForTripAdvisor(restaurant_data, stored_location_id ,restaurant_key)
             
             # Record results
             results.append({

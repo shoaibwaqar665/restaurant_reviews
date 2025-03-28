@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 import os
 
-from myapp.dbOperations import insert_data
+from myapp.dbOperations import InsertRestaurantReviewsForGoogle
 def convert_timestamp(timestamp):
     if timestamp:
         try:
@@ -219,7 +219,7 @@ def extract_review_data_to_insert(data):
         "business_response_text": data.get("business_response", {}).get("text"),
         "extracted_date": data.get("metadata", {}).get("extracted_date")
     }
-    insert_data(extracted_data)
+    InsertRestaurantReviewsForGoogle(extracted_data)
     return extracted_data
 
 

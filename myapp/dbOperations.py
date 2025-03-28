@@ -8,7 +8,7 @@ from myapp.environment import Scraping
 
 Scraping = Scraping
 
-def InsertRestaurantDetails(restaurant_data, restaurant_query):
+def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
     """
     Insert restaurant details from Tripadvisor JSON data into the trip_restaurants_details table.
     
@@ -71,7 +71,7 @@ def InsertRestaurantDetails(restaurant_data, restaurant_query):
                     diets,
                     menu_url,
                     restaurant_name,
-                    restaurant_key
+                    business_key
                 ) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
@@ -159,12 +159,13 @@ def InsertRestaurantDetails(restaurant_data, restaurant_query):
             schedule_json = json.dumps(schedule_data) if schedule_data else None
             
             # Prepare the values tuple
-            restaurant_key = parent_location_name +'_'+ restaurant_query
+            city_name = parent_location_name or location.get("name") or f"{city} {state}".strip()
+            restaurant_key = street+'_'+city_name+'_'+postal_code+'_'+state+'_'+ restaurant_query
             values = (
                 location_id,
                 parent_location_name or location.get("name") or f"{city} {state}".strip(),
                 street,
-                city,
+                city_name,
                 state,
                 location.get("isoCountryCode") or "US",
                 postal_code,
@@ -226,7 +227,7 @@ def InsertRestaurantDetails(restaurant_data, restaurant_query):
             conn.close()
 
 
-def InsertRestaurantReviews(restaurant_data, location_id,restaurant_key):
+def InsertRestaurantReviewsForTripAdvisor(restaurant_data, location_id,restaurant_key):
     """
     Insert reviews from Tripadvisor JSON data into the trip_reviews and trip_review_photos tables.
     Stops processing if 5 consecutive reviews already exist in the database.
@@ -306,7 +307,7 @@ def InsertRestaurantReviews(restaurant_data, location_id,restaurant_key):
                         contribution,
                         likes,
                         avatar,
-                        restaurant_key
+                        business_key
                     ) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
@@ -438,11 +439,11 @@ def ProcessTripadvisorData(json_file_path):
             data = json.load(file)
         
         # Insert restaurant details
-        location_id = InsertRestaurantDetails(data)
+        location_id = InsertRestaurantDetailsForTripadvisor(data)
         
         if location_id:
             # Insert reviews
-            review_count = InsertRestaurantReviews(data, location_id)
+            review_count = InsertRestaurantReviewsForTripAdvisor(data, location_id)
             return location_id, review_count
         else:
             return None, 0
@@ -453,7 +454,7 @@ def ProcessTripadvisorData(json_file_path):
 
 
 
-def InsertRestaurantDetails(restaurant_data):
+def InsertRestaurantDetailsForGoogle(restaurant_data):
     """
     Insert restaurant details from Google JSON data into the google_restaurant_details table.
 
@@ -541,7 +542,7 @@ def InsertRestaurantDetails(restaurant_data):
             conn.close()
 
 
-def insert_data(review_data):
+def InsertRestaurantReviewsForGoogle(review_data):
     try:
         conn = psycopg2.connect(
             dbname="restaurants_reviews",
