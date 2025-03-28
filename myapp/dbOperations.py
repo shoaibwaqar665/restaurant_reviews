@@ -514,7 +514,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
 
         google_review_name = restaurant_name + " " + location_name
         address_key = address.replace(" ","_")
-        real_loc = location_name
+        real_returant_name = restaurant_name
         restaurant_name = restaurant_name.replace(" ","_")
         restaurant_name = restaurant_name.replace("'","")
         location_name = location_name.replace(" ","_")
@@ -558,7 +558,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
             google_review_name, address, website, menu_url, phone,
             service_options, parking, children, payments, planning,
             crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
-            rating, reviews,restaurant_name,business_key,
+            rating, reviews,real_returant_name,business_key,
             city, state, country,postal_code
         ))
         conn.commit()
@@ -651,9 +651,38 @@ def select_name_from_trip_restaurants_details(query):
     
     return names  # Return a clean list
 
+def select_restaurant_name_and_review_count_from_google_restaurant_details(query):
+    """Fetch restaurant name and review count from the database."""
+    try:
+        # Connect to the database
+        conn = psycopg2.connect(
+            dbname=Scraping["Database"],
+            user=Scraping["Username"],
+            password=Scraping["Password"],
+            host=Scraping["Host"],
+            port=Scraping["Port"]
+        )
+        cursor = conn.cursor()
+        
+        # query = query.lower()  # Normalize query string
+        
+        # Execute the query
+        cursor.execute("SELECT name, review_count FROM google_restaurant_details WHERE restaurant_name = %s", (query,))
+        
+        # Fetch results
+        results = cursor.fetchall()
+        print(results)
+        # Return list of tuples (name, review_count)
+        return [{"name": row[0], "review_count": row[1]} for row in results]
 
-# call the function
-# print(select_name_from_trip_restaurants_details("Shakey's Pizza Parlor"))
-# call the function and print the result one by one
-# for name in select_name_from_trip_restaurants_details("Shakey's Pizza Parlor"):
-#     print(name)
+    except Exception as e:
+        print(f"Database error: {e}")
+        return []
+    
+    finally:
+        # Ensure resources are always released
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+

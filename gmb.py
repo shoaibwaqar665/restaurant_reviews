@@ -2,11 +2,11 @@ from patchright.sync_api import sync_playwright
 import time
 import json
 import os
-query = "Shakey's Pizza Parlor Brea"
-folder_name = query.replace(" ", "_")
-folder_name = folder_name.replace("'", "")
 
-def search_and_log_reviews():
+from extract_gmb_reviews import extract_google_reviews
+from myapp.dbOperations import select_restaurant_name_and_review_count_from_google_restaurant_details
+
+def search_and_log_reviews(query,review_count,folder_name):
     with sync_playwright() as p:
         # Launch the browser
         browser = p.chromium.launch(headless=False)
@@ -85,10 +85,11 @@ def search_and_log_reviews():
             samole_click.click()
 
             print("Pressing 'End' key to load reviews...")
-            total_reviews = 378
+            total_reviews = int(review_count)  # Convert to integer
             const_val = 0.0873
             end_btn_range = round(total_reviews * const_val)
-            print('end_btn_range: ', end_btn_range)
+            print('end_btn_range:', end_btn_range)
+
 
             for i in range(end_btn_range):
                 print(i)
@@ -101,4 +102,16 @@ def search_and_log_reviews():
         browser.close()
 
 if __name__ == "__main__":
-    search_and_log_reviews()
+    restaurant_name = "shakey's pizza parlor"
+    print(restaurant_name)
+    restaurant_name_and_review_count = select_restaurant_name_and_review_count_from_google_restaurant_details(restaurant_name)
+    for restaurant in restaurant_name_and_review_count:
+        print(restaurant)
+        query = restaurant["name"]
+        review_count = restaurant["review_count"]
+        folder_name = query.replace(" ", "_")
+        folder_name = folder_name.replace("'", "")
+        search_and_log_reviews(query,review_count,folder_name)
+        loc_reviews = query.replace(" ","_")
+        loc_reviews = loc_reviews.replace("'","")
+        extract_google_reviews(folder_name,loc_reviews)

@@ -135,11 +135,11 @@ def extract_review_data(review_entry):
         print(traceback.format_exc())
         return None
 
-def main():
+def extract_google_reviews(folder_path,loc_reviews):
     try:
         # Read the source JSON file
-        folder_path = f'responses/'
         reviews = []
+        folder_path = f'responses_{folder_path}/'
         for filename in os.listdir(folder_path):
             if filename.endswith('.json'):
                 file_path = os.path.join(folder_path, filename)
@@ -176,7 +176,7 @@ def main():
         # Write extracted reviews to output file
         [extract_review_data_to_insert(review) for review in reviews]
 
-        with open('gmb_reviews.json', 'w', encoding='utf-8') as f:
+        with open(loc_reviews+'.json', 'w', encoding='utf-8') as f:
             json.dump({
                 "reviews": reviews,
                 "total_number_of_reviews": len(reviews),
@@ -223,5 +223,5 @@ def extract_review_data_to_insert(data):
     return extracted_data
 
 
-if __name__ == "__main__":
-    main() 
+# if __name__ == "__main__":
+#     extract_google_reviews() 
