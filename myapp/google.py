@@ -66,7 +66,8 @@ def FetchAndStoreRestaurantDataForGoogle(query):
         output_file = f'{file_name}_{new_location_name}_google_loc_cleaned.json'
 
         location_data_cleaning(input_file, output_file,query,location_name)
-        google_reviews_data(query)
+        
+    google_reviews_data(query)
 
 @api_controller("", tags=["GoogleMaps"])
 class GoogleMapsController:
