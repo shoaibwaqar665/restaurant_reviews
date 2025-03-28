@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 from typing import Dict
 from ninja_extra import api_controller, http_post, NinjaExtraAPI
+from myapp.google_reviews import google_reviews_data
 from myapp.schema import GoogleMapsQuery
 from myapp.google_location_data_cleaning import location_data_cleaning
 from myapp.dbOperations import select_name_from_trip_restaurants_details
@@ -65,6 +66,7 @@ def FetchAndStoreRestaurantDataForGoogle(query):
         output_file = f'{file_name}_{new_location_name}_google_loc_cleaned.json'
 
         location_data_cleaning(input_file, output_file,query,location_name)
+        google_reviews_data(query)
 
 @api_controller("", tags=["GoogleMaps"])
 class GoogleMapsController:
