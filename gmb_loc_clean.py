@@ -403,10 +403,10 @@ def extract_rating_and_reviews(json_string):
         }
     return None
 
-def main():
+def location_data_cleaning(input_file, output_file):
     # Input and output file paths
-    input_file = "gmb_loc_response.json"
-    output_file = "gmb_loc_cleaned.json"
+    # input_file = "gmb_loc_google_response.json"
+    # output_file = "gmb_loc_cleaned.json"
     
     # Read the input JSON file
     try:
@@ -446,5 +446,5 @@ def main():
 
 
 
-if __name__ == "__main__":
-    main() 
+# if __name__ == "__main__":
+#     location_data_cleaning() 

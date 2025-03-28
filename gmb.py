@@ -2,9 +2,9 @@ from patchright.sync_api import sync_playwright
 import time
 import json
 import os
-import math
 query = "Shakey's Pizza Parlor Brea"
 folder_name = query.replace(" ", "_")
+folder_name = folder_name.replace("'", "")
 
 def search_and_log_reviews():
     with sync_playwright() as p:
@@ -64,9 +64,6 @@ def search_and_log_reviews():
         page.wait_for_load_state('networkidle')
         print("Search results loaded")
 
-        # Wait for the place's info panel
-        # page.wait_for_selector(f'h1:has-text("{query}")', state='visible', timeout=10000)
-        # print(f"Found {query} in results")
         time.sleep(10)
         # Click on reviews
         reviews_selector = ['button:has-text("reviews")', 'a:has-text("reviews")', '[aria-label*="reviews"]']

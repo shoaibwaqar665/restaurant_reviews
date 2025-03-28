@@ -467,18 +467,17 @@ def InsertRestaurantDetailsForGoogle(restaurant_data):
     try:
         # Database connection
         conn = psycopg2.connect(
-            dbname="restaurants_reviews",
-            user="neondb_owner",
-            password="sLdJyF0w2Unv",
-            host="ep-wild-wave-a1nsn7ul.ap-southeast-1.aws.neon.tech",
-            port="5432"
+            dbname=Scraping["Database"],
+            user=Scraping["Username"],
+            password=Scraping["Password"],
+            host=Scraping["Host"],
+            port=Scraping["Port"]
         )
         cursor = conn.cursor()
 
         # Extract data from restaurant_data
         name = restaurant_data.get("name")
         address = restaurant_data.get("address")
-        price_level = restaurant_data.get("price_level")
         website = restaurant_data.get("website")
         menu_url = restaurant_data.get("menu_url")
         phone = restaurant_data.get("phone")
@@ -511,20 +510,20 @@ def InsertRestaurantDetailsForGoogle(restaurant_data):
         # Insert data into table
         insert_query = """
             INSERT INTO google_restaurant_details (
-                name, address, price_level, website, menu_url, phone, 
+                name, address, website, menu_url, phone, 
                 service_options, parking, children, payments, planning, 
                 crowd, atmosphere, amenities, dining_options, schedule, 
-                rating, reviews
+                review_rating, review_count
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
-                %s, %s
+                %s
             )
         """
 
         cursor.execute(insert_query, (
-            name, address, price_level, website, menu_url, phone,
+            name, address, website, menu_url, phone,
             service_options, parking, children, payments, planning,
             crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
             rating, reviews
@@ -545,11 +544,11 @@ def InsertRestaurantDetailsForGoogle(restaurant_data):
 def InsertRestaurantReviewsForGoogle(review_data):
     try:
         conn = psycopg2.connect(
-            dbname="restaurants_reviews",
-            user="neondb_owner",
-            password="sLdJyF0w2Unv",
-            host="ep-wild-wave-a1nsn7ul.ap-southeast-1.aws.neon.tech",
-            port="5432"
+            dbname=Scraping["Database"],
+            user=Scraping["Username"],
+            password=Scraping["Password"],
+            host=Scraping["Host"],
+            port=Scraping["Port"]
         )
         cursor = conn.cursor()
          # Check for existing review by review_id
