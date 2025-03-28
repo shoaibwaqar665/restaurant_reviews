@@ -139,10 +139,11 @@ def extract_google_reviews(folder_path,loc_reviews):
     try:
         # Read the source JSON file
         reviews = []
+        
+        folder_path = f'responses_{folder_path}'
         if not os.path.exists(folder_path):
             print(f"Folder not found: {folder_path}")
             os.makedirs(folder_path) 
-        folder_path = f'responses_{folder_path}'
         for filename in os.listdir(folder_path):
             if filename.endswith('.json'):
                 file_path = os.path.join(folder_path, filename)

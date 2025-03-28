@@ -36,7 +36,7 @@ def search_and_log_reviews(query,review_count,folder_name):
                     if not os.path.exists(f"responses_{folder_name}"):
                         os.makedirs(f"responses_{folder_name}")
 
-                    file_name = f"responses_{folder_name}/{folder_name}_{int(time.time())}.json"
+                    file_name = os.path.join(f"responses_{folder_name}", f"{folder_name}_{int(time.time())}.json")
                     with open(file_name, 'w', encoding='utf-8') as f:
                         json.dump(parsed_data, f, ensure_ascii=False, indent=4)
 
