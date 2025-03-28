@@ -498,11 +498,15 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         schedule = restaurant_data.get("schedule", {})
 
         address_key = address.replace(" ","_")
+        real_loc = location_name
         restaurant_name = restaurant_name.replace(" ","_")
         restaurant_name = restaurant_name.replace("'","")
         location_name = location_name.replace(" ","_")
         business_key = location_name+"_"+address_key+"_"+restaurant_name
         
+        address = address+" "+real_loc
+
+
         check_query = """
                     SELECT COUNT(*) FROM google_restaurant_details 
                     WHERE phone = %s AND address = %s
@@ -520,20 +524,20 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
                 name, address, website, menu_url, phone, 
                 service_options, parking, children, payments, planning, 
                 crowd, atmosphere, amenities, dining_options, schedule, 
-                review_rating, review_count,restaurant_name,business_key
+                review_rating, review_count,restaurant_name,business_key,city
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
-                %s,%s,%s
+                %s,%s,%s,%s
             )
         """
 
         cursor.execute(insert_query, (
-            name, address, website, menu_url, phone,
+            real_loc, address, website, menu_url, phone,
             service_options, parking, children, payments, planning,
             crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
-            rating, reviews,restaurant_name,business_key
+            rating, reviews,restaurant_name,business_key,real_loc
         ))
         conn.commit()
         print(f"Inserted data for restaurant: {name}")

@@ -405,10 +405,7 @@ def extract_rating_and_reviews(json_string):
     return None
 
 def location_data_cleaning(input_file, output_file,restaurant_name,location_name):
-    # Input and output file paths
-    # input_file = "gmb_loc_google_response.json"
-    # output_file = "gmb_loc_cleaned.json"
-    
+  
     # Read the input JSON file
     try:
         with open(input_file, 'r', encoding='utf-8') as f:
