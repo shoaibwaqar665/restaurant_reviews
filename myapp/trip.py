@@ -1008,9 +1008,10 @@ def FetchAndStoreRestaurantData(restaurant_query):
             details = restaurant_data.get("restaurant", {})
             localized_address = details.get("localizedRealtimeAddress")
             # print('localized address',localized_address, type(localized_address))
-            restaurant_key = (parent_location_name or '') + '_' + (localized_address or '') + '_' + (restaurant_query or '')
+            restaurant_key = (parent_location_name or '') + ' ' + (localized_address or '') + ' ' + (restaurant_query or '')
             restaurant_key = restaurant_key.replace(" ", "_")
             restaurant_key = restaurant_key.replace("'", "")
+            restaurant_key = restaurant_key.replace(",", "_")
             print('restaurant key',restaurant_key)
             review_count = InsertRestaurantReviewsForTripAdvisor(restaurant_data, stored_location_id ,restaurant_key)
             

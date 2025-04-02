@@ -174,8 +174,10 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
             
             # Prepare the values tuple
             city_name = parent_location_name or location.get("name") or f"{city} {state}".strip()
-            restaurant_key = street+'_'+city_name+'_'+postal_code+'_'+state+'_'+ restaurant_query
-            restaurant_key = restaurant_key.replace(" ","_")
+            restaurant_key = (parent_location_name or '') + ' ' + (localized_address or '') + ' ' + (restaurant_query or '')
+            restaurant_key = restaurant_key.replace(" ", "_")
+            restaurant_key = restaurant_key.replace("'", "")
+            restaurant_key = restaurant_key.replace(",", "_")
             values = (
                 location_id,
                 parent_location_name or location.get("name") or f"{city} {state}".strip(),
@@ -513,6 +515,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         restaurant_name = restaurant_name.replace("'","")
         location_name = location_name.replace(" ","_")
         business_key = location_name+"_"+address_key+"_"+restaurant_name
+        business_key = business_key.replace(",","_")
         
         address_data = split_us_address(address) or {}  # Ensure it's a dictionary
         street = address_data.get("street", "")
