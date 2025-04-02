@@ -437,34 +437,6 @@ def InsertRestaurantReviewsForTripAdvisor(restaurant_data, location_id,restauran
             conn.close()
 
 
-def ProcessTripadvisorData(json_file_path):
-    """
-    Process a Tripadvisor JSON file and insert the data into the database.
-    
-    Args:
-        json_file_path (str): The path to the JSON file
-    
-    Returns:
-        tuple: (location_id, number of reviews inserted)
-    """
-    try:
-        # Load the JSON data
-        with open(json_file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-        
-        # Insert restaurant details
-        location_id = InsertRestaurantDetailsForTripadvisor(data)
-        
-        if location_id:
-            # Insert reviews
-            review_count = InsertRestaurantReviewsForTripAdvisor(data, location_id)
-            return location_id, review_count
-        else:
-            return None, 0
-            
-    except Exception as e:
-        print(f"Error processing JSON file: {str(e)}", file=sys.stderr)
-        return None, 0
 
 
 

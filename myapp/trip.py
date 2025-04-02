@@ -10,7 +10,7 @@ from ninja_extra import api_controller, http_post, NinjaExtraAPI
 from myapp.schema import TripAdvisorQuery
 import base64
 from googletrans import Translator
-from myapp.dbOperations import InsertRestaurantDetailsForTripadvisor, InsertRestaurantReviewsForTripAdvisor, ProcessTripadvisorData
+from myapp.dbOperations import InsertRestaurantDetailsForTripadvisor, InsertRestaurantReviewsForTripAdvisor
 import sys
 
 
@@ -966,7 +966,7 @@ def FetchAndStoreRestaurantData(restaurant_query):
         # Step 1: Get restaurant location data
         print(f"Searching for restaurant: {restaurant_query}")
         locations = send_request_location_data(restaurant_query)
-        
+        original_restaurant_query = restaurant_query
         if not locations or len(locations) == 0:
             print(f"No restaurants found for query: {restaurant_query}")
             return results
@@ -988,11 +988,13 @@ def FetchAndStoreRestaurantData(restaurant_query):
             if not restaurant_data:
                 print(f"Failed to get reviews for restaurant: {location_name}")
                 continue
-                
+            
+            
+            print('orignal resturant',original_restaurant_query)
             # Step 4: Insert restaurant details
             restaurant_query = restaurant_query.replace(" ", "_")
             restaurant_query = restaurant_query.replace("'", "")
-            stored_location_id = InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query)
+            stored_location_id = InsertRestaurantDetailsForTripadvisor(restaurant_data, original_restaurant_query.lower())
             
             if not stored_location_id:
                 print(f"Failed to store restaurant details for: {location_name}")
@@ -1024,41 +1026,41 @@ def FetchAndStoreRestaurantData(restaurant_query):
     return results
 
 
-def ProcessExistingJsonFiles():
-    """
-    Processes all existing TripAdvisor JSON files in the current directory
-    and stores their data in the database.
+# def ProcessExistingJsonFiles():
+#     """
+#     Processes all existing TripAdvisor JSON files in the current directory
+#     and stores their data in the database.
     
-    Returns:
-        int: Number of files processed
-    """
-    import glob
-    import os
+#     Returns:
+#         int: Number of files processed
+#     """
+#     import glob
+#     import os
     
-    json_files = glob.glob('*.json')
-    processed_count = 0
+#     json_files = glob.glob('*.json')
+#     processed_count = 0
     
-    for json_file in json_files:
-        # Skip files that don't match the TripAdvisor pattern (should start with a number)
-        if not json_file[0].isdigit() or not json_file.endswith('.json'):
-            continue
+#     for json_file in json_files:
+#         # Skip files that don't match the TripAdvisor pattern (should start with a number)
+#         if not json_file[0].isdigit() or not json_file.endswith('.json'):
+#             continue
             
-        print(f"Processing file: {json_file}")
+#         print(f"Processing file: {json_file}")
         
-        try:
-            location_id, review_count = ProcessTripadvisorData(json_file)
+#         try:
+#             location_id, review_count = ProcessTripadvisorData(json_file)
             
-            if location_id:
-                processed_count += 1
-                print(f"Successfully processed {json_file}: location_id {location_id}, {review_count} reviews inserted")
-            else:
-                print(f"Failed to process {json_file}")
+#             if location_id:
+#                 processed_count += 1
+#                 print(f"Successfully processed {json_file}: location_id {location_id}, {review_count} reviews inserted")
+#             else:
+#                 print(f"Failed to process {json_file}")
                 
-        except Exception as e:
-            print(f"Error processing {json_file}: {str(e)}", file=sys.stderr)
+#         except Exception as e:
+#             print(f"Error processing {json_file}: {str(e)}", file=sys.stderr)
     
-    print(f"Completed processing {processed_count} files")
-    return processed_count
+#     print(f"Completed processing {processed_count} files")
+#     return processed_count
 ########################################################
 
 
