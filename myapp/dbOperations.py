@@ -175,6 +175,7 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
             # Prepare the values tuple
             city_name = parent_location_name or location.get("name") or f"{city} {state}".strip()
             restaurant_key = street+'_'+city_name+'_'+postal_code+'_'+state+'_'+ restaurant_query
+            restaurant_key = restaurant_key.replace(" ","_")
             values = (
                 location_id,
                 parent_location_name or location.get("name") or f"{city} {state}".strip(),

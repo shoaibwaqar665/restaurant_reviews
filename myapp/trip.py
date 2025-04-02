@@ -1005,10 +1005,13 @@ def FetchAndStoreRestaurantData(restaurant_query):
             parent_location_name = ""
             if "parent" in location and location["parent"] is not None and isinstance(location["parent"], dict):
                 parent_location_name = location["parent"].get("localizedName", "")
-            restaurant_query = restaurant_query.replace(" ", "_")
-            restaurant_query = restaurant_query.replace("'", "")
-            restaurant_key = parent_location_name+'_'+restaurant_query
-            
+            details = restaurant_data.get("restaurant", {})
+            localized_address = details.get("localizedRealtimeAddress")
+            # print('localized address',localized_address, type(localized_address))
+            restaurant_key = (parent_location_name or '') + '_' + (localized_address or '') + '_' + (restaurant_query or '')
+            restaurant_key = restaurant_key.replace(" ", "_")
+            restaurant_key = restaurant_key.replace("'", "")
+            print('restaurant key',restaurant_key)
             review_count = InsertRestaurantReviewsForTripAdvisor(restaurant_data, stored_location_id ,restaurant_key)
             
             # Record results
@@ -1021,7 +1024,13 @@ def FetchAndStoreRestaurantData(restaurant_query):
             print(f"Successfully processed restaurant: {location_name} - Inserted {review_count} reviews")
     
     except Exception as e:
+        import traceback
         print(f"Error in FetchAndStoreRestaurantData: {str(e)}", file=sys.stderr)
+        error_line = traceback.extract_tb(sys.exc_info()[2])[-1].lineno
+        print(f"Error occurred at line: {error_line}", file=sys.stderr)
+        print(f"Error type: {type(e).__name__}", file=sys.stderr)
+        print(f"Full traceback:", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
     
     return results
 
