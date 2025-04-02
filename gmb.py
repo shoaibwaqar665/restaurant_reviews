@@ -85,7 +85,8 @@ def search_and_log_reviews(query,review_count,folder_name):
             samole_click.click()
 
             print("Pressing 'End' key to load reviews...")
-            total_reviews = int(review_count)  # Convert to integer
+            # total_reviews = int(review_count)  # Convert to integer
+            total_reviews = 360  # Convert to integer
             const_val = 0.0873
             end_btn_range = round(total_reviews * const_val)
             print('end_btn_range:', end_btn_range)
