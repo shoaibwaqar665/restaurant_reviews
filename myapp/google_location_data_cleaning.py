@@ -405,20 +405,20 @@ def extract_rating_and_reviews(json_string):
         }
     return None
 
-def location_data_cleaning(input_file, output_file,restaurant_name,location_name):
+def location_data_cleaning(unclean_json_data, output_file,restaurant_name,location_name):
   
-    # Read the input JSON file
-    try:
-        with open(input_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-    except Exception as e:
-        print(f"Error reading input file: {e}")
-        return
-    
+    # # Read the input JSON file
+    # # try:
+    # #     with open(input_file, 'r', encoding='utf-8') as f:
+    # #         data = json.load(f)
+    # # except Exception as e:
+    # #     print(f"Error reading input file: {e}")
+    # #     return
+    # print('unclean_json_data',unclean_json_data)
     restaurant_data = []
     
     # Process and insert each restaurant entry directly
-    for i, entry in enumerate(data):
+    for i, entry in enumerate(unclean_json_data):
         restaurant_info = extract_restaurant_data(entry, i)
         if restaurant_info and "name" in restaurant_info:
             # Extract and update rating and reviews directly

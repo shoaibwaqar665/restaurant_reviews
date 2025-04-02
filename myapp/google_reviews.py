@@ -103,8 +103,7 @@ def search_and_log_reviews(query,review_count,folder_name):
         browser.close()
 
 def google_reviews_data(restaurant_name):
-    # restaurant_name = "shakey's pizza parlor"
-    # print(restaurant_name)
+
     restaurant_name_and_review_count = select_restaurant_name_and_review_count_from_google_restaurant_details(restaurant_name)
     for restaurant in restaurant_name_and_review_count:
         print(restaurant)

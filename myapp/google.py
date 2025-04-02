@@ -50,9 +50,9 @@ def FetchAndStoreRestaurantDataForGoogle(query):
                 print("Successfully parsed JSON data.")
 
                 # Save cleaned JSON to a file
-                with open(input_file, 'w', encoding='utf-8') as f:
-                    json.dump(data, f, indent=4)
-                print(f"Cleaned data saved to {input_file}")
+                # with open(input_file, 'w', encoding='utf-8') as f:
+                #     json.dump(data, f, indent=4)
+                # print(f"Cleaned data saved to {input_file}")
 
                 return data
             except json.JSONDecodeError as e:
@@ -65,7 +65,7 @@ def FetchAndStoreRestaurantDataForGoogle(query):
         cleaned_data = clean_and_parse_google_response(response_text)
         output_file = f'{file_name}_{new_location_name}_google_loc_cleaned.json'
 
-        location_data_cleaning(input_file, output_file,query,location_name)
+        location_data_cleaning(cleaned_data, output_file,query,location_name)
         
     google_reviews_data(query)
 
