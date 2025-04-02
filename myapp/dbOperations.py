@@ -321,9 +321,13 @@ def InsertRestaurantReviewsForTripAdvisor(restaurant_data, location_id,restauran
                         contribution,
                         likes,
                         avatar,
-                        business_key
+                        business_key,
+                        room_rating,
+                        sleep_rating,
+                        location_rating,
+                        cleanliness_rating
                     ) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                 """
                 
@@ -340,6 +344,11 @@ def InsertRestaurantReviewsForTripAdvisor(restaurant_data, location_id,restauran
                 service_rating = None
                 food_rating = None
                 atmosphere_rating = None
+                room_rating = None
+                sleep_rating = None
+                location_rating = None
+                cleanliness_rating = None
+
                 
                 if review.get("additionalRatings"):
                     for rating_item in review["additionalRatings"]:
@@ -351,6 +360,14 @@ def InsertRestaurantReviewsForTripAdvisor(restaurant_data, location_id,restauran
                             food_rating = rating_item.get("rating")
                         elif rating_item.get("ratingLabel") == "Atmosphere":
                             atmosphere_rating = rating_item.get("rating")
+                        elif rating_item.get("ratingLabel") == "Rooms":
+                            room_rating = rating_item.get("rating")
+                        elif rating_item.get("ratingLabel") == "Sleep Quality":
+                            sleep_rating = rating_item.get("rating")
+                        elif rating_item.get("ratingLabel") == "Location":
+                            location_rating = rating_item.get("rating")
+                        elif rating_item.get("ratingLabel") == "Cleanliness":
+                            cleanliness_rating = rating_item.get("rating")
                 
                 # Prepare other data for insert
                 contribution_counts = review.get("contributionCounts", {})
@@ -388,7 +405,11 @@ def InsertRestaurantReviewsForTripAdvisor(restaurant_data, location_id,restauran
                         sum_all_ugc,
                         helpful_votes,
                         avatar_url,
-                        restaurant_key
+                        restaurant_key,
+                        room_rating,
+                        sleep_rating,
+                        location_rating,
+                        cleanliness_rating
                     )
                 )
                 

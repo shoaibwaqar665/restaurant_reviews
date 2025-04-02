@@ -1026,41 +1026,6 @@ def FetchAndStoreRestaurantData(restaurant_query):
     return results
 
 
-# def ProcessExistingJsonFiles():
-#     """
-#     Processes all existing TripAdvisor JSON files in the current directory
-#     and stores their data in the database.
-    
-#     Returns:
-#         int: Number of files processed
-#     """
-#     import glob
-#     import os
-    
-#     json_files = glob.glob('*.json')
-#     processed_count = 0
-    
-#     for json_file in json_files:
-#         # Skip files that don't match the TripAdvisor pattern (should start with a number)
-#         if not json_file[0].isdigit() or not json_file.endswith('.json'):
-#             continue
-            
-#         print(f"Processing file: {json_file}")
-        
-#         try:
-#             location_id, review_count = ProcessTripadvisorData(json_file)
-            
-#             if location_id:
-#                 processed_count += 1
-#                 print(f"Successfully processed {json_file}: location_id {location_id}, {review_count} reviews inserted")
-#             else:
-#                 print(f"Failed to process {json_file}")
-                
-#         except Exception as e:
-#             print(f"Error processing {json_file}: {str(e)}", file=sys.stderr)
-    
-#     print(f"Completed processing {processed_count} files")
-#     return processed_count
 ########################################################
 
 
