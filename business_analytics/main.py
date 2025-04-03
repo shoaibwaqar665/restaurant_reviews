@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from myapp.dbOperations import fetch_trip_data  # Now Python can find 'myapp'
 
-trip_data = fetch_trip_data('Inglewood_935_W_Arbor_Vitae_St__Inglewood__CA_90301_shakeys_pizza_parlor')
+trip_data = fetch_trip_data()
 
 # Convert to JSON and save
 with open("trip_data.json", "w", encoding="utf-8") as json_file:

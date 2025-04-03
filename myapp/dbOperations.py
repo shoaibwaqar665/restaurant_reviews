@@ -1,9 +1,8 @@
 import psycopg2  
-import psycopg2.extras  
 import sys 
 import json
 from datetime import datetime
-
+from decimal import Decimal
 import usaddress
 from myapp.environment import Scraping
 
@@ -684,12 +683,9 @@ def select_restaurant_name_and_review_count_from_google_restaurant_details(query
             conn.close()
 
 
-from collections import defaultdict
-from decimal import Decimal
-import psycopg2
-from collections import defaultdict
-from decimal import Decimal
-def fetch_trip_data(business_key):
+
+
+def fetch_trip_data():
     """Fetch restaurant details separately and join reviews with their photos."""
     try:
         conn = psycopg2.connect(
@@ -709,8 +705,7 @@ def fetch_trip_data(business_key):
                    business_key, service_options, parking, children, payments, planning, crowd,
                    atmosphere, amenities
             FROM trip_restaurants_details
-            WHERE business_key = %s
-        """, (business_key,))
+        """,)
 
         details_columns = [desc[0] for desc in cursor.description]
         restaurant_details = cursor.fetchone()
@@ -726,8 +721,8 @@ def fetch_trip_data(business_key):
                    trp.photo_url
             FROM trip_reviews tr
             LEFT JOIN trip_review_photos trp ON tr.review_id = trp.review_id
-            WHERE tr.business_key = %s
-        """, (business_key,))
+           
+        """,)
 
         reviews_dict = {}
 
