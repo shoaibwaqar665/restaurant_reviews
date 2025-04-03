@@ -391,7 +391,7 @@ def InsertRestaurantReviewsForTripAdvisor(restaurant_data, location_id,restauran
                     (
                         review_id,
                         location_id,
-                        review.get("userId"),
+                        review.get("userId") or None,
                         review.get("username"),
                         review.get("title"),
                         review.get("text"),
@@ -683,3 +683,112 @@ def select_restaurant_name_and_review_count_from_google_restaurant_details(query
         if 'conn' in locals():
             conn.close()
 
+
+from collections import defaultdict
+from decimal import Decimal
+import psycopg2
+from collections import defaultdict
+from decimal import Decimal
+def fetch_trip_data(business_key):
+    """Fetch restaurant details separately and join reviews with their photos."""
+    try:
+        conn = psycopg2.connect(
+            dbname=Scraping["Database"],
+            user=Scraping["Username"],
+            password=Scraping["Password"],
+            host=Scraping["Host"],
+            port=Scraping["Port"]
+        )
+        cursor = conn.cursor()
+
+        # Fetch restaurant details with explicit column names
+        cursor.execute("""
+            SELECT id, location_id, name, address, city, state, country, postal_code, phone,
+                   email, website, schedule, thumbnail, review_rating, review_count, dining_options,
+                   cuisines, meal_types, diets, menu_url, has_menu_provider, restaurant_name,
+                   business_key, service_options, parking, children, payments, planning, crowd,
+                   atmosphere, amenities
+            FROM trip_restaurants_details
+            WHERE business_key = %s
+        """, (business_key,))
+
+        details_columns = [desc[0] for desc in cursor.description]
+        restaurant_details = cursor.fetchone()
+        restaurant_details_dict = dict(zip(details_columns, restaurant_details)) if restaurant_details else {}
+
+        # Fetch reviews and their associated photos using a JOIN with explicit column names
+        cursor.execute("""
+            SELECT tr.id, tr.review_id, tr.location_id, tr.user_id, tr.username, tr.title, tr.text,
+                   tr.translated_title, tr.translated_text, tr.is_translated, tr.rating, tr.published_date,
+                   tr.language, tr.created_at, tr.avatar, tr.contribution, tr.value_rating, tr.service_rating,
+                   tr.food_rating, tr.atmosphere_rating, tr.likes, tr.business_key, tr.response_text,
+                   tr.room_rating, tr.sleep_rating, tr.cleanliness_rating, tr.location_rating,
+                   trp.photo_url
+            FROM trip_reviews tr
+            LEFT JOIN trip_review_photos trp ON tr.review_id = trp.review_id
+            WHERE tr.business_key = %s
+        """, (business_key,))
+
+        reviews_dict = {}
+
+        # Process review results
+        for row in cursor.fetchall():
+            review_id = row[1]
+            photo_url = row[27]
+            
+            # If this is the first time seeing this review_id, create the entry
+            if review_id not in reviews_dict:
+                reviews_dict[review_id] = {
+                    "id": row[0],
+                    "review_id": review_id,
+                    "location_id": row[2],
+                    "user_id": row[3],
+                    "username": row[4],
+                    "title": row[5],
+                    "text": row[6],
+                    "translated_title": row[7],
+                    "translated_text": row[8],
+                    "is_translated": row[9],
+                    "rating": float(row[10]) if isinstance(row[10], Decimal) else row[10],
+                    "published_date": row[11],
+                    "language": row[12],
+                    "created_at": row[13],
+                    "avatar": row[14],
+                    "contribution": row[15],
+                    "value_rating": row[16],
+                    "service_rating": row[17],
+                    "food_rating": row[18],
+                    "atmosphere_rating": row[19],
+                    "likes": row[20],
+                    "business_key": row[21],
+                    "response_text": row[22],
+                    "room_rating": row[23],
+                    "sleep_rating": row[24],
+                    "cleanliness_rating": row[25],
+                    "location_rating": row[26],
+                    "photo_url": []
+                }
+            
+            # Add the photo URL if it exists
+            if photo_url:
+                reviews_dict[review_id]["photo_url"].append(photo_url)
+
+        # Convert dictionary to list of reviews
+        reviews_list = list(reviews_dict.values())
+
+        return {
+            "restaurant_details": restaurant_details_dict,
+            "reviews": reviews_list
+        }
+
+    except Exception as e:
+        print(f"Database error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {}
+
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
