@@ -146,7 +146,7 @@ def read_reviews_from_db():
         data = fetch_trip_data()
         data = json.dumps(data, default=custom_serializer)
         data = json.loads(data)
-        print(data)
+        # print(data)
         # Extract reviews from the JSON structure
         reviews = []
         if isinstance(data, dict):
