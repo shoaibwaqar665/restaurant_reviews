@@ -511,10 +511,8 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         address_key = address.replace(" ","_")
         real_returant_name = restaurant_name
         restaurant_name = restaurant_name.replace(" ","_")
-        restaurant_name = restaurant_name.replace("'","")
+        restaurant_name = restaurant_name.replace("'","")   
         location_name = location_name.replace(" ","_")
-        business_key = location_name+"_"+address_key+"_"+restaurant_name
-        business_key = business_key.replace(",","_")
         
         address_data = split_us_address(address) or {}  # Ensure it's a dictionary
         street = address_data.get("street", "")
@@ -523,6 +521,8 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         postal_code = address_data.get("postal_code", "")
         country = address_data.get("country", "")
 
+        business_key = location_name+"_"+street+"_"+city+"_"+state+"_"+postal_code+"_"+restaurant_name
+        business_key = business_key.replace(",","")
        
         check_query = """
                     SELECT COUNT(*) FROM google_restaurant_details 
@@ -580,7 +580,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
             conn.close()
 
 
-def InsertRestaurantReviewsForGoogle(review_data):
+def InsertRestaurantReviewsForGoogle(review_data,business_key):
     try:
         conn = psycopg2.connect(
             dbname=Scraping["Database"],
@@ -596,14 +596,15 @@ def InsertRestaurantReviewsForGoogle(review_data):
             print(f"Review with ID {review_data['review_id']} already exists. Skipping insertion.")
             return
         # Insert review data
+        review_data['business_key'] = business_key
         cursor.execute("""
             INSERT INTO google_reviews (
                 review_id, user_id, username, text, rating, published_date,
-                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text,contribution,is_translated,translated_text
+                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text,contribution,is_translated,translated_text,business_key
             ) VALUES (
                 %(review_id)s, %(user_id)s, %(reviewer_name)s, %(review_text)s,
                 %(rating)s, %(created_timestamp)s, %(extracted_date)s, %(profile_image)s,
-                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s, %(total_reviews)s, %(is_translated)s, %(translated_text)s
+                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s, %(total_reviews)s, %(is_translated)s, %(translated_text)s, %(business_key)s
             )
         """, review_data)
 
@@ -663,13 +664,13 @@ def select_restaurant_name_and_review_count_from_google_restaurant_details(query
         # query = query.lower()  # Normalize query string
         
         # Execute the query
-        cursor.execute("SELECT name, review_count FROM google_restaurant_details WHERE restaurant_name = %s", (query,))
+        cursor.execute("SELECT name, business_key FROM google_restaurant_details WHERE restaurant_name = %s", (query,))
         
         # Fetch results
         results = cursor.fetchall()
         print(results)
         # Return list of tuples (name, review_count)
-        return [{"name": row[0], "review_count": row[1]} for row in results]
+        return [{"name": row[0], "business_key": row[1]} for row in results]
 
     except Exception as e:
         print(f"Database error: {e}")
@@ -721,6 +722,110 @@ def fetch_trip_data():
                    trp.photo_url
             FROM trip_reviews tr
             LEFT JOIN trip_review_photos trp ON tr.review_id = trp.review_id
+           
+        """,)
+
+        reviews_dict = {}
+
+        # Process review results
+        for row in cursor.fetchall():
+            review_id = row[1]
+            photo_url = row[27]
+            
+            # If this is the first time seeing this review_id, create the entry
+            if review_id not in reviews_dict:
+                reviews_dict[review_id] = {
+                    "id": row[0],
+                    "review_id": review_id,
+                    "location_id": row[2],
+                    "user_id": row[3],
+                    "username": row[4],
+                    "title": row[5],
+                    "text": row[6],
+                    "translated_title": row[7],
+                    "translated_text": row[8],
+                    "is_translated": row[9],
+                    "rating": float(row[10]) if isinstance(row[10], Decimal) else row[10],
+                    "published_date": row[11],
+                    "language": row[12],
+                    "created_at": row[13],
+                    "avatar": row[14],
+                    "contribution": row[15],
+                    "value_rating": row[16],
+                    "service_rating": row[17],
+                    "food_rating": row[18],
+                    "atmosphere_rating": row[19],
+                    "likes": row[20],
+                    "business_key": row[21],
+                    "response_text": row[22],
+                    "room_rating": row[23],
+                    "sleep_rating": row[24],
+                    "cleanliness_rating": row[25],
+                    "location_rating": row[26],
+                    "photo_url": []
+                }
+            
+            # Add the photo URL if it exists
+            if photo_url:
+                reviews_dict[review_id]["photo_url"].append(photo_url)
+
+        # Convert dictionary to list of reviews
+        reviews_list = list(reviews_dict.values())
+
+        return {
+            "restaurant_details": restaurant_details_dict,
+            "reviews": reviews_list
+        }
+
+    except Exception as e:
+        print(f"Database error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {}
+
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+
+def fetch_google_data():
+    """Fetch restaurant details separately and join reviews with their photos."""
+    try:
+        conn = psycopg2.connect(
+            dbname=Scraping["Database"],
+            user=Scraping["Username"],
+            password=Scraping["Password"],
+            host=Scraping["Host"],
+            port=Scraping["Port"]
+        )
+        cursor = conn.cursor()
+
+        # Fetch restaurant details with explicit column names
+        cursor.execute("""
+            SELECT id, location_id, name, address, city, state, country, postal_code, phone,
+                   email, website, schedule, thumbnail, review_rating, review_count, dining_options,
+                   cuisines, meal_types, diets, menu_url, has_menu_provider, restaurant_name,
+                   business_key, service_options, parking, children, payments, planning, crowd,
+                   atmosphere, amenities
+            FROM google_restaurant_details
+        """,)
+
+        details_columns = [desc[0] for desc in cursor.description]
+        restaurant_details = cursor.fetchone()
+        restaurant_details_dict = dict(zip(details_columns, restaurant_details)) if restaurant_details else {}
+
+        # Fetch reviews and their associated photos using a JOIN with explicit column names
+        cursor.execute("""
+            SELECT tr.id, tr.review_id, tr.location_id, tr.user_id, tr.username, tr.title, tr.text,
+                   tr.translated_title, tr.translated_text, tr.is_translated, tr.rating, tr.published_date,
+                   tr.language, tr.created_at, tr.avatar, tr.contribution, tr.value_rating, tr.service_rating,
+                   tr.food_rating, tr.atmosphere_rating, tr.likes, tr.business_key, tr.response_text,
+                   tr.room_rating, tr.sleep_rating, tr.cleanliness_rating, tr.location_rating,
+                   trp.photo_url
+            FROM google_reviews tr
+            LEFT JOIN google_reviews_photos trp ON tr.review_id = trp.review_id
            
         """,)
 

@@ -134,7 +134,7 @@ def extract_review_data(review_entry):
         print(traceback.format_exc())
         return None
 
-def extract_google_reviews(folder_path,loc_reviews):
+def extract_google_reviews(folder_path,loc_reviews,business_key):
     try:
         # Read the source JSON file
         reviews = []
@@ -176,7 +176,7 @@ def extract_google_reviews(folder_path,loc_reviews):
                     import traceback
                     print(traceback.format_exc())
         # Write extracted reviews to output file
-        [extract_review_data_to_insert(review) for review in reviews]
+        [extract_review_data_to_insert(review,business_key) for review in reviews]
 
         with open(loc_reviews+'.json', 'w', encoding='utf-8') as f:
             json.dump({
@@ -193,7 +193,7 @@ def extract_google_reviews(folder_path,loc_reviews):
 
 #### storing data in database #####
 
-def extract_review_data_to_insert(data):
+def extract_review_data_to_insert(data,business_key):
     extracted_data = {
         "review_id": data.get("review_id"),
         "reviewer_name": data.get("reviewer", {}).get("name"),
@@ -221,5 +221,5 @@ def extract_review_data_to_insert(data):
         "business_response_text": data.get("business_response", {}).get("text"),
         "extracted_date": data.get("metadata", {}).get("extracted_date")
     }
-    InsertRestaurantReviewsForGoogle(extracted_data)
+    InsertRestaurantReviewsForGoogle(extracted_data,business_key)
     return extracted_data

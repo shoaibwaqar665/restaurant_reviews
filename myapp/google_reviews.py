@@ -108,10 +108,10 @@ def google_reviews_data(restaurant_name):
     for restaurant in restaurant_name_and_review_count:
         print(restaurant)
         query = restaurant["name"]
-        review_count = restaurant["review_count"]
+        business_key = restaurant["business_key"]
         folder_name = query.replace(" ", "_")
         folder_name = folder_name.replace("'", "")
-        search_and_log_reviews(query,review_count,folder_name)
+        search_and_log_reviews(query,business_key,folder_name)
         loc_reviews = query.replace(" ","_")
         loc_reviews = loc_reviews.replace("'","")
-        extract_google_reviews(folder_name,loc_reviews)
+        extract_google_reviews(folder_name,loc_reviews,business_key)
