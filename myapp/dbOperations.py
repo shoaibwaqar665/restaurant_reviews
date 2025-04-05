@@ -600,11 +600,11 @@ def InsertRestaurantReviewsForGoogle(review_data,business_key):
         cursor.execute("""
             INSERT INTO google_reviews (
                 review_id, user_id, username, text, rating, published_date,
-                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text,contribution,is_translated,translated_text,business_key
+                created_at, avatar, service_rating, food_rating, atmosphere_rating, response_text,contribution,is_translated,translated_text,business_key, language
             ) VALUES (
                 %(review_id)s, %(user_id)s, %(reviewer_name)s, %(review_text)s,
                 %(rating)s, %(created_timestamp)s, %(extracted_date)s, %(profile_image)s,
-                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s, %(total_reviews)s, %(is_translated)s, %(translated_text)s, %(business_key)s
+                %(service)s, %(food_quality)s, %(atmosphere)s, %(response_text)s, %(total_reviews)s, %(is_translated)s, %(translated_text)s, %(business_key)s, %(language)s
             )
         """, review_data)
 

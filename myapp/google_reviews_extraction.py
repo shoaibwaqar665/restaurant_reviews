@@ -82,7 +82,8 @@ def extract_review_data(review_entry):
             "atmosphere": get_atmosphere(review_content),
             "photos": [],
             "response_text": safe_get(review_entry, 3, 14, 0, 0) if safe_get(review_entry, 3) else None,
-            "is_translated": True if safe_get(review_content, 15, 1, 0) is not None else False
+            "is_translated": True if safe_get(review_content, 15, 1, 0) is not None else False,
+            "language": safe_get(review_content, 14, 0) if safe_get(review_content, 14, 0) else 'en',
         }
         
         # Extract photos if they exist
@@ -209,6 +210,7 @@ def extract_review_data_to_insert(data,business_key):
         "review_text": data.get("review", {}).get("review_text"),
         "translated_text": data.get("review", {}).get("translated_text"),
         "is_translated": data.get("review", {}).get("is_translated"),
+        "language": data.get("review", {}).get("language"),
         "food_quality": data.get("review", {}).get("food_quality"),
         "service": data.get("review", {}).get("service"),
         "atmosphere": data.get("review", {}).get("atmosphere"),
