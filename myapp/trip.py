@@ -1007,8 +1007,30 @@ def FetchAndStoreRestaurantData(restaurant_query):
                 parent_location_name = location["parent"].get("localizedName", "")
             details = restaurant_data.get("restaurant", {})
             localized_address = details.get("localizedRealtimeAddress")
-            # print('localized address',localized_address, type(localized_address))
-            restaurant_key = (parent_location_name or '') + ' ' + (localized_address or '') + ' ' + (restaurant_query or '')
+            address = location.get("localizedStreetAddress", {})
+            ####################################################
+             # If we didn't get values from localizedRealtimeAddress, use localizedStreetAddress
+            street = ""
+            city = ""
+            state = ""
+            postal_code = ""
+            if not street and address.get("street1"):
+                street = address.get("street1", "")
+                if address.get("street2"):
+                    street += ", " + address.get("street2")
+            
+            if not city:
+                city = address.get("city")
+                
+            if not state:
+                state = address.get("state")
+                
+            if not postal_code:
+                postal_code = address.get("postalCode")
+            complete_address = f"{street}, {city}, {state} {postal_code}"
+            ####################################################
+            
+            restaurant_key = (parent_location_name or '') + ' ' + (complete_address or '') + ' ' + (restaurant_query or '')
             restaurant_key = restaurant_key.replace(" ", "_")
             restaurant_key = restaurant_key.replace("'", "")
             restaurant_key = restaurant_key.replace(",", "_")

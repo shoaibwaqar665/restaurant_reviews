@@ -170,9 +170,9 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
                 
             # Convert schedule to JSON
             schedule_json = json.dumps(schedule_data) if schedule_data else None
-            complete_address = f"{street}, {city}, {state} {postal_code}".strip()
+            complete_address = f"{street}, {city}, {state} {postal_code}"
             # Prepare the values tuple
-            city_name = parent_location_name or location.get("name") or f"{city} {state}".strip()
+            city_name = parent_location_name or location.get("name") or f"{city} {state}"
             restaurant_key = (parent_location_name or '') + ' ' + (complete_address or '') + ' ' + (restaurant_query or '')
             restaurant_key = restaurant_key.replace(" ", "_")
             restaurant_key = restaurant_key.replace("'", "")
