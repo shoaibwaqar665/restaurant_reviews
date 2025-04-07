@@ -16,5 +16,5 @@ def execute_bash_script(restaurant_slug):
         print("Error:", result.stderr)
 
 # Pass the restaurant slug as an argument
-restaurant_slug = 'shakeys-pizza-parlor-san-gabriel'
+restaurant_slug = 'shakeys-pizza-parlor-burbank'
 execute_bash_script(restaurant_slug)
