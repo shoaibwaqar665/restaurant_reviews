@@ -20,7 +20,7 @@ def FetchAndStoreRestaurantDataForGoogle(query):
     restaurant_name = select_name_from_trip_restaurants_details(query)
     if len(restaurant_name) == 0:
         print("No restaurant name found")
-        data_flag=FetchAndStoreRestaurantData(query)
+        data_flag = FetchAndStoreRestaurantData(query)
         if data_flag:
             print('data_flag is true')
             restaurant_name = select_name_from_trip_restaurants_details(query)

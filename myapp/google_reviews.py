@@ -80,9 +80,12 @@ def search_and_log_reviews(query,review_count,folder_name):
             print("Could not find reviews selector. Taking screenshot.")
             page.screenshot(path="no_reviews_found.png")
         else:
-            time.sleep(5)
-            samole_click = page.query_selector('div[class*="cVwbnc IlRKB"]')
-            samole_click.click()
+            time.sleep(10)
+            try:
+                samole_click = page.query_selector('div[class*="cVwbnc IlRKB"]')
+                samole_click.click()
+            except Exception as e:
+                print(f"Error clicking sample review: {e}")
 
             print("Pressing 'End' key to load reviews...")
             # total_reviews = int(review_count)  # Convert to integer
