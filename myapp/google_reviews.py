@@ -1,10 +1,47 @@
 from patchright.sync_api import sync_playwright
 import time
 import json
+from dotenv import load_dotenv
 import os
+load_dotenv()
 
 from myapp.google_reviews_extraction import extract_google_reviews
 from myapp.dbOperations import select_restaurant_name_and_review_count_from_google_restaurant_details
+import boto3
+from botocore.exceptions import NoCredentialsError, ClientError
+def store_bucket_credentials():
+    try:
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        )
+        response = s3.list_buckets()
+        print("Buckets:", response['Buckets'])
+    except NoCredentialsError:
+        print("Credentials are not available.")
+
+def upload_to_s3(file_name, bucket, object_name=None):
+    """Upload a file to an S3 bucket and return the presigned URL"""
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    )
+    try:
+        # Upload file
+        s3_client.upload_file(file_name, bucket, object_name or file_name)
+
+        s3_client.put_object_acl(ACL='public-read', Bucket=bucket, Key=object_name or file_name)
+
+        url = f"https://{bucket}.s3.amazonaws.com/{object_name or file_name}"
+        print(f"File {file_name} uploaded to {bucket}, URL: {url}")
+
+        return url
+    except Exception as e:
+
+        print(f"Failed to upload {file_name} to S3: {str(e)}")
+        return None
 
 def search_and_log_reviews(query,review_count,folder_name):
     with sync_playwright() as p:
