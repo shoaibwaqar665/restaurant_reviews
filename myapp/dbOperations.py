@@ -508,7 +508,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
 
 
         google_review_name = restaurant_name + " " + location_name
-        address_key = address.replace(" ","_")
+        # address_key = address.replace(" ","_")
         real_returant_name = restaurant_name
         restaurant_name = restaurant_name.replace(" ","_")
         restaurant_name = restaurant_name.replace("'","")   
