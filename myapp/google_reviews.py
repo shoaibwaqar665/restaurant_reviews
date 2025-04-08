@@ -122,6 +122,11 @@ def search_and_log_reviews(query,review_count,folder_name):
                 samole_click = page.query_selector('div[class*="cVwbnc IlRKB"]')
                 samole_click.click()
             except Exception as e:
+                screenshot_path = "end.png"
+                page.screenshot(path=screenshot_path)
+                url = upload_to_s3(screenshot_path, 's3teaconnect')
+                if url:
+                    print(f"Presigned URL for screenshot: {url}")
                 print(f"Error clicking sample review: {e}")
 
             print("Pressing 'End' key to load reviews...")
