@@ -9,6 +9,8 @@ from myapp.environment import Scraping
 Scraping = Scraping
 
 def split_us_address(address):
+    if not isinstance(address, str):
+        return {}  # Return empty dict if address is not a string
     try:
         parsed = usaddress.tag(address)[0]
         return {
@@ -19,7 +21,8 @@ def split_us_address(address):
             "country": "United States"  # Since usaddress is US-specific
         }
     except usaddress.RepeatedLabelError:
-        return {"error": "Could not parse address"}
+        print(f"Error parsing address: {e}")
+        return {}
 
 def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
     """
