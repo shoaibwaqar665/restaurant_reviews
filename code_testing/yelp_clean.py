@@ -31,6 +31,7 @@ def get_phone_number(soup):
         if next_tag:
             return next_tag.text.strip()
     return None
+
 def get_address(soup):
     phone_tag = soup.find("p", string=lambda s: s and "Get Directions" in s)
     if phone_tag:
@@ -86,6 +87,28 @@ def get_hours_of_operation(soup):
 
     return hours
 
+def get_custom_class_data(soup):
+    elements = soup.find_all("div", class_="arrange-unit__09f24__rqHTg arrange-unit-fill__09f24__CUubG y-css-1n5biw7")
+
+    for el in elements:
+        text = el.get_text(separator=" ", strip=True)
+        if text:
+            match = re.match(r"([\d.]+)\s+\((\d+)\s+reviews\)", text)
+            if match:
+                rating = match.group(1)
+                review_count = match.group(2)
+                
+                return {
+                    "rating": float(rating),
+                    "review_count": int(review_count)
+                }
+
+    return {
+        "rating": None,
+        "review_count": None
+    }
+
+
 amenities = []
 def get_amenities(soup):
     section = soup.find("section", {"aria-label": "Amenities and More"})
@@ -126,7 +149,7 @@ def get_vibe_check_attributes(soup):
     return amenities
 # Final extracted data
 data = {
-    # "meta_description": description,
+    "meta_description": description,
     "yelp_biz_id": yelp_biz_id,
     "directions_address": get_directions_address(soup),
     "phone_number": get_phone_number(soup),
@@ -135,6 +158,7 @@ data = {
     "website_menu": get_website_menu_link(soup),
     "hours_of_operation": get_hours_of_operation(soup),
     "amenities": get_amenities(soup),
+    "custom_class_data" : get_custom_class_data(soup)
     # "vibe_check_attributes": get_vibe_check_attributes(soup)  # Add vibe check attributes to the data
 }
 
