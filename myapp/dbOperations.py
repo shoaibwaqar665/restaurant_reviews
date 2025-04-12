@@ -7,10 +7,9 @@ import usaddress
 from myapp.environment import Scraping
 
 Scraping = Scraping
-
 def split_us_address(address):
-    if not isinstance(address, str):
-        return {}  # Return empty dict if address is not a string
+    if not isinstance(address, str) or "Australia" in address:
+        return {}  # Skip non-US or explicitly Australian addresses
     try:
         parsed = usaddress.tag(address)[0]
         return {
@@ -18,12 +17,11 @@ def split_us_address(address):
             "city": parsed.get("PlaceName", ""),
             "state": parsed.get("StateName", ""),
             "postal_code": parsed.get("ZipCode", ""),
-            "country": "United States"  # Since usaddress is US-specific
+            "country": "United States"
         }
-    except usaddress.RepeatedLabelError:
-        print(f"Error parsing address: {e}")
+    except usaddress.RepeatedLabelError as e:
+        print(f"Error parsing address (likely non-US): {address}")
         return {}
-
 def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
     """
     Insert restaurant details from Tripadvisor JSON data into the trip_restaurants_details table.
@@ -493,6 +491,10 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         website = restaurant_data.get("website")
         menu_url = restaurant_data.get("menu_url")
         phone = restaurant_data.get("phone")
+        if isinstance(phone, list) and len(phone) > 0:
+            phone = phone[0]  # Take the first phone number
+        elif phone is None:
+            phone = ""  # Default to empty string if no phone
         rating = str(restaurant_data.get("rating", ""))
         reviews = str(restaurant_data.get("reviews", ""))
 
@@ -569,7 +571,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         import traceback
         print(traceback.format_exc())  # Print full traceback for debuggingwhere address is null
     try:
-        cursor.execute("DELETE FROM google_restaurant_details WHERE address IS NULL")
+        cursor.execute("DELETE FROM google_restaurant_details WHERE address IS NULL or address='N/A'")
         conn.commit()
     except Exception as e:
         print(f"Error deleting records: {e}")
