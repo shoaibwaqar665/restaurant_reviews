@@ -405,6 +405,47 @@ def extract_rating_and_reviews(json_string):
         }
     return None
 
+def find_tel_links(obj):
+    tel_links = []
+    if isinstance(obj, dict):
+        for value in obj.values():
+            tel_links.extend(find_tel_links(value))
+    elif isinstance(obj, list):
+        for item in obj:
+            tel_links.extend(find_tel_links(item))
+    elif isinstance(obj, str) and obj.startswith("tel:"):
+        tel_links.append(obj.replace("tel:", ""))
+    return tel_links
+
+def fallback_extract_details(entry):
+    try:
+        hotel_data = entry[1][0]
+    except (IndexError, TypeError):
+        return {}
+
+    details = {}
+
+    # Address
+    try:
+        address_parts = hotel_data[14][2]
+        details["address"] = ', '.join(address_parts)
+    except (IndexError, TypeError):
+        details["address"] = "N/A"
+
+    # Rating
+    try:
+        details["rating"] = hotel_data[14][4][8]
+    except (IndexError, TypeError):
+        details["rating"] = "N/A"
+
+    # Review Count
+    try:
+        details["reviews"] = hotel_data[14][4][7]
+    except (IndexError, TypeError):
+        details["reviews"] = "N/A"
+
+    return details
+
 def location_data_cleaning(unclean_json_data, output_file,restaurant_name,location_name):
   
     # # Read the input JSON file
@@ -425,7 +466,18 @@ def location_data_cleaning(unclean_json_data, output_file,restaurant_name,locati
             result = extract_rating_and_reviews(entry)
             if result:
                 restaurant_info.update(result)
-            
+            # Fallback: if address/rating/review_count is missing
+            if "address" not in restaurant_info or \
+               "rating" not in restaurant_info or \
+               "reviews" not in restaurant_info:
+                fallback_data = fallback_extract_details(entry)
+                for k, v in fallback_data.items():
+                    restaurant_info.setdefault(k, v)
+
+            # Optional: extract phone numbers
+            tel_numbers = find_tel_links(entry)
+            if tel_numbers:
+                restaurant_info["phone"] = tel_numbers
             # Insert into database
             InsertRestaurantDetailsForGoogle(restaurant_info,restaurant_name,location_name)
             
