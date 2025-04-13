@@ -5,6 +5,7 @@ import re
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from code_testing.reviews_yelp import extract_review_yelp_data
 from code_testing.total_yelp import scrape_yelp_reviews
 from myapp.dbOperations import InsertRestaurantDetailsForYelp
 
@@ -140,7 +141,9 @@ def yelp_loc_clean(input_file, output_file, query, location):
     business_key = location+whole_data.get("address")+query
     business_key = business_key.replace(" ","_").replace(",","")
 
-    scrape_yelp_reviews(whole_data.get("yelp_biz_id"), review_count, output_file=f"{business_key}.json")
+    raw_data = scrape_yelp_reviews(whole_data.get("yelp_biz_id"), review_count, output_file=f"{business_key}_raw.json")
+    extract_review_yelp_data(raw_data, f"{business_key}_reviews.json", business_key, location)
+    print(f"🎉 Data extraction completed and saved to {output_file}")
 
 # Example usage
 if __name__ == "__main__":

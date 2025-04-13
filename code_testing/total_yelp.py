@@ -85,11 +85,12 @@ def scrape_yelp_reviews(enc_biz_id, pages, output_file):
         "reviews": [main_data]
     }
 
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(final_output, f, ensure_ascii=False, indent=2)
+    # with open(output_file, "w", encoding="utf-8") as f:
+    #     json.dump(final_output, f, ensure_ascii=False, indent=2)
 
-    print(f"🎉 Final merged data saved in {output_file}")
+    print(f"🎉 Final merged data saved and returned")
+    return final_output
 
 # # Example usage:
-if __name__ == "__main__":
-    scrape_yelp_reviews(enc_biz_id="tuWl2S2O4YwI2qHXiIaSyw", pages=328, output_file="reviews_yelp.json")
+# if __name__ == "__main__":
+    # scrape_yelp_reviews(enc_biz_id="tuWl2S2O4YwI2qHXiIaSyw", pages=328, output_file="reviews_yelp.json")

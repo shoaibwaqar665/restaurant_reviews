@@ -77,10 +77,10 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from myapp.dbOperations import InsertYelpReviewsBatch
 
-def extract_review_yelp_data(input_file, output_file):
+def extract_review_yelp_data(data, output_file, business_key, location_id):
     # Load the input JSON file
-    with open(input_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    # with open(input_file, 'r', encoding='utf-8') as f:
+    #     data = json.load(f)
 
     # Extract the list of review nodes
     try:
@@ -160,11 +160,11 @@ def extract_review_yelp_data(input_file, output_file):
     # Save to output file
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(extracted_reviews, f, indent=2, ensure_ascii=False)
-    InsertYelpReviewsBatch(extracted_reviews,'Burbank_1300 San Fernando_Burbank_CA_91504_shakeys_pizza_parlor', 'tuWl2S2O4YwI2qHXiIaSyw')
+    InsertYelpReviewsBatch(extracted_reviews,business_key, location_id)
     print(f"✅ Successfully extracted {len(extracted_reviews)} reviews to {output_file}")
     
 
-# Example usage
-input_json = 'reviews_yelp.json'
-output_json = 'extracted_reviews.json'
-extract_review_yelp_data(input_json, output_json)
+# # Example usage
+# input_json = 'reviews_yelp.json'
+# output_json = 'extracted_reviews.json'
+# extract_review_yelp_data(input_json, output_json)
