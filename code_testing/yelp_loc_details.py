@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from myapp.dbOperations import select_name_from_trip_restaurants_details
 from yelp_clean import yelp_loc_clean
 # getting the slug from the trip table
-query = "shakey's pizza parlor"
+query = "round table pizza"
 
 location_names = select_name_from_trip_restaurants_details(query)
 print(f"Location names: {location_names}")

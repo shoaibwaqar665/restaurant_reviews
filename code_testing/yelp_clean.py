@@ -5,6 +5,7 @@ import re
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from code_testing.total_yelp import scrape_yelp_reviews
 from myapp.dbOperations import InsertRestaurantDetailsForYelp
 
 def get_meta_content(soup, name):
@@ -126,11 +127,20 @@ def parse_yelp_html(input_file):
     }
 
 def yelp_loc_clean(input_file, output_file, query, location):
-    data = parse_yelp_html(input_file)
-    InsertRestaurantDetailsForYelp(data,query,location)
+    whole_data = parse_yelp_html(input_file)
+    InsertRestaurantDetailsForYelp(whole_data,query,location)
     with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        json.dump(whole_data, f, indent=2, ensure_ascii=False)
     print(f"✅ Data extracted and saved to {output_file}")
+
+    print("Address:", whole_data.get("address"))
+    print("Review Count:", whole_data.get("custom_class_data", {}).get("review_count"))
+    print("Yelp Biz ID:", whole_data.get("yelp_biz_id"))
+    review_count = whole_data.get("custom_class_data", {}).get("review_count")
+    business_key = location+whole_data.get("address")+query
+    business_key = business_key.replace(" ","_").replace(",","")
+
+    scrape_yelp_reviews(whole_data.get("yelp_biz_id"), review_count, output_file=f"{business_key}.json")
 
 # Example usage
 if __name__ == "__main__":

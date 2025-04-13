@@ -1,25 +1,9 @@
 import requests
 import json
 import base64
+import math
 
-url = "https://www.yelp.com/gql/batch"
-
-# Load cookies from file
-with open("yelp_cookies.txt", "r") as f:
-    cookies = f.read().strip()
-
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0',
-    'Accept': '*/*',
-    'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'x-apollo-operation-name': 'GetBusinessReviewFeed',
-    'Content-Type': 'application/json',
-    'Cookie': cookies
-}
-
-# Function to get response with a given offset
-def get_reviews_response(offset):
+def get_reviews_response(enc_biz_id, offset, headers):
     after = base64.b64encode(json.dumps({
         "version": 1,
         "type": "offset",
@@ -30,7 +14,7 @@ def get_reviews_response(offset):
         {
             "operationName": "GetBusinessReviewFeed",
             "variables": {
-                "encBizId": "tuWl2S2O4YwI2qHXiIaSyw",
+                "encBizId": enc_biz_id,
                 "reviewsPerPage": 20,
                 "selectedReviewEncId": "",
                 "hasSelectedReview": False,
@@ -56,39 +40,55 @@ def get_reviews_response(offset):
         }
     ])
 
-    response = requests.post(url, headers=headers, data=payload)
+    response = requests.post("https://www.yelp.com/gql/batch", headers=headers, data=payload)
     response.raise_for_status()
     return response.json()
 
+def scrape_yelp_reviews(enc_biz_id, pages, output_file):
 
-# Get first response
-offset = 0
-first_response = get_reviews_response(offset)
-main_data = first_response[0]
+    # Load cookies from file
+    with open("yelp_cookies.txt", "r") as f:
+        cookies = f.read().strip()
 
-# Reference to the main review list
-review_list = main_data["data"]["business"]["reviews"]["edges"]
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'x-apollo-operation-name': 'GetBusinessReviewFeed',
+        'Content-Type': 'application/json',
+        'Cookie': cookies
+    }
 
-# Append additional reviews
-for i in range(1, 18):  # Total: 18 * 20 = 360 reviews
-    offset = i * 20
-    try:
-        next_response = get_reviews_response(offset)
-        next_edges = next_response[0]["data"]["business"]["reviews"]["edges"]
-        review_list.extend(next_edges)
-        print(f"✅ Appended reviews from offset {offset}")
-    except Exception as e:
-        print(f"❌ Error at offset {offset}: {e}")
-        break
+    # Start scraping
+    print("🚀 Starting Yelp review scraping...")
+    offset = 0
+    main_response = get_reviews_response(enc_biz_id, offset, headers)
+    main_data = main_response[0]
+    review_list = main_data["data"]["business"]["reviews"]["edges"]
+    total_pages = pages/20
+    total_pages = math.ceil(total_pages)
+    for i in range(1, total_pages):
+        offset = i * 20
+        try:
+            next_response = get_reviews_response(enc_biz_id, offset, headers)
+            next_edges = next_response[0]["data"]["business"]["reviews"]["edges"]
+            review_list.extend(next_edges)
+            print(f"✅ Appended reviews from offset {offset}")
+        except Exception as e:
+            print(f"❌ Error at offset {offset}: {e}")
+            break
 
-# Wrap into desired format
-final_output = {
-    "offset": 0,
-    "reviews": [main_data]
-}
+    final_output = {
+        "offset": 0,
+        "reviews": [main_data]
+    }
 
-# Save result
-with open("reviews_yelp.json", "w", encoding="utf-8") as f:
-    json.dump(final_output, f, ensure_ascii=False, indent=2)
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(final_output, f, ensure_ascii=False, indent=2)
 
-print("🎉 Final merged data saved in reviews_yelp.json")
+    print(f"🎉 Final merged data saved in {output_file}")
+
+# # Example usage:
+# if __name__ == "__main__":
+#     scrape_yelp_reviews(enc_biz_id="tuWl2S2O4YwI2qHXiIaSyw", pages=18, output_file="reviews_yelp.json")

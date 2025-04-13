@@ -73,7 +73,7 @@
 import json
 from datetime import datetime
 
-def extract_review_data(input_file, output_file):
+def extract_review_yelp_data(input_file, output_file):
     # Load the input JSON file
     with open(input_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -161,4 +161,4 @@ def extract_review_data(input_file, output_file):
 # Example usage
 input_json = 'reviews_yelp.json'
 output_json = 'extracted_reviews.json'
-extract_review_data(input_json, output_json)
+extract_review_yelp_data(input_json, output_json)
