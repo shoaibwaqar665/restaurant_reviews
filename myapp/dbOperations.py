@@ -653,6 +653,113 @@ def select_name_from_trip_restaurants_details(query):
     
     return names  # Return a clean list
 
+def InsertRestaurantDetailsForYelp(yelp_data, restaurant_name, location_name):
+    """
+    Insert restaurant details from Yelp JSON data into the yelp_restaurants_details table.
+
+    Args:
+        yelp_data (dict): The restaurant data extracted from Yelp
+    """
+    conn = None
+    cursor = None
+
+    try:
+        conn = psycopg2.connect(
+            dbname=Scraping["Database"],
+            user=Scraping["Username"],
+            password=Scraping["Password"],
+            host=Scraping["Host"],
+            port=Scraping["Port"]
+        )
+        cursor = conn.cursor()
+
+        # Extract and sanitize data
+        biz_id = yelp_data.get("yelp_biz_id", "")
+        address = yelp_data.get("address", "")
+        website = yelp_data.get("business_website", "")
+        menu_url = yelp_data.get("website_menu", "")
+        phone = yelp_data.get("phone_number", "")
+        if isinstance(phone, list) and len(phone) > 0:
+            phone = phone[0]
+        elif phone is None:
+            phone = ""
+
+        amenities = yelp_data.get("amenities", [])
+        hours = yelp_data.get("hours_of_operation", {})
+
+        rating = str(yelp_data.get("custom_class_data", {}).get("rating", ""))
+        reviews = str(yelp_data.get("custom_class_data", {}).get("review_count", ""))
+
+        full_name = f"{restaurant_name} {location_name}"
+
+        # Business key generation
+        address_data = split_us_address(address) or {}
+        street = address_data.get("street", "")
+        city = address_data.get("city", "")
+        state = address_data.get("state", "")
+        postal_code = address_data.get("postal_code", "")
+        country = address_data.get("country", "")
+        print(f"Parsed address: Street={street}, City={city}, State={state}, Postal={postal_code}")
+        restaurant_name_clean = restaurant_name.replace(" ", "_").replace("'", "")
+        location_name_clean = location_name.replace(" ", "_")
+        business_key = f"{location_name_clean}_{street}_{city}_{state}_{postal_code}_{restaurant_name_clean}"
+        business_key = business_key.replace(",", "")
+        business_key = business_key.replace(" ", "_")
+
+        # Check if already exists
+        check_query = """
+            SELECT COUNT(*) FROM yelp_restaurants_details
+            WHERE phone = %s AND address = %s
+        """
+        cursor.execute(check_query, (phone, address))
+        existing_count = cursor.fetchone()[0]
+
+        if existing_count > 0:
+            print(f"Yelp restaurant already exists: {restaurant_name}")
+            return
+
+        # Insert data
+        insert_query = """
+            INSERT INTO yelp_restaurants_details (
+                location_id, name, address, website, menu_url, phone,
+                amenities, schedule, rating, review_count,
+                restaurant_name, business_key, city, state, country, postal_code
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s
+            )
+        """
+
+        cursor.execute(insert_query, (
+            biz_id, full_name, address, website, menu_url, phone,
+            amenities, json.dumps(hours), rating, reviews,
+            restaurant_name, business_key, city, state, country, postal_code
+        ))
+
+        conn.commit()
+        print(f"Inserted Yelp data for restaurant: {restaurant_name}")
+
+    except Exception as e:
+        print(f"Error inserting Yelp restaurant details: {e}")
+        import traceback
+        print(traceback.format_exc())
+
+    try:
+        cursor.execute("DELETE FROM yelp_restaurants_details WHERE address IS NULL OR address = 'N/A'")
+        conn.commit()
+    except Exception as e:
+        print(f"Error deleting null address Yelp records: {e}")
+        import traceback
+        print(traceback.format_exc())
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 def select_restaurant_name_and_review_count_from_google_restaurant_details(query):
     """Fetch restaurant name and review count from the database."""
     try:
