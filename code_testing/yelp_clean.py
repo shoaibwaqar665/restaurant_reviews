@@ -4,7 +4,7 @@ from urllib.parse import urlparse, parse_qs, unquote
 import re
 
 # Load HTML file
-with open("response.txt", "r", encoding="utf-8") as f:
+with open("shakeys-pizza-parlor-burbank.txt", "r", encoding="utf-8") as f:
     soup = BeautifulSoup(f, "html.parser")
 
 # Helper to find meta content
