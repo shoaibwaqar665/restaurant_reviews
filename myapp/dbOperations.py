@@ -632,7 +632,7 @@ def InsertRestaurantReviewsForGoogle(review_data,business_key):
         conn.close()
 
 
-def InsertYelpReviewsBatch(reviews, business_key, Scraping, location_id=None):
+def InsertYelpReviewsBatch(review, business_key, location_id=None):
     try:
         conn = psycopg2.connect(
             dbname=Scraping["Database"],
@@ -643,77 +643,73 @@ def InsertYelpReviewsBatch(reviews, business_key, Scraping, location_id=None):
         )
         cursor = conn.cursor()
 
-        for review in reviews:
-            review_id = review.get('encid')
-            cursor.execute("SELECT 1 FROM yelp_reviews WHERE review_id = %s", (review_id,))
-            if cursor.fetchone():
-                print(f"⏩ Skipping existing review: {review_id}")
-                continue
-
-            reviewer = review.get('reviewer', {})
-            business_reply = review.get('business_reply', {})
-
-            review_data = {
-                'review_id': review_id,
-                'location_id': location_id,
-                'user_id': None,  # Yelp doesn't provide this
-                'username': reviewer.get('display_name'),
-                'title': None,
-                'text': review.get('text'),
-                'translated_title': None,
-                'translated_text': None,
-                'is_translated': None,
-                'rating': str(review.get('rating')),
-                'published_date': review.get('date_created'),
-                'language': review.get('language'),
-                'created_at': datetime.utcnow(),
-                'avatar': None,
-                'contribution': str(reviewer.get('review_count', 0)),
-                'value_rating': None,
-                'service_rating': None,
-                'food_rating': None,
-                'atmosphere_rating': None,
-                'likes': str(review.get('love_this_count', 0)),
-                'business_key': business_key,
-                'response_text': business_reply.get('text'),
-                'room_rating': None,
-                'sleep_rating': None,
-                'cleanliness_rating': None,
-                'location_rating': None,
-            }
-
-            # Insert review
+        # for review in reviews:
+        review_id = review.get('encid')
+        cursor.execute("SELECT 1 FROM yelp_reviews WHERE review_id = %s", (review_id,))
+        if cursor.fetchone():
+            print(f"⏩ Skipping existing review: {review_id}")
+            return
+            # continue
+        reviewer = review.get('reviewer', {})
+        business_reply = review.get('business_reply', {})
+        review_data = {
+            'review_id': review_id,
+            'location_id': location_id,
+            'user_id': None,  # Yelp doesn't provide this
+            'username': reviewer.get('display_name'),
+            'title': None,
+            'text': review.get('text'),
+            'translated_title': None,
+            'translated_text': None,
+            'is_translated': None,
+            'rating': str(review.get('rating')),
+            'published_date': review.get('date_created'),
+            'language': review.get('language'),
+            'created_at': datetime.utcnow(),
+            'avatar': None,
+            'contribution': str(reviewer.get('review_count', 0)),
+            'value_rating': None,
+            'service_rating': None,
+            'food_rating': None,
+            'atmosphere_rating': None,
+            'likes': str(review.get('love_this_count', 0)),
+            'business_key': business_key,
+            'response_text': business_reply.get('text'),
+            'room_rating': None,
+            'sleep_rating': None,
+            'cleanliness_rating': None,
+            'location_rating': None,
+        }
+        # Insert review
+        cursor.execute("""
+            INSERT INTO yelp_reviews (
+                review_id, location_id, user_id, username, title, text, translated_title,
+                translated_text, is_translated, rating, published_date, language, created_at,
+                avatar, contribution, value_rating, service_rating, food_rating, atmosphere_rating,
+                likes, business_key, response_text, room_rating, sleep_rating, cleanliness_rating,
+                location_rating
+            ) VALUES (
+                %(review_id)s, %(location_id)s, %(user_id)s, %(username)s, %(title)s, %(text)s,
+                %(translated_title)s, %(translated_text)s, %(is_translated)s, %(rating)s,
+                %(published_date)s, %(language)s, %(created_at)s, %(avatar)s, %(contribution)s,
+                %(value_rating)s, %(service_rating)s, %(food_rating)s, %(atmosphere_rating)s,
+                %(likes)s, %(business_key)s, %(response_text)s, %(room_rating)s, %(sleep_rating)s,
+                %(cleanliness_rating)s, %(location_rating)s
+            )
+        """, review_data)
+        # Insert photos
+        for photo in review.get('photos', []):
             cursor.execute("""
-                INSERT INTO yelp_reviews (
-                    review_id, location_id, user_id, username, title, text, translated_title,
-                    translated_text, is_translated, rating, published_date, language, created_at,
-                    avatar, contribution, value_rating, service_rating, food_rating, atmosphere_rating,
-                    likes, business_key, response_text, room_rating, sleep_rating, cleanliness_rating,
-                    location_rating
+                INSERT INTO yelp_review_photos (
+                    review_id, photo_url
                 ) VALUES (
-                    %(review_id)s, %(location_id)s, %(user_id)s, %(username)s, %(title)s, %(text)s,
-                    %(translated_title)s, %(translated_text)s, %(is_translated)s, %(rating)s,
-                    %(published_date)s, %(language)s, %(created_at)s, %(avatar)s, %(contribution)s,
-                    %(value_rating)s, %(service_rating)s, %(food_rating)s, %(atmosphere_rating)s,
-                    %(likes)s, %(business_key)s, %(response_text)s, %(room_rating)s, %(sleep_rating)s,
-                    %(cleanliness_rating)s, %(location_rating)s
+                    %(review_id)s, %(photo_url)s
                 )
-            """, review_data)
-
-            # Insert photos
-            for photo in review.get('photos', []):
-                cursor.execute("""
-                    INSERT INTO yelp_review_photos (
-                        review_id, photo_url
-                    ) VALUES (
-                        %(review_id)s, %(photo_url)s
-                    )
-                """, {
-                    'review_id': review_id,
-                    'photo_url': photo.get('url')
-                })
-
-            print(f"✅ Inserted Yelp review: {review_id}")
+            """, {
+                'review_id': review_id,
+                'photo_url': photo.get('url')
+            })
+        print(f"✅ Inserted Yelp review: {review_id}")
 
         conn.commit()
 

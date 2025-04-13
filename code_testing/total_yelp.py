@@ -90,5 +90,5 @@ def scrape_yelp_reviews(enc_biz_id, pages, output_file):
     print(f"🎉 Final merged data saved in {output_file}")
 
 # # Example usage:
-# if __name__ == "__main__":
-#     scrape_yelp_reviews(enc_biz_id="tuWl2S2O4YwI2qHXiIaSyw", pages=18, output_file="reviews_yelp.json")
+if __name__ == "__main__":
+    scrape_yelp_reviews(enc_biz_id="tuWl2S2O4YwI2qHXiIaSyw", pages=0, output_file="reviews_yelp.json")
