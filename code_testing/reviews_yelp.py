@@ -72,6 +72,10 @@
 #     print("Standard JSON parse failed, trying manual decoding...")
 import json
 from datetime import datetime
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from myapp.dbOperations import InsertYelpReviewsBatch
 
 def extract_review_yelp_data(input_file, output_file):
     # Load the input JSON file
@@ -150,13 +154,15 @@ def extract_review_yelp_data(input_file, output_file):
             })
 
         extracted_reviews.append(review)
+        # InsertYelpReviewsBatch(review,'Burbank_1300 San Fernando_Burbank_CA_91504_shakeys_pizza_parlor', 'tuWl2S2O4YwI2qHXiIaSyw')
+
 
     # Save to output file
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(extracted_reviews, f, indent=2, ensure_ascii=False)
-
+    InsertYelpReviewsBatch(extracted_reviews,'Burbank_1300 San Fernando_Burbank_CA_91504_shakeys_pizza_parlor', 'tuWl2S2O4YwI2qHXiIaSyw')
     print(f"✅ Successfully extracted {len(extracted_reviews)} reviews to {output_file}")
-
+    
 
 # Example usage
 input_json = 'reviews_yelp.json'

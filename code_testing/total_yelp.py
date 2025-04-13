@@ -68,6 +68,7 @@ def scrape_yelp_reviews(enc_biz_id, pages, output_file):
     review_list = main_data["data"]["business"]["reviews"]["edges"]
     total_pages = pages/20
     total_pages = math.ceil(total_pages)
+    print(f"Total pages to scrape: {total_pages}")
     for i in range(1, total_pages):
         offset = i * 20
         try:
@@ -91,4 +92,4 @@ def scrape_yelp_reviews(enc_biz_id, pages, output_file):
 
 # # Example usage:
 if __name__ == "__main__":
-    scrape_yelp_reviews(enc_biz_id="tuWl2S2O4YwI2qHXiIaSyw", pages=0, output_file="reviews_yelp.json")
+    scrape_yelp_reviews(enc_biz_id="tuWl2S2O4YwI2qHXiIaSyw", pages=328, output_file="reviews_yelp.json")
