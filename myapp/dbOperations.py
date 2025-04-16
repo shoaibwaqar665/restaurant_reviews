@@ -549,7 +549,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         restaurant_name = restaurant_name.replace("'","")   
         location_name = location_name.replace(" ","_")
         
-        address_data = split_us_address(address) or {}  # Ensure it's a dictionary
+        address_data = parse_address_google(address) or {}  # Ensure it's a dictionary
         street = address_data.get("street", "")
         city = address_data.get("city", "")
         state = address_data.get("state", "")
@@ -830,7 +830,7 @@ def InsertRestaurantDetailsForYelp(yelp_data, restaurant_name, location_name):
         full_name = f"{restaurant_name} {location_name}"
 
         # Business key generation
-        address_data = split_us_address(address) or {}
+        address_data = parse_address_google(address) or {}
         street = address_data.get("street", "")
         city = address_data.get("city", "")
         state = address_data.get("state", "")
