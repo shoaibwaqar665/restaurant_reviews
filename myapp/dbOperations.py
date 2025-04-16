@@ -4,25 +4,54 @@ import json
 from datetime import datetime
 from decimal import Decimal
 from psycopg2.extras import execute_values
-import usaddress
 from myapp.environment import Scraping
+import googlemaps
 
 Scraping = Scraping
-def split_us_address(address):
-    if not isinstance(address, str) or "Australia" in address:
-        return {}  # Skip non-US or explicitly Australian addresses
+
+gmaps = googlemaps.Client(key="AIzaSyB9irjntPHdEJf024h7H_XKpS11OeW1Nh8")
+def parse_address_google(address):
     try:
-        parsed = usaddress.tag(address)[0]
-        return {
-            "street": parsed.get("AddressNumber", "") + " " + parsed.get("StreetName", ""),
-            "city": parsed.get("PlaceName", ""),
-            "state": parsed.get("StateName", ""),
-            "postal_code": parsed.get("ZipCode", ""),
-            "country": "United States"
+        result = gmaps.geocode(address)
+        if not result:
+            return {}
+
+        components = result[0]["address_components"]
+        parsed = {
+            "street": "",
+            "city": "",
+            "state": "",
+            "postal_code": "",
+            "country": "",
         }
-    except usaddress.RepeatedLabelError as e:
-        print(f"Error parsing address (likely non-US): {address}")
+
+        for comp in components:
+            types = comp["types"]
+            if "street_number" in types:
+                parsed["street"] = comp["long_name"] + " " + parsed["street"]
+            elif "route" in types:
+                parsed["street"] += comp["long_name"]
+            elif "locality" in types:
+                parsed["city"] = comp["long_name"]
+            elif "administrative_area_level_1" in types:
+                parsed["state"] = comp["short_name"]
+            elif "postal_code" in types:
+                parsed["postal_code"] = comp["long_name"]
+            elif "country" in types:
+                parsed["country"] = comp["long_name"]
+
+        return {
+            "street": parsed["street"],
+            "city": parsed["city"],
+            "state": parsed["state"],
+            "postal_code": parsed["postal_code"],
+            "country": parsed["country"]
+            
+        }
+    except Exception as e:
+        print(f"Error parsing address: {e}")
         return {}
+    
 def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
     """
     Insert restaurant details from Tripadvisor JSON data into the trip_restaurants_details table.
