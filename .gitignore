@@ -5,3 +5,4 @@ response_debug_*.json
 # response.json
 *.json
 /log
+/.html

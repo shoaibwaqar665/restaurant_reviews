@@ -1,80 +1,8 @@
-# import requests
-# import json
-# import base64
-
-# url = "https://www.yelp.com/gql/batch"
-
-# # Load cookies from file
-# with open("yelp_cookies.txt", "r") as f:
-#     cookies = f.read().strip()
-
-# offset = 0
-# after = base64.b64encode(json.dumps({
-#             "version": 1,
-#             "type": "offset",
-#             "offset": offset
-#         }).encode('utf-8')).decode('utf-8')
-# payload = json.dumps([
-#   {
-#     "operationName": "GetBusinessReviewFeed",
-#     "variables": {
-#       "encBizId": "tuWl2S2O4YwI2qHXiIaSyw",
-#       "reviewsPerPage": 40,
-#       "selectedReviewEncId": "",
-#       "hasSelectedReview": False,
-#       "sortBy": "RELEVANCE_DESC",
-#       "languageCode": "en",
-#       "ratings": [5, 4, 3, 2, 1],
-#       "queryText": "",
-#       "isSearching": False,
-#       "after": after,
-#       "isTranslating": False,
-#       "translateLanguageCode": "en",
-#       "reactionsSourceFlow": "businessPageReviewSection",
-#       "guv": "CFCAA4676196EA17",
-#       "minConfidenceLevel": "HIGH_CONFIDENCE",
-#       "highlightType": "",
-#       "highlightIdentifier": "",
-#       "isHighlighting": False
-#     },
-#     "extensions": {
-#       "operationType": "query",
-#       "documentId": "691087a117482fc6d72e9549a7a23834bc35f578b0c161319eb1f9b20c0d92c0"
-#     }
-#   }
-# ])
-
-# headers = {
-#     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0',
-#     'Accept': '*/*',
-#     'Accept-Language': 'en-US,en;q=0.5',
-#     'Accept-Encoding': 'gzip, deflate, br',
-#     'Accept-Encoding': 'gzip, deflate, br',  # <- this tells server to compress, and requests auto-decompresses
-#     'x-apollo-operation-name': 'GetBusinessReviewFeed',
-#     'Content-Type': 'application/json',
-#     'Cookie': cookies  # <- use the one loaded from file
-# }
-
-# response = requests.post(url, headers=headers, data=payload)
-
-# # Make sure content is decompressed and parsed
-# try:
-#     json_data = response.json()
-#     print(json.dumps(json_data, indent=2))
-    
-#         # Save to file
-#     with open("reviews_yelp.json", "w", encoding="utf-8") as f:
-#         json.dump(json_data, f, indent=2, ensure_ascii=False)
-    
-#     print(f"✅ {len(json_data)} reviews saved to reviews_yelp.json")
-    
-# except Exception:
-#     print("Standard JSON parse failed, trying manual decoding...")
 import json
 from datetime import datetime
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from myapp.dbOperations import InsertYelpReviewsBatch
 
 def extract_review_yelp_data(data, output_file, business_key, location_id):
@@ -158,8 +86,3 @@ def extract_review_yelp_data(data, output_file, business_key, location_id):
     InsertYelpReviewsBatch(extracted_reviews,business_key, location_id)
     print(f"✅ Successfully extracted {len(extracted_reviews)} reviews to {output_file}")
     
-
-# # Example usage
-# input_json = 'reviews_yelp.json'
-# output_json = 'extracted_reviews.json'
-# extract_review_yelp_data(input_json, output_json)

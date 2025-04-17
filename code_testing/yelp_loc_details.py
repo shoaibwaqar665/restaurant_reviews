@@ -28,14 +28,23 @@ def execute_bash_script(restaurant_slug):
 
 # Pass the restaurant slug as an argument
 restaurant_slug = 'shakeys-pizza-parlor-burbank'
-
 for location in location_names:
-    restaurant_slug = res_slug+"-"+location.replace(" ", "-").lower()
-    restaurant_slug = restaurant_slug.replace(" ", "-")
-    print(f"Executing script for restaurant slug: {restaurant_slug}")
-    execute_bash_script(restaurant_slug)
-    yelp_loc_clean(restaurant_slug+".html", restaurant_slug+".json", query, location)
-    
-    # Execute the bash script with the restaurant slug
+    try:
+        restaurant_slug = res_slug + "-" + location.replace(" ", "-").lower()
+        restaurant_slug = restaurant_slug.replace(" ", "-")
 
-# wait for the script to finish
+        print(f"🚀 Executing script for restaurant slug: {restaurant_slug}")
+        
+        execute_bash_script(restaurant_slug)
+
+        input_file = restaurant_slug + ".html"
+        output_file = restaurant_slug + ".json"
+
+        yelp_loc_clean(input_file, output_file, query, location)
+
+    except FileNotFoundError as e:
+        print(f"❌ File not found for location '{location}': {e}")
+    except ValueError as ve:
+        print(f"⚠️ Value error for location '{location}': {ve}")
+    except Exception as e:
+        print(f"❌ Unexpected error occurred for location '{location}': {e}")

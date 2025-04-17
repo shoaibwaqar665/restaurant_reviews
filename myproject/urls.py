@@ -18,8 +18,10 @@ from django.contrib import admin
 from django.urls import path
 from myapp.trip import api
 from myapp.google import gmb_api
+from myapp.yelp_loc_data import yelp_api
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('tripadvisor/', api.urls),
     path('google/', gmb_api.urls),
+    path('yelp/', yelp_api.urls),
 ]
