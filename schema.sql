@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE trip_restaurants_details (
+CREATE TABLE trip_business_details (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     location_id VARCHAR UNIQUE NOT NULL,
     name TEXT,
@@ -27,7 +27,7 @@ CREATE TABLE trip_restaurants_details (
 CREATE TABLE trip_reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     review_id VARCHAR UNIQUE NOT NULL,
-    location_id VARCHAR REFERENCES trip_restaurants_details(location_id) ON DELETE CASCADE,
+    location_id VARCHAR REFERENCES trip_business_details(location_id) ON DELETE CASCADE,
     user_id TEXT NOT NULL,
     username TEXT,
     title TEXT,

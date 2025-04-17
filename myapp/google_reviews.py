@@ -6,7 +6,7 @@ import os
 load_dotenv()
 
 from myapp.google_reviews_extraction import extract_google_reviews
-from myapp.dbOperations import select_restaurant_name_and_review_count_from_google_restaurant_details
+from myapp.dbOperations import select_restaurant_name_and_review_count_from_google_business_details
 import boto3
 from botocore.exceptions import NoCredentialsError, ClientError
 def store_bucket_credentials():
@@ -159,7 +159,7 @@ def search_and_log_reviews(query,review_count,folder_name):
 
 def google_reviews_data(restaurant_name):
 
-    restaurant_name_and_review_count = select_restaurant_name_and_review_count_from_google_restaurant_details(restaurant_name)
+    restaurant_name_and_review_count = select_restaurant_name_and_review_count_from_google_business_details(restaurant_name)
     for restaurant in restaurant_name_and_review_count:
         print(restaurant)
         query = restaurant["name"]

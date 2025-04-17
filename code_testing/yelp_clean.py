@@ -142,10 +142,10 @@ def yelp_loc_clean(input_file, output_file, query, location):
     business_key = business_key.replace(" ","_").replace(",","")
 
     raw_data = scrape_yelp_reviews(whole_data.get("yelp_biz_id"), review_count, output_file=f"{business_key}_raw.json")
-    extract_review_yelp_data(raw_data, f"{business_key}_reviews.json", business_key, location)
+    extract_review_yelp_data(raw_data, f"{business_key}_reviews.json", business_key, whole_data.get("yelp_biz_id"))
     print(f"🎉 Data extraction completed and saved to {output_file}")
 
-# Example usage
-if __name__ == "__main__":
-    yelp_loc_clean("shakeys-pizza-parlor-burbank.txt", "cleaned_data.json")
+# # Example usage
+# if __name__ == "__main__":
+#     yelp_loc_clean("shakeys-pizza-parlor-burbank.txt", "cleaned_data.json")
     

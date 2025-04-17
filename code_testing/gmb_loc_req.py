@@ -2,15 +2,15 @@ import requests
 import json
 
 from gmb_loc_clean import location_data_cleaning
-from myapp.dbOperations import select_name_from_trip_restaurants_details
+from myapp.dbOperations import select_name_from_trip_business_details
 # from myapp.gmb import FetchAndStoreRestaurantData
 
 query = "Shakey's Pizza Parlor"
-restaurant_name = select_name_from_trip_restaurants_details(query)
+restaurant_name = select_name_from_trip_business_details(query)
 if len(restaurant_name) == 0:
     print("No restaurant name found")
     # FetchAndStoreRestaurantData(query)
-    restaurant_name = select_name_from_trip_restaurants_details(query)
+    restaurant_name = select_name_from_trip_business_details(query)
 else:
     print("Restaurant names found")
 

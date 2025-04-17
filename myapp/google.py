@@ -5,7 +5,7 @@ from ninja_extra import api_controller, http_post, NinjaExtraAPI
 from myapp.google_reviews import google_reviews_data
 from myapp.schema import GoogleMapsQuery
 from myapp.google_location_data_cleaning import location_data_cleaning
-from myapp.dbOperations import select_name_from_trip_restaurants_details
+from myapp.dbOperations import select_name_from_trip_business_details
 import requests
 
 from myapp.trip import FetchAndStoreRestaurantData
@@ -17,13 +17,13 @@ gmb_api = NinjaExtraAPI(urls_namespace='GoogleMaps')
 def FetchAndStoreRestaurantDataForGoogle(query):
     print('query: ', query)
 
-    restaurant_name = select_name_from_trip_restaurants_details(query)
+    restaurant_name = select_name_from_trip_business_details(query)
     if len(restaurant_name) == 0:
         print("No restaurant name found")
         data_flag = FetchAndStoreRestaurantData(query)
         if data_flag:
             print('data_flag is true')
-            restaurant_name = select_name_from_trip_restaurants_details(query)
+            restaurant_name = select_name_from_trip_business_details(query)
             print('restaurant names',restaurant_name)
     else:
         print("Restaurant names found")

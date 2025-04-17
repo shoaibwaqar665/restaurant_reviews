@@ -220,7 +220,7 @@ def extract_metadata(data):
     
     def process_item(item, context=None):
         nonlocal metadata
-        
+       
         if isinstance(item, (list, tuple)):
            
             # Process each item in the list
@@ -393,7 +393,7 @@ def extract_rating_and_reviews(json_string):
         except (TypeError, ValueError):
             return None
 
-    simple_pattern = r'(\d+\.\d+)\s*,\s*(\d+)\s*,\s*null\s*,\s*"Moderately expensive"'
+    simple_pattern = r'(\d+\.\d+)\s*,\s*(\d+)\s*,\s*null\s*,\s*'
     simple_match = re.search(simple_pattern, json_string)
     if simple_match:
         print("Found match with simpler pattern!")
@@ -405,8 +405,49 @@ def extract_rating_and_reviews(json_string):
         }
     return None
 
-def location_data_cleaning(input_file, output_file,restaurant_name,location_name):
-  
+def find_tel_links(obj):
+    tel_links = []
+    if isinstance(obj, dict):
+        for value in obj.values():
+            tel_links.extend(find_tel_links(value))
+    elif isinstance(obj, list):
+        for item in obj:
+            tel_links.extend(find_tel_links(item))
+    elif isinstance(obj, str) and obj.startswith("tel:"):
+        tel_links.append(obj.replace("tel:", ""))
+    return tel_links
+
+def fallback_extract_details(entry):
+    try:
+        hotel_data = entry[1][0]
+    except (IndexError, TypeError):
+        return {}
+
+    details = {}
+
+    # Address
+    try:
+        address_parts = hotel_data[14][2]
+        details["address"] = ', '.join(address_parts)
+    except (IndexError, TypeError):
+        details["address"] = "N/A"
+
+    # Rating
+    try:
+        details["rating"] = hotel_data[14][4][8]
+    except (IndexError, TypeError):
+        details["rating"] = "N/A"
+
+    # Review Count
+    try:
+        details["reviews"] = hotel_data[14][4][7]
+    except (IndexError, TypeError):
+        details["reviews"] = "N/A"
+
+    return details
+
+
+def location_data_cleaning(input_file, output_file, restaurant_name, location_name):
     # Read the input JSON file
     try:
         with open(input_file, 'r', encoding='utf-8') as f:
@@ -414,24 +455,37 @@ def location_data_cleaning(input_file, output_file,restaurant_name,location_name
     except Exception as e:
         print(f"Error reading input file: {e}")
         return
-    
+
     restaurant_data = []
-    
-    # Process and insert each restaurant entry directly
+
+    # Process and insert each restaurant entry
     for i, entry in enumerate(data):
         restaurant_info = extract_restaurant_data(entry, i)
+
         if restaurant_info and "name" in restaurant_info:
-            # Extract and update rating and reviews directly
+            # Try extracting rating and review
             result = extract_rating_and_reviews(entry)
             if result:
                 restaurant_info.update(result)
-            
-            # Insert into database
-            InsertRestaurantDetailsForGoogle(restaurant_info,restaurant_name,location_name)
-            
+
+            # Fallback: if address/rating/review_count is missing
+            if "address" not in restaurant_info or \
+               "rating" not in restaurant_info or \
+               "reviews" not in restaurant_info:
+                fallback_data = fallback_extract_details(entry)
+                for k, v in fallback_data.items():
+                    restaurant_info.setdefault(k, v)
+
+            # Optional: extract phone numbers
+            tel_numbers = find_tel_links(entry)
+            if tel_numbers:
+                restaurant_info["phone"] = tel_numbers
+
+            InsertRestaurantDetailsForGoogle(restaurant_info, restaurant_name, location_name)
+
             # Save to list for writing to a file
             restaurant_data.append(restaurant_info)
-    
+
     # Write cleaned data to file
     try:
         with open(output_file, 'w', encoding='utf-8') as f:
@@ -439,11 +493,91 @@ def location_data_cleaning(input_file, output_file,restaurant_name,location_name
         print(f"Successfully wrote data for {len(restaurant_data)} restaurants to {output_file}")
     except Exception as e:
         print(f"Error writing to output file: {e}")
-    
+
     print("Data insertion and file writing completed.")
 
 
 
+location_data_cleaning(
+    input_file='Ovolo_South_Yarra_google_loc_cleaned.json',
+    output_file='ovolo_South_Yarra_google_loc_cleaned_.json',
+    restaurant_name='ovolo',
+    location_name='south_yarra'
+)
 
-# if __name__ == "__main__":
-#     location_data_cleaning() 
+# # if __name__ == "__main__":
+# #     location_data_cleaning() 
+# import json
+
+# def find_tel_links(obj):
+#     tel_links = []
+
+#     if isinstance(obj, dict):
+#         for value in obj.values():
+#             tel_links.extend(find_tel_links(value))
+#     elif isinstance(obj, list):
+#         for item in obj:
+#             tel_links.extend(find_tel_links(item))
+#     elif isinstance(obj, str) and obj.startswith("tel:"):
+#         tel_links.append(obj.replace("tel:", ""))  # remove 'tel:' prefix
+
+#     return tel_links
+
+# # Load the JSON file
+# with open("Ovolo_South_Yarra_google_loc_cleaned.json", "r") as f:
+#     data = json.load(f)
+
+# # Initialize defaults
+# name = address = rating = review_count = website = "N/A"
+
+# # Safely extract hotel name
+# try:
+#     name = data[0][0]
+# except (IndexError, TypeError):
+#     pass
+
+# # Try to extract nested hotel data
+# try:
+#     hotel_data = data[0][1][0]
+# except (IndexError, TypeError):
+#     hotel_data = []
+
+# # Safely extract address
+# try:
+#     address_parts = hotel_data[14][2]
+#     address = ', '.join(address_parts)
+# except (IndexError, TypeError):
+#     pass
+
+# # Safely extract rating
+# try:
+#     rating = hotel_data[14][4][8]
+# except (IndexError, TypeError):
+#     pass
+
+# # Safely extract review count
+# try:
+#     review_count = hotel_data[14][4][7]
+# except (IndexError, TypeError):
+#     pass
+
+# # Safely extract website
+# try:
+#     website = hotel_data[14][7][0]
+# except (IndexError, TypeError):
+#     pass
+
+# # Recursively find phone numbers
+# tel_numbers = find_tel_links(data)
+
+# # Output results
+# print("Found phone numbers:")
+# for number in tel_numbers:
+#     print(number)
+
+# # Print extracted info
+# print("\nHotel Name:", name)
+# print("Address:", address)
+# print("Rating:", rating)
+# print("Review Count:", review_count)
+# print("Website:", website)

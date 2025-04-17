@@ -4,7 +4,7 @@ import json
 import os
 
 from extract_gmb_reviews import extract_google_reviews
-from myapp.dbOperations import select_restaurant_name_and_review_count_from_google_restaurant_details
+from myapp.dbOperations import select_restaurant_name_and_review_count_from_google_business_details
 
 def search_and_log_reviews(query,review_count,folder_name):
     with sync_playwright() as p:
@@ -105,7 +105,7 @@ def search_and_log_reviews(query,review_count,folder_name):
 if __name__ == "__main__":
     restaurant_name = "shakey's pizza parlor"
     print(restaurant_name)
-    restaurant_name_and_review_count = select_restaurant_name_and_review_count_from_google_restaurant_details(restaurant_name)
+    restaurant_name_and_review_count = select_restaurant_name_and_review_count_from_google_business_details(restaurant_name)
     for restaurant in restaurant_name_and_review_count:
         print(restaurant)
         query = restaurant["name"]
