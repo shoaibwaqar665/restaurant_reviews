@@ -54,7 +54,7 @@ def parse_address_google(address):
     
 def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
     """
-    Insert restaurant details from Tripadvisor JSON data into the trip_restaurants_details table.
+    Insert restaurant details from Tripadvisor JSON data into the trip_business_details table.
     
     Args:
         restaurant_data (dict): The restaurant data from the Tripadvisor JSON
@@ -82,7 +82,7 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
         # Check if restaurant already exists
         check_query = """
             SELECT COUNT(*)
-            FROM trip_restaurants_details
+            FROM trip_business_details
             WHERE location_id = %s
         """
         cursor.execute(check_query, (location_id,))
@@ -94,7 +94,7 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
             schedule_data = details.get("schedule", {})
             
             insert_query = """
-                INSERT INTO trip_restaurants_details (
+                INSERT INTO trip_business_details (
                     location_id,
                     name,
                     address,
@@ -496,7 +496,7 @@ def InsertRestaurantReviewsForTripAdvisor(restaurant_data, location_id,restauran
 
 def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_name):
     """
-    Insert restaurant details from Google JSON data into the google_restaurant_details table.
+    Insert restaurant details from Google JSON data into the google_business_details table.
 
     Args:
         restaurant_data (dict): The restaurant data extracted from Google
@@ -560,7 +560,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         business_key = business_key.replace(",","")
        
         check_query = """
-                    SELECT COUNT(*) FROM google_restaurant_details 
+                    SELECT COUNT(*) FROM google_business_details 
                     WHERE phone = %s AND address = %s
                 """
         cursor.execute(check_query, (phone, address))
@@ -572,7 +572,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
 
         # Insert data into table
         insert_query = """
-            INSERT INTO google_restaurant_details (
+            INSERT INTO google_business_details (
                 name, address, website, menu_url, phone, 
                 service_options, parking, children, payments, planning, 
                 crowd, atmosphere, amenities, dining_options, schedule, 
@@ -597,11 +597,11 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
 
     except Exception as e:
         print(f"Error inserting restaurant details: {e}")
-    # delete the record from google_restaurant_details table 
+    # delete the record from google_business_details table 
         import traceback
         print(traceback.format_exc())  # Print full traceback for debuggingwhere address is null
     try:
-        cursor.execute("DELETE FROM google_restaurant_details WHERE address IS NULL or address='N/A'")
+        cursor.execute("DELETE FROM google_business_details WHERE address IS NULL or address='N/A'")
         conn.commit()
     except Exception as e:
         print(f"Error deleting records: {e}")
@@ -743,8 +743,8 @@ def InsertYelpReviewsBatch(reviews, business_key, location_id=None):
         conn.close()
 
         
-# write code to select name from trip_restaurants_details table
-def select_name_from_trip_restaurants_details(query):
+# write code to select name from trip_business_details table
+def select_name_from_trip_business_details(query):
     conn = psycopg2.connect(
         dbname=Scraping["Database"],
         user=Scraping["Username"],
@@ -754,7 +754,7 @@ def select_name_from_trip_restaurants_details(query):
     )
     cursor = conn.cursor()
     query = query.lower()
-    cursor.execute("SELECT name FROM trip_restaurants_details WHERE restaurant_name = %s", (query,))
+    cursor.execute("SELECT name FROM trip_business_details WHERE restaurant_name = %s", (query,))
     
     results = cursor.fetchall()
     names = [row[0] for row in results]  # Extract names from tuples
@@ -780,7 +780,7 @@ def select_yelp_details_by_name(restaurant_name):
     restaurant_name = restaurant_name.lower()
     cursor.execute("""
         SELECT business_key, review_count, location_id 
-        FROM yelp_restaurants_details 
+        FROM yelp_business_details 
         WHERE LOWER(restaurant_name) = %s
     """, (restaurant_name,))
     
@@ -792,7 +792,7 @@ def select_yelp_details_by_name(restaurant_name):
 
 def InsertRestaurantDetailsForYelp(yelp_data, restaurant_name, location_name):
     """
-    Insert restaurant details from Yelp JSON data into the yelp_restaurants_details table.
+    Insert restaurant details from Yelp JSON data into the yelp_business_details table.
 
     Args:
         yelp_data (dict): The restaurant data extracted from Yelp
@@ -845,7 +845,7 @@ def InsertRestaurantDetailsForYelp(yelp_data, restaurant_name, location_name):
 
         # Check if already exists
         check_query = """
-            SELECT COUNT(*) FROM yelp_restaurants_details
+            SELECT COUNT(*) FROM yelp_business_details
             WHERE phone = %s AND address = %s
         """
         cursor.execute(check_query, (phone, address))
@@ -857,7 +857,7 @@ def InsertRestaurantDetailsForYelp(yelp_data, restaurant_name, location_name):
 
         # Insert data
         insert_query = """
-            INSERT INTO yelp_restaurants_details (
+            INSERT INTO yelp_business_details (
                 location_id, name, address, website, menu_url, phone,
                 amenities, schedule, rating, review_count,
                 restaurant_name, business_key, city, state, country, postal_code
@@ -883,7 +883,7 @@ def InsertRestaurantDetailsForYelp(yelp_data, restaurant_name, location_name):
         print(traceback.format_exc())
 
     try:
-        cursor.execute("DELETE FROM yelp_restaurants_details WHERE address IS NULL OR address = 'N/A'")
+        cursor.execute("DELETE FROM yelp_business_details WHERE address IS NULL OR address = 'N/A'")
         conn.commit()
     except Exception as e:
         print(f"Error deleting null address Yelp records: {e}")
@@ -897,7 +897,7 @@ def InsertRestaurantDetailsForYelp(yelp_data, restaurant_name, location_name):
             conn.close()
 
 
-def select_restaurant_name_and_review_count_from_google_restaurant_details(query):
+def select_restaurant_name_and_review_count_from_google_business_details(query):
     """Fetch restaurant name and review count from the database."""
     try:
         # Connect to the database
@@ -913,7 +913,7 @@ def select_restaurant_name_and_review_count_from_google_restaurant_details(query
         # query = query.lower()  # Normalize query string
         
         # Execute the query
-        cursor.execute("SELECT name, business_key FROM google_restaurant_details WHERE restaurant_name = %s", (query,))
+        cursor.execute("SELECT name, business_key FROM google_business_details WHERE restaurant_name = %s", (query,))
         
         # Fetch results
         results = cursor.fetchall()
@@ -954,7 +954,7 @@ def fetch_trip_data():
                    cuisines, meal_types, diets, menu_url, has_menu_provider, restaurant_name,
                    business_key, service_options, parking, children, payments, planning, crowd,
                    atmosphere, amenities
-            FROM trip_restaurants_details
+            FROM trip_business_details
         """,)
 
         details_columns = [desc[0] for desc in cursor.description]
@@ -1058,7 +1058,7 @@ def fetch_google_data():
                    cuisines, meal_types, diets, menu_url, has_menu_provider, restaurant_name,
                    business_key, service_options, parking, children, payments, planning, crowd,
                    atmosphere, amenities
-            FROM google_restaurant_details
+            FROM google_business_details
         """,)
 
         details_columns = [desc[0] for desc in cursor.description]
