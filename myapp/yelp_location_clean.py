@@ -2,9 +2,7 @@ from bs4 import BeautifulSoup
 import json
 from urllib.parse import urlparse, parse_qs, unquote
 import re
-import sys
-import os
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from myapp.reviews_yelp_data import extract_review_yelp_data
 from myapp.yelp_total_reviews import scrape_yelp_reviews
 from myapp.dbOperations import InsertRestaurantDetailsForYelp
