@@ -5,7 +5,9 @@ import os
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from myapp.dbOperations import InsertYelpReviewsBatch
 
-def extract_review_yelp_data(data, output_file, business_key, location_id):
+def extract_review_yelp_data(input_file, output_file, business_key, location_id):
+    with open(input_file, 'r', encoding='utf-8') as f:
+        data = json.load(f)
     try:
         edges = data["reviews"][0]["data"]["business"]["reviews"]["edges"]
     except (KeyError, IndexError, TypeError) as e:

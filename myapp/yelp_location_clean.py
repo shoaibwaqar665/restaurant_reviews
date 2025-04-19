@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import json
 from urllib.parse import urlparse, parse_qs, unquote
 import re
-
+import traceback 
 from myapp.reviews_yelp_data import extract_review_yelp_data
 from myapp.yelp_total_reviews import scrape_yelp_reviews
 from myapp.dbOperations import InsertRestaurantDetailsForYelp
@@ -108,9 +108,9 @@ def get_amenities(soup):
             amenities.append(item)
     return amenities
 
-def parse_yelp_html(input_file):
-    with open(input_file, "r", encoding="utf-8") as f:
-        soup = BeautifulSoup(f, "html.parser")
+def parse_yelp_html(html_content):
+    # with open(input_file, "r", encoding="utf-8") as f:
+    soup = BeautifulSoup(html_content, "html.parser")
 
     return {
         "meta_description": get_meta_content(soup, "description"),
@@ -125,9 +125,9 @@ def parse_yelp_html(input_file):
         "custom_class_data": get_custom_class_data(soup)
     }
 
-def yelp_loc_clean(input_file, output_file, query, location):
+def yelp_loc_clean(html_content, output_file, query, location):
     try:
-        whole_data = parse_yelp_html(input_file)
+        whole_data = parse_yelp_html(html_content)
 
         if not whole_data:
             raise ValueError("Parsed data is None or empty")
@@ -148,22 +148,23 @@ def yelp_loc_clean(input_file, output_file, query, location):
 
         business_key = f"{location}{address}{query}".replace(" ", "_").replace(",", "")
 
-        if yelp_biz_id == "N/A" or review_count == 0:
+        if yelp_biz_id == None or review_count == '0':
             raise ValueError("Invalid Yelp Business ID or review count is zero")
 
-        raw_data = scrape_yelp_reviews(yelp_biz_id, review_count, output_file=f"{business_key}_raw.json")
+        scrape_yelp_reviews(yelp_biz_id, review_count, output_file=f"{business_key}_raw.json")
 
-        if not raw_data:
-            raise ValueError("No review data returned from scraper")
-
-        extract_review_yelp_data(raw_data, f"{business_key}_reviews.json", business_key, yelp_biz_id)
+        # if not raw_data:
+        #     raise ValueError("No review data returned from scraper")
+        raw_reviews_file = f"{business_key}_raw.json"
+        extract_review_yelp_data(raw_reviews_file, f"{business_key}_reviews.json", business_key, yelp_biz_id)
         print(f"🎉 Data extraction completed and saved to {output_file}")
 
-    except FileNotFoundError:
-        print(f"❌ Error: The file {input_file} was not found.")
     except json.JSONDecodeError:
         print("❌ Error: Failed to decode JSON data.")
+        traceback.print_exc()
     except ValueError as ve:
-        print(f"❌ Value Error: {ve}")
+        print(f"❌ Value Error hello: {ve}")
+        traceback.print_exc()
     except Exception as e:
         print(f"❌ An unexpected error occurred: {e}")
+        traceback.print_exc()

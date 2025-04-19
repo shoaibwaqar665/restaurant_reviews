@@ -2,48 +2,64 @@ import requests
 import json
 import base64
 import math
-
+import traceback
 def get_reviews_response(enc_biz_id, offset, headers):
-    after = base64.b64encode(json.dumps({
-        "version": 1,
-        "type": "offset",
-        "offset": offset
-    }).encode('utf-8')).decode('utf-8')
+    try:
+        after = base64.b64encode(json.dumps({
+            "version": 1,
+            "type": "offset",
+            "offset": offset
+        }).encode('utf-8')).decode('utf-8')
 
-    payload = json.dumps([
-        {
-            "operationName": "GetBusinessReviewFeed",
-            "variables": {
-                "encBizId": enc_biz_id,
-                "reviewsPerPage": 20,
-                "selectedReviewEncId": "",
-                "hasSelectedReview": False,
-                "sortBy": "RELEVANCE_DESC",
-                "languageCode": "en",
-                "ratings": [5, 4, 3, 2, 1],
-                "queryText": "",
-                "isSearching": False,
-                "after": after,
-                "isTranslating": False,
-                "translateLanguageCode": "en",
-                "reactionsSourceFlow": "businessPageReviewSection",
-                "guv": "CFCAA4676196EA17",
-                "minConfidenceLevel": "HIGH_CONFIDENCE",
-                "highlightType": "",
-                "highlightIdentifier": "",
-                "isHighlighting": False
-            },
-            "extensions": {
-                "operationType": "query",
-                "documentId": "691087a117482fc6d72e9549a7a23834bc35f578b0c161319eb1f9b20c0d92c0"
+        payload = json.dumps([
+            {
+                "operationName": "GetBusinessReviewFeed",
+                "variables": {
+                    "encBizId": enc_biz_id,
+                    "reviewsPerPage": 20,
+                    "selectedReviewEncId": "",
+                    "hasSelectedReview": False,
+                    "sortBy": "RELEVANCE_DESC",
+                    "languageCode": "en",
+                    "ratings": [5, 4, 3, 2, 1],
+                    "queryText": "",
+                    "isSearching": False,
+                    "after": after,
+                    "isTranslating": False,
+                    "translateLanguageCode": "en",
+                    "reactionsSourceFlow": "businessPageReviewSection",
+                    "guv": "CFCAA4676196EA17",
+                    "minConfidenceLevel": "HIGH_CONFIDENCE",
+                    "highlightType": "",
+                    "highlightIdentifier": "",
+                    "isHighlighting": False
+                },
+                "extensions": {
+                    "operationType": "query",
+                    "documentId": "691087a117482fc6d72e9549a7a23834bc35f578b0c161319eb1f9b20c0d92c0"
+                }
             }
-        }
-    ])
+        ])
+        headers = clean_headers(headers)
+        response = requests.post("https://www.yelp.com/gql/batch", headers=headers, data=payload)
+        response.raise_for_status()
+        return response.json()
 
-    response = requests.post("https://www.yelp.com/gql/batch", headers=headers, data=payload)
-    response.raise_for_status()
-    return response.json()
-
+    except requests.exceptions.RequestException as e:
+        print("❌ Request failed:", e)
+        traceback.print_exc()
+        print("📦 Payload:", payload)
+        print("📬 Headers:", headers)
+        return None
+    
+def clean_headers(headers):
+    cleaned = {}
+    for k, v in headers.items():
+        try:
+            cleaned[k] = v.encode('latin-1').decode('latin-1')
+        except UnicodeEncodeError:
+            print(f"⚠️ Skipping non-latin header: {k} => {v}")
+    return cleaned
 def scrape_yelp_reviews(enc_biz_id, pages, output_file):
 
     # Load cookies from file
@@ -65,6 +81,7 @@ def scrape_yelp_reviews(enc_biz_id, pages, output_file):
     offset = 0
     main_response = get_reviews_response(enc_biz_id, offset, headers)
     main_data = main_response[0]
+    # print(main_data)
     review_list = main_data["data"]["business"]["reviews"]["edges"]
     total_pages = pages/20
     total_pages = math.ceil(total_pages)
@@ -85,9 +102,9 @@ def scrape_yelp_reviews(enc_biz_id, pages, output_file):
         "reviews": [main_data]
     }
 
-    # with open(output_file, "w", encoding="utf-8") as f:
-    #     json.dump(final_output, f, ensure_ascii=False, indent=2)
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(final_output, f, ensure_ascii=False, indent=2)
 
     print(f"🎉 Final merged data saved and returned")
-    return final_output
+    # return final_output
 
