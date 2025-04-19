@@ -1,13 +1,14 @@
 import subprocess
 import json
-from myapp.dbOperations import select_name_from_trip_business_details
+from myapp.dbOperations import fetch_yelp_data, select_name_from_trip_business_details
 from myapp.yelp_location_clean import yelp_loc_clean
 from concurrent.futures import ThreadPoolExecutor
-from ninja_extra import api_controller, http_post, NinjaExtraAPI
+from ninja_extra import api_controller, http_post, NinjaExtraAPI,http_get
 yelp_api = NinjaExtraAPI(urls_namespace='Yelp')
 from myapp.schema import Yelp
 from typing import Dict
-
+import os
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 def execute_bash_script(restaurant_slug):
     # Define the bash script file path
     bash_script = 'myapp/run_curl.sh'
@@ -38,7 +39,7 @@ def FetchYelpData(query):
 
             execute_bash_script(restaurant_slug)
 
-            input_file = restaurant_slug + ".html"
+            input_file = input_file = os.path.join(base_dir, restaurant_slug + ".html")
             output_file = restaurant_slug + ".json"
 
             yelp_loc_clean(input_file, output_file, query, location)
@@ -68,7 +69,16 @@ class YelpController:
            }
         except (FileNotFoundError, json.JSONDecodeError):
             return {"error": "Restaurant not found"}
-    
+        
+    @http_get('/restaurant_details', response={200: Dict, 400: Dict})
+    def get_restaurant_details(self,request):
+        """Return restaurant details for a specific ID"""
+        try:
+            print("Fetching data from yelp")
+            data = fetch_yelp_data()
+            return 200, data
+        except Exception as e:
+            return 400, {"error": str(e)}
 
 # Register controllers
 yelp_api.register_controllers(YelpController)

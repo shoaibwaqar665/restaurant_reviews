@@ -6,11 +6,11 @@ import json
 import requests
 import re
 from typing import Dict
-from ninja_extra import api_controller, http_post, NinjaExtraAPI
+from ninja_extra import api_controller, http_post, NinjaExtraAPI,http_get
 from myapp.schema import TripAdvisorQuery
 import base64
 from googletrans import Translator
-from myapp.dbOperations import InsertRestaurantDetailsForTripadvisor, InsertRestaurantReviewsForTripAdvisor
+from myapp.dbOperations import InsertRestaurantDetailsForTripadvisor, InsertRestaurantReviewsForTripAdvisor, fetch_trip_data
 import sys
 
 
@@ -1078,6 +1078,16 @@ class TripAdvisorController:
            }
         except (FileNotFoundError, json.JSONDecodeError):
             return {"error": "Restaurant not found"}
+        
+    @http_get('/restaurant_details', response={200: Dict, 400: Dict})
+    def get_restaurant_details(self,request):
+        """Return restaurant details for a specific ID"""
+        try:
+            print("Fetching data from trip Advisor")
+            data = fetch_trip_data()
+            return 200, data
+        except Exception as e:
+            return 400, {"error": str(e)}
     
 
 # Register controllers

@@ -1,11 +1,11 @@
 from concurrent.futures import ThreadPoolExecutor
 import json
 from typing import Dict
-from ninja_extra import api_controller, http_post, NinjaExtraAPI
+from ninja_extra import api_controller, http_post, NinjaExtraAPI,http_get
 from myapp.google_reviews import google_reviews_data
 from myapp.schema import GoogleMapsQuery
 from myapp.google_location_data_cleaning import location_data_cleaning
-from myapp.dbOperations import select_name_from_trip_business_details
+from myapp.dbOperations import fetch_google_data, select_name_from_trip_business_details
 import requests
 
 from myapp.trip import FetchAndStoreRestaurantData
@@ -89,6 +89,16 @@ class GoogleMapsController:
            }
         except (FileNotFoundError, json.JSONDecodeError):
             return {"error": "Restaurant not found"}
+    
+    @http_get('/restaurant_details', response={200: Dict, 400: Dict})
+    def get_restaurant_details(self,request):
+        """Return restaurant details for a specific ID"""
+        try:
+            print("Fetching data from Google Maps")
+            data = fetch_google_data()
+            return 200, data
+        except Exception as e:
+            return 400, {"error": str(e)}
     
 
 # Register controllers
