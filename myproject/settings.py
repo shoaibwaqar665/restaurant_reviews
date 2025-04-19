@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'ninja_extra',
     'corsheaders'
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
