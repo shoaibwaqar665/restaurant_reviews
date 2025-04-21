@@ -201,7 +201,7 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
                 
             # Convert schedule to JSON
             schedule_json = json.dumps(schedule_data) if schedule_data else None
-            complete_address = f"{street}, {city}, {state} {postal_code}"
+            complete_address = f"{street}, {city}, {postal_code}"
             # Prepare the values tuple
             city_name = parent_location_name or location.get("name") or f"{city} {state}"
             restaurant_key = (parent_location_name or '') + ' ' + (complete_address or '') + ' ' + (restaurant_query or '')
@@ -558,6 +558,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
 
         business_key = location_name+"_"+street+"_"+city+"_"+state+"_"+postal_code+"_"+restaurant_name
         business_key = business_key.replace(",","")
+        business_key = business_key.replace(" ","_")
        
         check_query = """
                     SELECT COUNT(*) FROM google_business_details 
@@ -936,7 +937,7 @@ def select_restaurant_name_and_review_count_from_google_business_details(query):
 
 
 def fetch_trip_data():
-    """Fetch restaurant details separately and join reviews with their photos."""
+    """Fetch all restaurant details with their respective reviews and photos."""
     try:
         conn = psycopg2.connect(
             dbname=Scraping["Database"],
@@ -947,7 +948,7 @@ def fetch_trip_data():
         )
         cursor = conn.cursor()
 
-        # Fetch restaurant details with explicit column names
+        # Fetch all restaurant details
         cursor.execute("""
             SELECT id, location_id, name, address, city, state, country, postal_code, phone,
                    email, website, schedule, thumbnail, review_rating, review_count, dining_options,
@@ -955,13 +956,21 @@ def fetch_trip_data():
                    business_key, service_options, parking, children, payments, planning, crowd,
                    atmosphere, amenities
             FROM trip_business_details
-        """,)
-
+        """)
+        
         details_columns = [desc[0] for desc in cursor.description]
-        restaurant_details = cursor.fetchone()
-        restaurant_details_dict = dict(zip(details_columns, restaurant_details)) if restaurant_details else {}
+        all_restaurants = []
+        
+        # Create a dictionary to store restaurants by business_key for easy lookup
+        restaurants_dict = {}
+        
+        for row in cursor.fetchall():
+            restaurant = dict(zip(details_columns, row))
+            restaurant['reviews'] = []  # Initialize empty reviews list
+            restaurants_dict[restaurant['business_key']] = restaurant  # Fixed missing bracket
+            all_restaurants.append(restaurant)
 
-        # Fetch reviews and their associated photos using a JOIN with explicit column names
+        # Fetch reviews and their associated photos
         cursor.execute("""
             SELECT tr.id, tr.review_id, tr.location_id, tr.user_id, tr.username, tr.title, tr.text,
                    tr.translated_title, tr.translated_text, tr.is_translated, tr.rating, tr.published_date,
@@ -971,19 +980,21 @@ def fetch_trip_data():
                    trp.photo_url
             FROM trip_reviews tr
             LEFT JOIN trip_review_photos trp ON tr.review_id = trp.review_id
-           
-        """,)
+            ORDER BY tr.business_key, tr.review_id
+        """)
 
-        reviews_dict = {}
-
-        # Process review results
+        current_review_id = None
+        current_review = None
+        
         for row in cursor.fetchall():
             review_id = row[1]
+            business_key = row[21]
             photo_url = row[27]
             
-            # If this is the first time seeing this review_id, create the entry
-            if review_id not in reviews_dict:
-                reviews_dict[review_id] = {
+            # If this is a new review, create the structure and add to the appropriate restaurant
+            if review_id != current_review_id:
+                current_review_id = review_id
+                current_review = {
                     "id": row[0],
                     "review_id": review_id,
                     "location_id": row[2],
@@ -1005,7 +1016,7 @@ def fetch_trip_data():
                     "food_rating": row[18],
                     "atmosphere_rating": row[19],
                     "likes": row[20],
-                    "business_key": row[21],
+                    "business_key": business_key,
                     "response_text": row[22],
                     "room_rating": row[23],
                     "sleep_rating": row[24],
@@ -1013,17 +1024,17 @@ def fetch_trip_data():
                     "location_rating": row[26],
                     "photo_url": []
                 }
+                
+                # Add the review to the appropriate restaurant
+                if business_key in restaurants_dict:
+                    restaurants_dict[business_key]['reviews'].append(current_review)
             
             # Add the photo URL if it exists
-            if photo_url:
-                reviews_dict[review_id]["photo_url"].append(photo_url)
-
-        # Convert dictionary to list of reviews
-        reviews_list = list(reviews_dict.values())
+            if photo_url and current_review:
+                current_review["photo_url"].append(photo_url)
 
         return {
-            "restaurant_details": restaurant_details_dict,
-            "reviews": reviews_list
+            "restaurants": all_restaurants
         }
 
     except Exception as e:
@@ -1038,9 +1049,8 @@ def fetch_trip_data():
         if 'conn' in locals():
             conn.close()
 
-
 def fetch_google_data():
-    """Fetch restaurant details separately and join reviews with their photos."""
+    """Fetch all restaurant details with their respective reviews and photos."""
     try:
         conn = psycopg2.connect(
             dbname=Scraping["Database"],
@@ -1051,7 +1061,7 @@ def fetch_google_data():
         )
         cursor = conn.cursor()
 
-        # Fetch restaurant details with explicit column names
+        # Fetch all restaurant details
         cursor.execute("""
             SELECT id, location_id, name, address, city, state, country, postal_code, phone,
                    email, website, schedule, thumbnail, review_rating, review_count, dining_options,
@@ -1059,13 +1069,21 @@ def fetch_google_data():
                    business_key, service_options, parking, children, payments, planning, crowd,
                    atmosphere, amenities
             FROM google_business_details
-        """,)
-
+        """)
+        
         details_columns = [desc[0] for desc in cursor.description]
-        restaurant_details = cursor.fetchone()
-        restaurant_details_dict = dict(zip(details_columns, restaurant_details)) if restaurant_details else {}
+        all_restaurants = []
+        
+        # Create a dictionary to store restaurants by business_key for easy lookup
+        restaurants_dict = {}
+        
+        for row in cursor.fetchall():
+            restaurant = dict(zip(details_columns, row))
+            restaurant['reviews'] = []  # Initialize empty reviews list
+            restaurants_dict[restaurant['business_key']] = restaurant  # Fixed missing bracket
+            all_restaurants.append(restaurant)
 
-        # Fetch reviews and their associated photos using a JOIN with explicit column names
+        # Fetch reviews and their associated photos
         cursor.execute("""
             SELECT tr.id, tr.review_id, tr.location_id, tr.user_id, tr.username, tr.title, tr.text,
                    tr.translated_title, tr.translated_text, tr.is_translated, tr.rating, tr.published_date,
@@ -1075,19 +1093,21 @@ def fetch_google_data():
                    trp.photo_url
             FROM google_reviews tr
             LEFT JOIN google_reviews_photos trp ON tr.review_id = trp.review_id
-           
-        """,)
+            ORDER BY tr.business_key, tr.review_id
+        """)
 
-        reviews_dict = {}
-
-        # Process review results
+        current_review_id = None
+        current_review = None
+        
         for row in cursor.fetchall():
             review_id = row[1]
+            business_key = row[21]
             photo_url = row[27]
             
-            # If this is the first time seeing this review_id, create the entry
-            if review_id not in reviews_dict:
-                reviews_dict[review_id] = {
+            # If this is a new review, create the structure and add to the appropriate restaurant
+            if review_id != current_review_id:
+                current_review_id = review_id
+                current_review = {
                     "id": row[0],
                     "review_id": review_id,
                     "location_id": row[2],
@@ -1109,7 +1129,7 @@ def fetch_google_data():
                     "food_rating": row[18],
                     "atmosphere_rating": row[19],
                     "likes": row[20],
-                    "business_key": row[21],
+                    "business_key": business_key,
                     "response_text": row[22],
                     "room_rating": row[23],
                     "sleep_rating": row[24],
@@ -1117,17 +1137,17 @@ def fetch_google_data():
                     "location_rating": row[26],
                     "photo_url": []
                 }
+                
+                # Add the review to the appropriate restaurant
+                if business_key in restaurants_dict:
+                    restaurants_dict[business_key]['reviews'].append(current_review)
             
             # Add the photo URL if it exists
-            if photo_url:
-                reviews_dict[review_id]["photo_url"].append(photo_url)
-
-        # Convert dictionary to list of reviews
-        reviews_list = list(reviews_dict.values())
+            if photo_url and current_review:
+                current_review["photo_url"].append(photo_url)
 
         return {
-            "restaurant_details": restaurant_details_dict,
-            "reviews": reviews_list
+            "restaurants": all_restaurants
         }
 
     except Exception as e:
@@ -1141,8 +1161,9 @@ def fetch_google_data():
             cursor.close()
         if 'conn' in locals():
             conn.close()
+
 def fetch_yelp_data():
-    """Fetch restaurant details separately and join reviews with their photos."""
+    """Fetch all restaurant details with their respective reviews and photos."""
     try:
         conn = psycopg2.connect(
             dbname=Scraping["Database"],
@@ -1153,7 +1174,7 @@ def fetch_yelp_data():
         )
         cursor = conn.cursor()
 
-        # Fetch restaurant details with explicit column names
+        # Fetch all restaurant details
         cursor.execute("""
             SELECT id, location_id, name, address, city, state, country, postal_code, phone,
                    email, website, schedule, thumbnail, rating, review_count, dining_options,
@@ -1161,13 +1182,21 @@ def fetch_yelp_data():
                    business_key, service_options, parking, children, payments, planning, crowd,
                    atmosphere, amenities
             FROM yelp_business_details
-        """,)
-
+        """)
+        
         details_columns = [desc[0] for desc in cursor.description]
-        restaurant_details = cursor.fetchone()
-        restaurant_details_dict = dict(zip(details_columns, restaurant_details)) if restaurant_details else {}
+        all_restaurants = []
+        
+        # Create a dictionary to store restaurants by business_key for easy lookup
+        restaurants_dict = {}
+        
+        for row in cursor.fetchall():
+            restaurant = dict(zip(details_columns, row))
+            restaurant['reviews'] = []  # Initialize empty reviews list
+            restaurants_dict[restaurant['business_key']] = restaurant  # Fixed missing bracket
+            all_restaurants.append(restaurant)
 
-        # Fetch reviews and their associated photos using a JOIN with explicit column names
+        # Fetch reviews and their associated photos
         cursor.execute("""
             SELECT tr.id, tr.review_id, tr.location_id, tr.user_id, tr.username, tr.title, tr.text,
                    tr.translated_title, tr.translated_text, tr.is_translated, tr.rating, tr.published_date,
@@ -1177,19 +1206,21 @@ def fetch_yelp_data():
                    trp.photo_url
             FROM yelp_reviews tr
             LEFT JOIN yelp_review_photos trp ON tr.review_id = trp.review_id
-           
-        """,)
+            ORDER BY tr.business_key, tr.review_id
+        """)
 
-        reviews_dict = {}
-
-        # Process review results
+        current_review_id = None
+        current_review = None
+        
         for row in cursor.fetchall():
             review_id = row[1]
+            business_key = row[21]
             photo_url = row[27]
             
-            # If this is the first time seeing this review_id, create the entry
-            if review_id not in reviews_dict:
-                reviews_dict[review_id] = {
+            # If this is a new review, create the structure and add to the appropriate restaurant
+            if review_id != current_review_id:
+                current_review_id = review_id
+                current_review = {
                     "id": row[0],
                     "review_id": review_id,
                     "location_id": row[2],
@@ -1211,7 +1242,7 @@ def fetch_yelp_data():
                     "food_rating": row[18],
                     "atmosphere_rating": row[19],
                     "likes": row[20],
-                    "business_key": row[21],
+                    "business_key": business_key,
                     "response_text": row[22],
                     "room_rating": row[23],
                     "sleep_rating": row[24],
@@ -1219,17 +1250,17 @@ def fetch_yelp_data():
                     "location_rating": row[26],
                     "photo_url": []
                 }
+                
+                # Add the review to the appropriate restaurant
+                if business_key in restaurants_dict:
+                    restaurants_dict[business_key]['reviews'].append(current_review)
             
             # Add the photo URL if it exists
-            if photo_url:
-                reviews_dict[review_id]["photo_url"].append(photo_url)
-
-        # Convert dictionary to list of reviews
-        reviews_list = list(reviews_dict.values())
+            if photo_url and current_review:
+                current_review["photo_url"].append(photo_url)
 
         return {
-            "restaurant_details": restaurant_details_dict,
-            "reviews": reviews_list
+            "restaurants": all_restaurants
         }
 
     except Exception as e:

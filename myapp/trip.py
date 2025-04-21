@@ -1027,7 +1027,7 @@ def FetchAndStoreRestaurantData(restaurant_query):
                 
             if not postal_code:
                 postal_code = address.get("postalCode")
-            complete_address = f"{street}, {city}, {state} {postal_code}"
+            complete_address = f"{street}, {city}, {postal_code}"
             ####################################################
             
             restaurant_key = (parent_location_name or '') + ' ' + (complete_address or '') + ' ' + (restaurant_query or '')
