@@ -682,7 +682,7 @@ def InsertYelpReviewsBatch(reviews, business_key, location_id=None):
 
         review_rows = []
         photo_rows = []
-
+        # business_key = business_key.replace(" ", "_").replace("'", "")
         for r in reviews:
             if r['encid'] in existing_ids:
                 print(f"⚠️ Review {r['encid']} already exists. Skipping.")

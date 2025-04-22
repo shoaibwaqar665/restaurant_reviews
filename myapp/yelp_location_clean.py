@@ -146,7 +146,7 @@ def yelp_loc_clean(html_content, output_file, query, location):
         print("Review Count:", review_count)
         print("Yelp Biz ID:", yelp_biz_id)
 
-        business_key = f"{location}{address}{query}".replace(" ", "_").replace(",", "")
+        business_key = f"{location}{address}_{query}".replace(" ", "_").replace("'", "")
 
         if yelp_biz_id == None or review_count == '0':
             raise ValueError("Invalid Yelp Business ID or review count is zero")

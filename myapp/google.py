@@ -103,3 +103,4 @@ class GoogleMapsController:
 
 # Register controllers
 gmb_api.register_controllers(GoogleMapsController)
+

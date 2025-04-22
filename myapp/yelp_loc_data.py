@@ -1,6 +1,7 @@
 import subprocess
 import json
 from myapp.dbOperations import fetch_yelp_data, select_name_from_trip_business_details
+from myapp.trip import FetchAndStoreRestaurantData
 from myapp.yelp_location_clean import yelp_loc_clean
 from concurrent.futures import ThreadPoolExecutor
 from ninja_extra import api_controller, http_post, NinjaExtraAPI,http_get
@@ -14,6 +15,99 @@ import nodriver as uc
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import threading
+import requests
+import zipfile
+from nodriver import Config
+import os
+proxy = {
+    'server': 'geo.iproyal.com:12321',  
+    'username': 'jxuQHPGrydd0jIva',                
+    'password': 'RU7veaFCDR0nRHbL'
+}
+
+# Function to create a proxy plugin
+def createProxyPlugin(proxy):
+    PROXY_HOST, PROXY_PORT = proxy['server'].split(':')
+    PROXY_USER = proxy['username']
+    PROXY_PASS = proxy['password']
+    PROTOCOL = "http"  # Change as per your proxy's protocol
+
+    manifest_json = """
+    {
+        "version": "1.0.0",
+        "manifest_version": 2,
+        "name": "Chrome Proxy",
+        "permissions": [
+            "proxy",
+            "tabs",
+            "unlimitedStorage",
+            "storage",
+            "<all_urls>",
+            "webRequest",
+            "webRequestBlocking"
+        ],
+        "background": {
+            "scripts": ["background.js"]
+        },
+        "minimum_chrome_version":"22.0.0"
+    }
+    """
+
+    background_js = f"""
+    var config = {{
+        mode: "fixed_servers",
+        rules: {{
+            singleProxy: {{
+                scheme: "{PROTOCOL}",
+                host: "{PROXY_HOST}",
+                port: parseInt({PROXY_PORT})
+            }},
+            bypassList: ["localhost"]
+        }}
+    }};
+    chrome.proxy.settings.set({{value: config, scope: "regular"}}, function() {{}});
+    function callbackFn(details) {{
+        return {{
+            authCredentials: {{
+                username: "{PROXY_USER}",
+                password: "{PROXY_PASS}"
+            }}
+        }};
+    }}
+    chrome.webRequest.onAuthRequired.addListener(
+        callbackFn,
+        {{urls: ["<all_urls>"]}},
+        ['blocking']
+    );
+    """
+
+    plugin_file = 'proxy_auth_plugin.zip'
+    with zipfile.ZipFile(plugin_file, 'w') as zp:
+        zp.writestr("manifest.json", manifest_json)
+        zp.writestr("background.js", background_js)
+    return plugin_file
+
+# Function to configure NoDriver with the new proxy
+def getConfigWithProxy():
+    plugin_file = createProxyPlugin(proxy)
+    config = Config()
+    config.add_extension(os.path.join(os.getcwd(), plugin_file))
+    return config
+
+
+# def get_public_ip():
+#     try:
+#         # Send a GET request to ifconfig.me
+#         response = requests.get("https://ifconfig.me")
+        
+#         # Check if the request was successful
+#         if response.status_code == 200:
+#             return response.text.strip()
+#         else:
+#             return "Failed to retrieve IP address"
+#     except requests.exceptions.RequestException as e:
+#         return f"An error occurred: {e}"
+
 # def execute_bash_script(restaurant_slug):
 #     # Define the bash script file path
 #     bash_script = 'myapp/run_curl.sh'
@@ -31,11 +125,19 @@ import threading
 
 # --------------------- nodriver ----------------------
 async def extract_location_html(restaurant_slug):
-    browser = await uc.start()
+    config = getConfigWithProxy()
+    browser = await uc.start(config=config)
     url = f"https://www.yelp.com/biz/{restaurant_slug}"
     page = await browser.get(url)
     time.sleep(20)
     page_content = await page.get_content()
+    cookies_data = await browser.cookies.get_all(requests_cookie_format=True)
+    cookie_str = ''
+    for cookies_mina in cookies_data:
+        cookie_str += f"{cookies_mina.name}={cookies_mina.value}; "
+    print(f"Cookies: {cookie_str}")
+    with open("yelp_cookies.txt", "w") as f:
+        f.write(cookie_str)
     browser.stop()
     return page_content
     # cleaned_data = parse_yelp_html(page_content)
@@ -46,12 +148,22 @@ async def extract_location_html(restaurant_slug):
 # restaurant_slug = 'shakeys-pizza-parlor-burbank'
 async def FetchYelpData(query):
     location_names = select_name_from_trip_business_details(query)
+    if len(location_names) == 0:
+        print("No restaurant name found")
+        data_flag = FetchAndStoreRestaurantData(query)
+        if data_flag:
+            print('data_flag is true')
+            location_names = select_name_from_trip_business_details(query)
+            print('restaurant names',location_names)
+    else:
+        print("Restaurant names found")
     print(f"Location names: {location_names}")
     res_slug = query.replace("'", "")
     for location in location_names:
         try:
             restaurant_slug = res_slug + "-" + location.replace(" ", "-").lower()
             restaurant_slug = restaurant_slug.replace(" ", "-")
+            
 
             print(f"🚀 Executing script for restaurant slug: {restaurant_slug}")
 
