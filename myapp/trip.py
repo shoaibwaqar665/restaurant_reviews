@@ -135,7 +135,7 @@ def send_request_location_data(query="shakey's pizza parlor"):
                     },
                     # "geoId": 29092,
                     "includeTopInSearch": True,
-                    "limit": 30,
+                    "limit": 300,
                     "locale": "en-US",
                     "query": query,
                     "userContext": {
