@@ -243,7 +243,7 @@ def get_public_ip():
 # s = "WzovFIQUtHDbSquR7VBdJlNMA0D52mNo-Dtn1NQJgwQ"
 # print(base64.urlsafe_b64decode(s + '==').decode())
 datat= select_name_from_trip_business_details("shakey's pizza parlor")
-datta= select_name_from_trip_business_details("shakeys pizza parlor")
+# datta= select_name_from_trip_business_details("shakeys pizza parlor")
 
 print(datat)
-print(datta)
+# print(datta)
