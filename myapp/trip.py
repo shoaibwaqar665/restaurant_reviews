@@ -68,10 +68,12 @@ def extract_restaurant_data(response_data):
                                 for result in subsection.get("results", []):
                                     if "locationId" in result:
                                         loc_id = result.get("locationId")
+                                        localized_name = result.get("localizedName")
                                         loc_name = result.get("details", {}).get("locationV2", {}).get("names", {}).get("longOnlyHierarchyTypeaheadV2", "")
                                         restaurant_data.append({
                                             "locationId": loc_id,
-                                            "locationName": loc_name
+                                            "locationName": loc_name,
+                                            "localizedName": localized_name
                                         })
                                     
                         # Handle ResolvedItemsSection
@@ -975,6 +977,7 @@ def FetchAndStoreRestaurantData(restaurant_query):
         for location in locations:
             location_id = location.get("locationId")
             location_name = location.get("locationName")
+            localized_name = location.get("localizedName")
             
             if not location_id:
                 print(f"Missing location ID for restaurant: {location_name}")
@@ -994,7 +997,7 @@ def FetchAndStoreRestaurantData(restaurant_query):
             # Step 4: Insert restaurant details
             restaurant_query = restaurant_query.replace(" ", "_")
             restaurant_query = restaurant_query.replace("'", "")
-            stored_location_id = InsertRestaurantDetailsForTripadvisor(restaurant_data, original_restaurant_query.lower())
+            stored_location_id = InsertRestaurantDetailsForTripadvisor(restaurant_data, original_restaurant_query.lower(),localized_name)
             
             if not stored_location_id:
                 print(f"Failed to store restaurant details for: {location_name}")

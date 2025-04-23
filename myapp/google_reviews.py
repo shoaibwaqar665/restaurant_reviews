@@ -43,7 +43,7 @@ def upload_to_s3(file_name, bucket, object_name=None):
         print(f"Failed to upload {file_name} to S3: {str(e)}")
         return None
 
-def search_and_log_reviews(query,review_count,folder_name):
+def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
     with sync_playwright() as p:
         # Launch the browser
         browser = p.chromium.launch(headless=False)
@@ -93,10 +93,11 @@ def search_and_log_reviews(query,review_count,folder_name):
         if page.locator('text="Accept all"').is_visible():
             page.click('text="Accept all"')
 
+        search_data = restaurant_name+" "+address
         # Perform search
         search_box = page.locator('input[name="q"]')
         search_box.click()
-        search_box.fill(query)
+        search_box.fill(search_data)
         page.keyboard.press('Enter')
         page.wait_for_load_state('networkidle')
         print("Search results loaded")
@@ -162,11 +163,11 @@ def google_reviews_data(restaurant_name):
     restaurant_name_and_review_count = select_restaurant_name_and_review_count_from_google_business_details(restaurant_name)
     for restaurant in restaurant_name_and_review_count:
         print(restaurant)
-        query = restaurant["name"]
+        address = restaurant["name"]
         business_key = restaurant["business_key"]
-        folder_name = query.replace(" ", "_")
+        folder_name = address.replace(" ", "_")
         folder_name = folder_name.replace("'", "")
-        search_and_log_reviews(query,business_key,folder_name)
-        loc_reviews = query.replace(" ","_")
+        search_and_log_reviews(address,business_key,folder_name,restaurant_name)
+        loc_reviews = address.replace(" ","_")
         loc_reviews = loc_reviews.replace("'","")
         extract_google_reviews(folder_name,loc_reviews,business_key)

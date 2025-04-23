@@ -52,7 +52,7 @@ def parse_address_google(address):
         print(f"Error parsing address: {e}")
         return {}
     
-def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
+def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query,localized_name):
     """
     Insert restaurant details from Tripadvisor JSON data into the trip_business_details table.
     
@@ -115,9 +115,10 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
                     diets,
                     menu_url,
                     restaurant_name,
-                    business_key
+                    business_key,
+                    localized_name
                 ) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             
             # Handle case where address might be in a single string format
@@ -229,7 +230,8 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query):
                 details.get("diets", []),
                 menu_url,
                 restaurant_query,
-                restaurant_key
+                restaurant_key,
+                localized_name
             )
             
             cursor.execute(insert_query, values)
@@ -915,7 +917,7 @@ def select_restaurant_name_and_review_count_from_google_business_details(query):
         # query = query.lower()  # Normalize query string
         
         # Execute the query
-        cursor.execute("SELECT name, business_key FROM google_business_details WHERE restaurant_name = %s", (query,))
+        cursor.execute("SELECT address, business_key FROM google_business_details WHERE restaurant_name = %s", (query,))
         
         # Fetch results
         results = cursor.fetchall()
