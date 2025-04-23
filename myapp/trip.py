@@ -133,7 +133,7 @@ def send_request_location_data(query="shakey's pizza parlor"):
                             "VACATION_RENTAL"
                         ]
                     },
-                    "geoId": 29092,
+                    # "geoId": 29092,
                     "includeTopInSearch": True,
                     "limit": 30,
                     "locale": "en-US",
