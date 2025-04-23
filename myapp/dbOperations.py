@@ -231,7 +231,7 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query,loca
                 menu_url,
                 restaurant_query,
                 restaurant_key,
-                localized_name
+                localized_name,
             )
             
             cursor.execute(insert_query, values)

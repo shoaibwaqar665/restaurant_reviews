@@ -68,7 +68,7 @@ def extract_restaurant_data(response_data):
                                 for result in subsection.get("results", []):
                                     if "locationId" in result:
                                         loc_id = result.get("locationId")
-                                        localized_name = result.get("localizedName")
+                                        localized_name = result.get("details", {}).get("localizedName")
                                         loc_name = result.get("details", {}).get("locationV2", {}).get("names", {}).get("longOnlyHierarchyTypeaheadV2", "")
                                         restaurant_data.append({
                                             "locationId": loc_id,
@@ -81,10 +81,12 @@ def extract_restaurant_data(response_data):
                             for result in section.get("results", []):
                                 if "locationId" in result:
                                     loc_id = result.get("locationId")
+                                    localized_name = result.get("details", {}).get("localizedName")
                                     loc_name = result.get("details", {}).get("locationV2", {}).get("names", {}).get("longOnlyHierarchyTypeaheadV2", "")
                                     restaurant_data.append({
                                         "locationId": loc_id,
-                                        "locationName": loc_name
+                                        "locationName": loc_name,
+                                        "localizedName": localized_name
                                     })
     except Exception as e:
         print(f"Error extracting restaurant data: {str(e)}")
@@ -210,6 +212,7 @@ def send_request_location_data(query="shakey's pizza parlor"):
         if response.status_code == 200:
             response_data = response.json()
             restaurants_data = extract_restaurant_data(response_data)
+            print(f"restaurants_data: {restaurants_data}")
             return restaurants_data
             
         else:
