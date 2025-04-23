@@ -753,6 +753,7 @@ def select_name_from_trip_business_details(query):
         host=Scraping["Host"],
         port=Scraping["Port"]
     )
+    print(conn)
     cursor = conn.cursor()
     query = query.lower()
     cursor.execute("SELECT name FROM trip_business_details WHERE restaurant_name = %s", (query,))
