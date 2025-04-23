@@ -169,7 +169,7 @@ def slugify(query):
 # Pass the restaurant slug as an argument
 # restaurant_slug = 'shakeys-pizza-parlor-burbank'
 async def FetchYelpData(query):
-
+    print('FetchYelpData')
     location_names = select_name_from_trip_business_details(query)
     if len(location_names) == 0:
         print("No restaurant name found")

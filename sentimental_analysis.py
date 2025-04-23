@@ -8,6 +8,8 @@ import requests
 import zipfile
 from nodriver import Config
 import os
+
+from myapp.dbOperations import select_name_from_trip_business_details
 # def get_meta_content(soup, name):
 #     tag = soup.find("meta", attrs={"name": name})
 #     return tag["content"].strip() if tag and tag.get("content") else None
@@ -240,28 +242,8 @@ def get_public_ip():
 # import base64
 # s = "WzovFIQUtHDbSquR7VBdJlNMA0D52mNo-Dtn1NQJgwQ"
 # print(base64.urlsafe_b64decode(s + '==').decode())
-def slugify(query):
-    query = query.lower()
-    res_slug = ""
+datat= select_name_from_trip_business_details("shakey's pizza parlor")
+datta= select_name_from_trip_business_details("shakeys pizza parlor")
 
-    for i, char in enumerate(query):
-        if char == "'":
-            if i == len(query) - 1:
-                continue
-
-            prev_char = query[i - 1] if i > 0 else ''
-            next_char = query[i + 1] if i + 1 < len(query) else ''
-
-            # Remove apostrophe if it's part of a possessive like "shakey's"
-            if next_char == 's' and (i + 2 == len(query) or not query[i + 2].isalpha()):
-                continue
-
-            # Otherwise, replace with a hyphen
-            res_slug += "-"
-        else:
-            res_slug += char
-
-    res_slug = res_slug.replace(" ", "-")
-    return res_slug
-
-print(slugify("ovolo"))
+print(datat)
+print(datta)
