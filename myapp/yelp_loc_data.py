@@ -142,11 +142,34 @@ async def extract_location_html(restaurant_slug):
     return page_content
     # cleaned_data = parse_yelp_html(page_content)
 # --------------------- nodriver ----------------------
+def slugify(query):
+    query = query.lower()
+    res_slug = ""
 
+    for i, char in enumerate(query):
+        if char == "'":
+            if i == len(query) - 1:
+                continue
+
+            prev_char = query[i - 1] if i > 0 else ''
+            next_char = query[i + 1] if i + 1 < len(query) else ''
+
+            # Remove apostrophe if it's part of a possessive like "shakey's"
+            if next_char == 's' and (i + 2 == len(query) or not query[i + 2].isalpha()):
+                continue
+
+            # Otherwise, replace with a hyphen
+            res_slug += "-"
+        else:
+            res_slug += char
+
+    res_slug = res_slug.replace(" ", "-")
+    return res_slug
 
 # Pass the restaurant slug as an argument
 # restaurant_slug = 'shakeys-pizza-parlor-burbank'
 async def FetchYelpData(query):
+
     location_names = select_name_from_trip_business_details(query)
     if len(location_names) == 0:
         print("No restaurant name found")
@@ -158,7 +181,7 @@ async def FetchYelpData(query):
     else:
         print("Restaurant names found")
     print(f"Location names: {location_names}")
-    res_slug = query.replace("'", "")
+    res_slug = slugify(query)
     for location in location_names:
         try:
             restaurant_slug = res_slug + "-" + location.replace(" ", "-").lower()
@@ -183,12 +206,32 @@ async def FetchYelpData(query):
 
 def run_async_main(query):
     return asyncio.run(FetchYelpData(query))
+
+
+def forward_to_yelp(query):
+    time.sleep(3)
+    url = "http://44.202.182.5:8000/yelp/next_restaurant_details"
+    # url = "http://127.0.0.1:8000/yelp/next_restaurant_details"
+    # url = os.getenv("URL")+"/doordash/reviews"
+    print("URL:", url)
+
+    payload = json.dumps({
+      "query": query
+    })
+    headers = {
+      'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    print(response.text)
+
 @api_controller("", tags=["Yelp"])
 class YelpController:
     
     
-    @http_post('/restaurant_details', response={200: Dict, 400: Dict})
-    async def restaurant_details_for_yelp(self,request, data: Yelp):
+    @http_post('/next_restaurant_details', response={200: Dict, 400: Dict})
+    async def next_restaurant_details_for_yelp(self,request, data: Yelp):
         """Return restaurant details for a specific ID"""
         try:
            query = data.query
@@ -198,6 +241,23 @@ class YelpController:
            loop = asyncio.get_event_loop()
            executor = ThreadPoolExecutor()
            result = loop.run_in_executor(executor, run_async_main, query)  
+           return 200, {
+               "message": "Success",
+           }
+        except (json.JSONDecodeError):
+            return {"error": "Restaurant not found"}
+        
+    @http_post('/restaurant_details', response={200: Dict, 400: Dict})
+    async def restaurant_details_for_yelp(self,request, data: Yelp):
+        """Return restaurant details for a specific ID"""
+        try:
+           query = data.query
+           print(query)
+           executor = ThreadPoolExecutor()
+           future = executor.submit(forward_to_yelp,query )
+        #    loop = asyncio.get_event_loop()
+        #    executor = ThreadPoolExecutor()
+        #    result = loop.run_in_executor(executor, run_async_main, query)  
            return 200, {
                "message": "Success",
            }
