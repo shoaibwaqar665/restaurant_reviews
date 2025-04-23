@@ -242,6 +242,20 @@ def get_public_ip():
 # import base64
 # s = "WzovFIQUtHDbSquR7VBdJlNMA0D52mNo-Dtn1NQJgwQ"
 # print(base64.urlsafe_b64decode(s + '==').decode())
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+Scraping = {
+    "Database": os.getenv("DB_DATABASE"),
+    "Username": os.getenv("DB_USERNAME"),
+    "Password": os.getenv("DB_PASSWORD"),
+    "Host": os.getenv("DB_HOST"),
+    "Port": os.getenv("DB_PORT")
+}
+print(Scraping)
 datat= select_name_from_trip_business_details("shakey's pizza parlor")
 # datta= select_name_from_trip_business_details("shakeys pizza parlor")
 
