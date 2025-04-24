@@ -604,7 +604,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         import traceback
         print(traceback.format_exc())  # Print full traceback for debuggingwhere address is null
     try:
-        cursor.execute("DELETE FROM google_business_details WHERE address IS NULL or address='N/A'")
+        # cursor.execute("DELETE FROM google_business_details WHERE address IS NULL or address='N/A'")
         conn.commit()
     except Exception as e:
         print(f"Error deleting records: {e}")
