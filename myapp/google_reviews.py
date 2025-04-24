@@ -56,8 +56,8 @@ def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
 
         def capture_response(response):
             if 'https://www.google.com/maps/rpc/listugcposts' in response.url:
-                print(f"Captured Response URL: {response.url}")
-                print(f"Status: {response.status}")
+                # print(f"Captured Response URL: {response.url}")
+                # print(f"Status: {response.status}")
                 try:
                     # Get the response as text
                     response_data = response.text()
