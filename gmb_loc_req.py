@@ -2,8 +2,8 @@ import requests
 import json
 
 # Input
-query = "Ovolo"
-location_name = "Hong Kong"
+query = "shakey's pizza parlor"
+location_name = "5105 Torrance Blvd, Torrance, 90503"
 url = "https://www.google.com/search?tbm=map&authuser=0&hl=en&q=" + query + " " + location_name
 
 # Headers

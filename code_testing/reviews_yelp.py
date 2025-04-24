@@ -77,7 +77,11 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from myapp.dbOperations import InsertYelpReviewsBatch
 
-def extract_review_yelp_data(data, output_file, business_key, location_id):
+def extract_review_yelp_data(input_file, output_file, business_key, location_id):
+    # read the source JSON file
+    with open(input_file, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
     try:
         edges = data["reviews"][0]["data"]["business"]["reviews"]["edges"]
     except (KeyError, IndexError, TypeError) as e:
@@ -155,11 +159,11 @@ def extract_review_yelp_data(data, output_file, business_key, location_id):
     # Save to output file
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(extracted_reviews, f, indent=2, ensure_ascii=False)
-    InsertYelpReviewsBatch(extracted_reviews,business_key, location_id)
+    # InsertYelpReviewsBatch(extracted_reviews,business_key, location_id)
     print(f"✅ Successfully extracted {len(extracted_reviews)} reviews to {output_file}")
     
 
-# # Example usage
-# input_json = 'reviews_yelp.json'
-# output_json = 'extracted_reviews.json'
-# extract_review_yelp_data(input_json, output_json)
+# Example usage
+input_json = 'Untitled-1.json'
+output_json = 'extracted_reviews.json'
+extract_review_yelp_data(input_json, output_json, 'Burbank_1300 San Fernando_Burbank_CA_91504_shakeys_pizza_parlor', 'p2NlRw6rGKkGsdlwlT9kPQ')

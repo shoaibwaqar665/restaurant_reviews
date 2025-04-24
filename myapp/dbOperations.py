@@ -231,7 +231,7 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query,loca
                 menu_url,
                 restaurant_query,
                 restaurant_key,
-                localized_name,
+                localized_name.lower(),
             )
             
             cursor.execute(insert_query, values)
@@ -745,8 +745,6 @@ def InsertYelpReviewsBatch(reviews, business_key, location_id=None):
         cursor.close()
         conn.close()
 
-        
-# write code to select name from trip_business_details table
 def select_name_from_trip_business_details(query):
     conn = psycopg2.connect(
         dbname=Scraping["Database"],
@@ -755,10 +753,10 @@ def select_name_from_trip_business_details(query):
         host=Scraping["Host"],
         port=Scraping["Port"]
     )
-    print(conn)
+    
     cursor = conn.cursor()
-    query = query.lower()
-    cursor.execute("SELECT name FROM trip_business_details WHERE restaurant_name = %s", (query,))
+    search_pattern = f"%{query.lower()}%"  # Add wildcards for ILIKE
+    cursor.execute("SELECT name FROM trip_business_details WHERE localized_name ILIKE %s", (search_pattern,))
     
     results = cursor.fetchall()
     names = [row[0] for row in results]  # Extract names from tuples
@@ -766,7 +764,7 @@ def select_name_from_trip_business_details(query):
     cursor.close()
     conn.close()
     
-    return names  # Return a clean list
+    return names
 
 
 def select_yelp_details_by_name(restaurant_name):

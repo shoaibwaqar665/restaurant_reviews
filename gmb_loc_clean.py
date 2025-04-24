@@ -499,8 +499,8 @@ def location_data_cleaning(input_file, output_file, restaurant_name, location_na
 
 
 location_data_cleaning(
-    input_file='Ovolo_South_Yarra_google_loc_cleaned.json',
-    output_file='ovolo_South_Yarra_google_loc_cleaned_.json',
+    input_file='shakeys_pizza_parlor_5105_Torrance_Blvd,_Torrance,_90503_google_loc_cleaned.json',
+    output_file='shakeys_pizza_parlor_5105_Torrance_Blvd,_Torrance,_90503_google_loc_cleaned_.json',
     restaurant_name='ovolo',
     location_name='south_yarra'
 )
