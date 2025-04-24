@@ -30,6 +30,7 @@ def FetchAndStoreRestaurantDataForGoogle(query):
 
     for location_name in restaurant_name:
         url = "https://www.google.com/search?tbm=map&authuser=0&hl=en&q=" + query+" "+location_name
+        print(url)
         payload = {}
         headers = {
             'accept': '*/*',

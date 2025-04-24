@@ -604,7 +604,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
         import traceback
         print(traceback.format_exc())  # Print full traceback for debuggingwhere address is null
     try:
-        # cursor.execute("DELETE FROM google_business_details WHERE address IS NULL or address='N/A'")
+        cursor.execute("DELETE FROM google_business_details WHERE address IS NULL or address='N/A'")
         conn.commit()
     except Exception as e:
         print(f"Error deleting records: {e}")
@@ -756,7 +756,7 @@ def select_name_from_trip_business_details(query):
     
     cursor = conn.cursor()
     search_pattern = f"%{query.lower()}%"  # Add wildcards for ILIKE
-    cursor.execute("SELECT name FROM trip_business_details WHERE localized_name ILIKE %s", (search_pattern,))
+    cursor.execute("SELECT address FROM trip_business_details WHERE localized_name ILIKE %s", (search_pattern,))
     
     results = cursor.fetchall()
     names = [row[0] for row in results]  # Extract names from tuples
