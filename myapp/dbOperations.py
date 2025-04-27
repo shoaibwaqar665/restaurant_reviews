@@ -205,7 +205,7 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query,loca
             complete_address = f"{street}, {city}, {postal_code}"
             # Prepare the values tuple
             city_name = parent_location_name or location.get("name") or f"{city} {state}"
-            restaurant_key = (parent_location_name or '') + ' ' + (complete_address or '') + ' ' + (restaurant_query or '')
+            restaurant_key = (parent_location_name or '') + ' ' + (complete_address or '') + ' ' + (localized_name.lower() or '')
             restaurant_key = restaurant_key.replace(" ", "_")
             restaurant_key = restaurant_key.replace("'", "")
             restaurant_key = restaurant_key.replace(",", "_")
@@ -579,12 +579,12 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
                 name, address, website, menu_url, phone, 
                 service_options, parking, children, payments, planning, 
                 crowd, atmosphere, amenities, dining_options, schedule, 
-                review_rating, review_count,restaurant_name,business_key,city,state,country,postal_code
+                review_rating, review_count,restaurant_name,business_key,city,state,country,postal_code,street
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
                 %s, %s, %s, %s, %s, 
-                %s,%s,%s,%s,%s,%s,%s
+                %s,%s,%s,%s,%s,%s,%s,%s
             )
         """
 
@@ -593,7 +593,7 @@ def InsertRestaurantDetailsForGoogle(restaurant_data,restaurant_name,location_na
             service_options, parking, children, payments, planning,
             crowd, atmosphere, amenities, dining_options, json.dumps(schedule),
             rating, reviews,real_returant_name,business_key,
-            city, state, country,postal_code
+            city, state, country, postal_code, street
         ))
         conn.commit()
         print(f"Inserted data for restaurant: {name}")

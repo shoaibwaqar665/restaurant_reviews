@@ -1036,7 +1036,7 @@ def FetchAndStoreRestaurantData(restaurant_query):
             complete_address = f"{street}, {city}, {postal_code}"
             ####################################################
             
-            restaurant_key = (parent_location_name or '') + ' ' + (complete_address or '') + ' ' + (restaurant_query or '')
+            restaurant_key = (parent_location_name or '') + ' ' + (complete_address or '') + ' ' + (localized_name.lower() or '')
             restaurant_key = restaurant_key.replace(" ", "_")
             restaurant_key = restaurant_key.replace("'", "")
             restaurant_key = restaurant_key.replace(",", "_")

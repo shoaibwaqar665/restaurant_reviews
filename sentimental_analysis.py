@@ -1,13 +1,13 @@
-# import asyncio
-# from bs4 import BeautifulSoup
-# import time
-# import nodriver as uc  # assuming you're using a wrapper around CDP
-# from urllib.parse import urlparse, parse_qs, unquote
-# import re
-# import requests
-# import zipfile
-# from nodriver import Config
-# import os
+import asyncio
+from bs4 import BeautifulSoup
+import time
+import nodriver as uc  # assuming you're using a wrapper around CDP
+from urllib.parse import urlparse, parse_qs, unquote
+import re
+import requests
+import zipfile
+from nodriver import Config
+import os
 
 # from myapp.dbOperations import select_name_from_trip_business_details
 # # def get_meta_content(soup, name):
@@ -217,75 +217,73 @@
 #     except requests.exceptions.RequestException as e:
 #         return f"An error occurred: {e}"
 
-# # async def main():
-# #     config = getConfigWithProxy()
-# #     browser = await uc.start(config=config)
-# #     page = await browser.get('https://www.yelp.com/biz/shakeys-pizza-parlor-san-gabriel')
-# #     ip_address = get_public_ip()
-# #     print(f"Your public IP address is: {ip_address}")
-# #     time.sleep(20)
-# #     cookies_data = await browser.cookies.get_all(requests_cookie_format=True)
-# #     cookie_str = ''
-# #     for cookies_mina in cookies_data:
-# #         cookie_str += f"{cookies_mina.name}={cookies_mina.value}; "
-# #     # Remove the trailing '; ' at the end
-# #     cookie_str = cookie_str.strip()
-# #     print(f"Cookies: {cookie_str}")
-# #     time.sleep(10)
-# #     # page_content = await page.get_content()
+async def main():
+    # config = getConfigWithProxy()
+    browser = await uc.start()
+    page = await browser.get('https://www.yelp.com/search?find_desc=shakey%27s+pizza+parlor&find_loc=5105+Torrance+Blvd%2C+Torrance%2C+90503')
+    # ip_address = get_public_ip()
+    # print(f"Your public IP address is: {ip_address}")
+    time.sleep(20)
+    cookies_data = await browser.cookies.get_all(requests_cookie_format=True)
+    cookie_str = ''
+    for cookies_mina in cookies_data:
+        cookie_str += f"{cookies_mina.name}={cookies_mina.value}; "
+    # Remove the trailing '; ' at the end
+    cookie_str = cookie_str.strip()
+    print(f"Cookies: {cookie_str}")
+    time.sleep(10)
+    # page_content = await page.get_content()
 
-# #     # cleaned_data = parse_yelp_html(page_content)
-# #     # print(cleaned_data)
+    # cleaned_data = parse_yelp_html(page_content)
+    # print(cleaned_data)
 
-# # asyncio.run(main())
+asyncio.run(main())
 
 # # import base64
 # # s = "WzovFIQUtHDbSquR7VBdJlNMA0D52mNo-Dtn1NQJgwQ"
 # # print(base64.urlsafe_b64decode(s + '==').decode())
-from dotenv import load_dotenv
-import os
+# from dotenv import load_dotenv
+# import os
 
-from myapp.dbOperations import select_name_from_trip_business_details
+# # Load environment variables from .env file
+# load_dotenv()
 
-# Load environment variables from .env file
-load_dotenv()
-
-Scraping = {
-    "Database": os.getenv("DB_DATABASE"),
-    "Username": os.getenv("DB_USERNAME"),
-    "Password": os.getenv("DB_PASSWORD"),
-    "Host": os.getenv("DB_HOST"),
-    "Port": os.getenv("DB_PORT")
-}
-print(Scraping)
-datat= select_name_from_trip_business_details("shakey's pizza parlor")
+# Scraping = {
+#     "Database": os.getenv("DB_DATABASE"),
+#     "Username": os.getenv("DB_USERNAME"),
+#     "Password": os.getenv("DB_PASSWORD"),
+#     "Host": os.getenv("DB_HOST"),
+#     "Port": os.getenv("DB_PORT")
+# }
+# print(Scraping)
+# datat= select_name_from_trip_business_details("shakey's pizza parlor")
 # # datta= select_name_from_trip_business_details("shakeys pizza parlor")
 
-print(len(datat))
+# print(datat)
 # # print(datta)
 
-# def slugify(query):
-#     query = query.lower()
-#     res_slug = ""
+def slugify(query):
+    query = query.lower()
+    res_slug = ""
 
-#     for i, char in enumerate(query):
-#         if char == "'":
-#             if i == len(query) - 1:
-#                 continue
+    for i, char in enumerate(query):
+        if char == "'":
+            if i == len(query) - 1:
+                continue
 
-#             prev_char = query[i - 1] if i > 0 else ''
-#             next_char = query[i + 1] if i + 1 < len(query) else ''
+            prev_char = query[i - 1] if i > 0 else ''
+            next_char = query[i + 1] if i + 1 < len(query) else ''
 
-#             # Remove apostrophe if it's part of a possessive like "shakey's"
-#             if next_char == 's' and (i + 2 == len(query) or not query[i + 2].isalpha()):
-#                 continue
+            # Remove apostrophe if it's part of a possessive like "shakey's"
+            if next_char == 's' and (i + 2 == len(query) or not query[i + 2].isalpha()):
+                continue
 
-#             # Otherwise, replace with a hyphen
-#             res_slug += "-"
-#         else:
-#             res_slug += char
+            # Otherwise, replace with a hyphen
+            res_slug += "-"
+        else:
+            res_slug += char
 
-#     res_slug = res_slug.replace(" ", "-")
-#     return res_slug
+    res_slug = res_slug.replace(" ", "-")
+    return res_slug
 
-# print(slugify("shakey's pizza parlor"))
+print(slugify("shakey's pizza parlor"))
