@@ -1,5 +1,6 @@
-import subprocess
 import json
+import urllib.parse
+from bs4 import BeautifulSoup
 from myapp.dbOperations import fetch_yelp_data, select_name_from_trip_business_details
 from myapp.trip import FetchAndStoreRestaurantData
 from myapp.yelp_location_clean import yelp_loc_clean
@@ -14,7 +15,6 @@ import time
 import nodriver as uc  
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-import threading
 import requests
 import zipfile
 from nodriver import Config
@@ -94,40 +94,50 @@ def getConfigWithProxy():
     config.add_extension(os.path.join(os.getcwd(), plugin_file))
     return config
 
-
-# def get_public_ip():
-#     try:
-#         # Send a GET request to ifconfig.me
-#         response = requests.get("https://ifconfig.me")
-        
-#         # Check if the request was successful
-#         if response.status_code == 200:
-#             return response.text.strip()
-#         else:
-#             return "Failed to retrieve IP address"
-#     except requests.exceptions.RequestException as e:
-#         return f"An error occurred: {e}"
-
-# def execute_bash_script(restaurant_slug):
-#     # Define the bash script file path
-#     bash_script = 'myapp/run_curl.sh'
-
-#     # Run the bash script with the restaurant_slug argument
-#     result = subprocess.run([bash_script, restaurant_slug], capture_output=True, text=True)
-
-#     # Print the output and error (if any)
-#     if result.returncode == 0:
-#         print("Script executed successfully!")
-#         print("Output:", result.stdout)
-#     else:
-#         print("Error executing the script.")
-#         print("Error:", result.stderr)
-
 # --------------------- nodriver ----------------------
+def normalize_text(text):
+    """Normalize text by replacing curly quotes and making lowercase."""
+    if not text:
+        return ""
+    return text.replace('’', "'").lower().strip()
+
+async def extract_location_links(query,address):
+    config = getConfigWithProxy()
+    browser = await uc.start(config=config)
+    # restaurant_name = "shakey's pizza parlor"
+    page = await browser.get(f'https://www.yelp.com/search?find_desc={query}&find_loc={address}')
+
+    time.sleep(15)
+    html_content = await page.get_content()
+    # print(html_content)
+    browser.stop()
+    normalized_name = normalize_text(query)
+    soup = BeautifulSoup(html_content, "html.parser")
+    
+    seen = set()
+    unique_results = []
+    
+    for div in soup.find_all('div', class_="y-css-mhg9c5"):
+        a_tag = div.find('a', attrs={"name": True})
+        if a_tag:
+            a_name = normalize_text(urllib.parse.unquote(a_tag['name']))
+            if normalized_name in a_name:
+                name = a_tag.get_text(strip=True)
+                link = a_tag['href']
+                key = (name, link)
+                if key not in seen:
+                    seen.add(key)
+                    unique_results.append(
+                        link
+                    )
+                    # print(link)
+    return unique_results
+
+
 async def extract_location_html(restaurant_slug):
     config = getConfigWithProxy()
     browser = await uc.start(config=config)
-    url = f"https://www.yelp.com/biz/{restaurant_slug}"
+    url = f"https://www.yelp.com{restaurant_slug}"
     page = await browser.get(url)
     time.sleep(20)
     page_content = await page.get_content()
@@ -189,13 +199,15 @@ async def FetchYelpData(query):
             
 
             print(f"🚀 Executing script for restaurant slug: {restaurant_slug}")
+            unique_results = await extract_location_links(query,location)
+            for result in unique_results:
+                print('Navigating to:',result)
+                html_content = await extract_location_html(result)
 
-            html_content = await extract_location_html(restaurant_slug)
+                # input_file = input_file = os.path.join(base_dir, restaurant_slug + ".html")
+                output_file = restaurant_slug + ".json"
 
-            # input_file = input_file = os.path.join(base_dir, restaurant_slug + ".html")
-            output_file = restaurant_slug + ".json"
-
-            yelp_loc_clean(html_content, output_file, query, location)
+                yelp_loc_clean(html_content, output_file, query, location)
 
         # except FileNotFoundError as e:
         #     print(f"❌ File not found for location '{location}': {e}")
@@ -212,7 +224,6 @@ def forward_to_yelp(query):
     time.sleep(3)
     url = "http://44.202.182.5:8000/yelp/next_restaurant_details"
     # url = "http://127.0.0.1:8000/yelp/next_restaurant_details"
-    # url = os.getenv("URL")+"/doordash/reviews"
     print("URL:", url)
 
     payload = json.dumps({

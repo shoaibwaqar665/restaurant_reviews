@@ -116,9 +116,10 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query,loca
                     menu_url,
                     restaurant_name,
                     business_key,
-                    localized_name
+                    localized_name,
+                    street
                 ) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             
             # Handle case where address might be in a single string format
@@ -232,6 +233,7 @@ def InsertRestaurantDetailsForTripadvisor(restaurant_data, restaurant_query,loca
                 restaurant_query,
                 restaurant_key,
                 localized_name.lower(),
+                street
             )
             
             cursor.execute(insert_query, values)
