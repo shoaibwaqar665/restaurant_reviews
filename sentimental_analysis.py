@@ -10,6 +10,8 @@ from nodriver import Config
 import os
 import urllib.parse
 
+from myapp.google_reviews import upload_to_s3
+
 # from myapp.dbOperations import select_name_from_trip_business_details
 # # def get_meta_content(soup, name):
 # #     tag = soup.find("meta", attrs={"name": name})
@@ -247,12 +249,15 @@ async def main():
     page = await browser.get(f'https://whatismyipaddress.com/')
 
     time.sleep(10)
-    html_content = await page.get_content()
-    # print(html_content)
+    screenshot_path = "end.png"
+    await page.save_screenshot(screenshot_path)
+    url = upload_to_s3(screenshot_path, 's3teaconnect')
+    if url:
+        print(f"Presigned URL for screenshot: {url}")
 
     browser.stop()
-    soup = BeautifulSoup(html_content, "html.parser")
-    extract_ip_addresses(html_content)
+    # soup = BeautifulSoup(html_content, "html.parser")
+    # extract_ip_addresses(html_content)
 
 # Step 2: Find the specific <section class="bit_more_info">
     # bit_more_info_section = soup.find("section", class_="bit_more_info")
