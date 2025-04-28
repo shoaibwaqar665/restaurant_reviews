@@ -102,11 +102,13 @@ def normalize_text(text):
     return text.replace('’', "'").lower().strip()
 
 async def extract_location_links(query,address):
+    print("Extracting location links")
     config = getConfigWithProxy()
+
     browser = await uc.start(config=config)
     # restaurant_name = "shakey's pizza parlor"
     page = await browser.get(f'https://www.yelp.com/search?find_desc={query}&find_loc={address}')
-
+    print("browser navigated to yelp")
     time.sleep(15)
     html_content = await page.get_content()
     # print(html_content)
