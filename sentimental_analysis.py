@@ -204,13 +204,31 @@ def getConfigWithProxy():
     config.add_extension(os.path.join(os.getcwd(), plugin_file))
     return config
 
-class BitMoreInfo:
-    def __init__(self, hostname: str, user_agent: str):
-        self.hostname = hostname
-        self.user_agent = user_agent
+def extract_ip_addresses(html_content):
+    soup = BeautifulSoup(html_content, "html.parser")
+    result = {}
 
-    def __repr__(self):
-        return f"BitMoreInfo(hostname='{self.hostname}', user_agent='{self.user_agent}')"
+    # Find the div containing the IP addresses
+    ip_list_div = soup.find("div", class_="ip-address-list")
+    if not ip_list_div:
+        return result  # Return empty if not found
+
+    # Find all <p> with class="ip-address"
+    ip_paragraphs = ip_list_div.find_all("p", class_="ip-address")
+    
+    for p in ip_paragraphs:
+        if 'IPv4' in p.text:
+            ipv4_span = p.find("span", id="ipv4")
+            if ipv4_span:
+                ipv4 = ipv4_span.get_text(strip=True)
+                result['ipv4'] = ipv4
+        elif 'IPv6' in p.text:
+            ipv6_span = p.find("span", id="ipv6")
+            if ipv6_span:
+                ipv6 = ipv6_span.get_text(strip=True)
+                result['ipv6'] = ipv6
+    
+    return result
 
 def normalize_text(text):
     """Normalize text by replacing curly quotes and making lowercase."""
@@ -230,10 +248,11 @@ async def main():
 
     time.sleep(10)
     html_content = await page.get_content()
-    print(html_content)
+    # print(html_content)
 
     browser.stop()
     soup = BeautifulSoup(html_content, "html.parser")
+    extract_ip_addresses(html_content)
 
 # Step 2: Find the specific <section class="bit_more_info">
     # bit_more_info_section = soup.find("section", class_="bit_more_info")
