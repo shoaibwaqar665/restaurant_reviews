@@ -119,7 +119,7 @@ async def extract_location_links(query,address):
     #     print(f"Presigned URL for screenshot: {url}")
 
     html_content = await page.get_content()
-    # print(html_content)
+    print(html_content)
     browser.stop()
     normalized_name = normalize_text(query)
     soup = BeautifulSoup(html_content, "html.parser")
