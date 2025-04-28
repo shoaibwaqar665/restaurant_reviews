@@ -2,6 +2,7 @@ import json
 import urllib.parse
 from bs4 import BeautifulSoup
 from myapp.dbOperations import fetch_yelp_data, select_name_from_trip_business_details
+from myapp.google_reviews import upload_to_s3
 from myapp.trip import FetchAndStoreRestaurantData
 from myapp.yelp_location_clean import yelp_loc_clean
 from concurrent.futures import ThreadPoolExecutor
@@ -110,6 +111,12 @@ async def extract_location_links(query,address):
     page = await browser.get(f'https://www.yelp.com/search?find_desc={query}&find_loc={address}')
     print("browser navigated to yelp")
     time.sleep(15)
+    screenshot_path = "end.png"
+    page.screenshot(path=screenshot_path)
+    url = upload_to_s3(screenshot_path, 's3teaconnect')
+    if url:
+        print(f"Presigned URL for screenshot: {url}")
+
     html_content = await page.get_content()
     # print(html_content)
     browser.stop()
