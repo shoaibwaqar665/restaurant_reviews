@@ -232,7 +232,8 @@ def run_async_main(query):
 
 def forward_to_yelp(query):
     time.sleep(3)
-    url = "http://44.202.182.5:8000/yelp/next_restaurant_details"
+    # url = "http://44.202.182.5:8000/yelp/next_restaurant_details"
+    url = "http://3.92.196.22:8000/yelp/next_restaurant_details"
     # url = "http://127.0.0.1:8000/yelp/next_restaurant_details"
     print("URL:", url)
 
