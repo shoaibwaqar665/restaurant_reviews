@@ -204,19 +204,6 @@ def getConfigWithProxy():
     config.add_extension(os.path.join(os.getcwd(), plugin_file))
     return config
 
-
-# def get_public_ip():
-#     try:
-#         # Send a GET request to ifconfig.me
-#         response = requests.get("https://ifconfig.me")
-        
-#         # Check if the request was successful
-#         if response.status_code == 200:
-#             return response.text.strip()
-#         else:
-#             return "Failed to retrieve IP address"
-#     except requests.exceptions.RequestException as e:
-#         return f"An error occurred: {e}"
 class BitMoreInfo:
     def __init__(self, hostname: str, user_agent: str):
         self.hostname = hostname
@@ -239,57 +226,30 @@ async def main():
 
     browser = await uc.start(config=config)
     # restaurant_name = "shakey's pizza parlor"
-    page = await browser.get(f'https://www.whatsmyip.org/')
+    page = await browser.get(f'https://whatismyipaddress.com/')
 
     time.sleep(10)
     html_content = await page.get_content()
-    # print(html_content)
-    
+    print(html_content)
+
     browser.stop()
     soup = BeautifulSoup(html_content, "html.parser")
 
 # Step 2: Find the specific <section class="bit_more_info">
-    bit_more_info_section = soup.find("section", class_="bit_more_info")
+    # bit_more_info_section = soup.find("section", class_="bit_more_info")
 
-    if bit_more_info_section:
-        # Step 3: Extract hostname and useragent from inside that section
-        hostname_element = bit_more_info_section.find("span", id="hostname")
-        useragent_element = bit_more_info_section.find("span", id="useragent")
+    # if bit_more_info_section:
+    #     # Step 3: Extract hostname and useragent from inside that section
+    #     hostname_element = bit_more_info_section.find("span", id="hostname")
+    #     useragent_element = bit_more_info_section.find("span", id="useragent")
 
-        hostname = hostname_element.text.strip() if hostname_element else None
-        user_agent = useragent_element.text.strip() if useragent_element else None
+    #     hostname = hostname_element.text.strip() if hostname_element else None
+    #     user_agent = useragent_element.text.strip() if useragent_element else None
 
-        # Step 4: Save into the class
-        bit_more_info = BitMoreInfo(hostname=hostname, user_agent=user_agent)
-        print(bit_more_info)
-    # normalized_name = normalize_text(query)
-    # soup = BeautifulSoup(html_content, "html.parser")
+    #     # Step 4: Save into the class
+    #     bit_more_info = BitMoreInfo(hostname=hostname, user_agent=user_agent)
+    #     print(bit_more_info)
     
-    # seen = set()
-    # unique_results = []
-    
-    # for div in soup.find_all('div', class_="y-css-mhg9c5"):
-    #     a_tag = div.find('a', attrs={"name": True})
-    #     if a_tag:
-    #         a_name = normalize_text(urllib.parse.unquote(a_tag['name']))
-    #         if normalized_name in a_name:
-    #             name = a_tag.get_text(strip=True)
-    #             link = a_tag['href']
-    #             key = (name, link)
-    #             if key not in seen:
-    #                 seen.add(key)
-    #                 unique_results.append(
-    #                     link
-    #                 )
-    #                 # print(link)
-    
-    # print('------------------------------')
-    # print(unique_results[1])
-    # # print(unique_results['link'])
-
-    # # cleaned_data = parse_yelp_html(page_content)
-    # # print(cleaned_data)
-
 asyncio.run(main())
 
 # # # import base64
