@@ -107,15 +107,16 @@ async def extract_location_links(query,address):
     config = getConfigWithProxy()
 
     browser = await uc.start(config=config)
+    print(f'query: {query}', f'address: {address}')
     # restaurant_name = "shakey's pizza parlor"
     page = await browser.get(f'https://www.yelp.com/search?find_desc={query}&find_loc={address}')
     print("browser navigated to yelp")
     time.sleep(15)
-    screenshot_path = "end.png"
-    page.screenshot(path=screenshot_path)
-    url = upload_to_s3(screenshot_path, 's3teaconnect')
-    if url:
-        print(f"Presigned URL for screenshot: {url}")
+    # screenshot_path = "end.png"
+    # page.screenshot(path=screenshot_path)
+    # url = upload_to_s3(screenshot_path, 's3teaconnect')
+    # if url:
+    #     print(f"Presigned URL for screenshot: {url}")
 
     html_content = await page.get_content()
     # print(html_content)
