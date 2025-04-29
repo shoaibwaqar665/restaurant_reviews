@@ -234,15 +234,15 @@ def main():
         )
         context = browser.new_context(viewport={'width': 1280, 'height': 800})
         page = context.new_page()
-
+        print("Browser launched.")
         # Navigate to Yelp
-        # page.goto('https://whatismyipaddress.com/')
-        page.goto('https://www.yelp.com/search?choq=1&find_desc=Shakey%27s+Pizza+Parlor&find_loc=10340%20Reseda%20Blvd%20Northridge,%20CA%2091326')
+        page.goto('https://whatismyipaddress.com/')
+        # page.goto('https://www.yelp.com/search?choq=1&find_desc=Shakey%27s+Pizza+Parlor&find_loc=10340%20Reseda%20Blvd%20Northridge,%20CA%2091326')
         # page.wait_for_load_state('networkidle')
-
+        print("Navigated to Yelp.")
         # Sleep to allow background requests
         time.sleep(20)
-        
+
         page.screenshot(path="end.png")
         url = upload_to_s3(f"end.png", 's3teaconnect')
         if url:
