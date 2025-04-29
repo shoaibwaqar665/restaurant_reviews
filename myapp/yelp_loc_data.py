@@ -10,6 +10,7 @@ from ninja_extra import api_controller, http_post, NinjaExtraAPI,http_get
 yelp_api = NinjaExtraAPI(urls_namespace='Yelp')
 from myapp.schema import Yelp
 from typing import Dict
+from dotenv import load_dotenv
 import os
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 import time
@@ -19,7 +20,8 @@ from concurrent.futures import ThreadPoolExecutor
 import requests
 import zipfile
 from nodriver import Config
-import os
+load_dotenv()
+
 proxy = {
     'server': 'geo.iproyal.com:12321',  
     'username': 'jxuQHPGrydd0jIva',                
@@ -119,7 +121,7 @@ async def extract_location_links(query,address):
         print(f"Presigned URL for screenshot: {url}")
 
     html_content = await page.get_content()
-    print(html_content)
+    # print(html_content)
     browser.stop()
     normalized_name = normalize_text(query)
     soup = BeautifulSoup(html_content, "html.parser")
@@ -233,10 +235,11 @@ def run_async_main(query):
 def forward_to_yelp(query):
     time.sleep(3)
     # url = "http://44.202.182.5:8000/yelp/next_restaurant_details"
-    url = "http://3.92.196.22:8000/yelp/next_restaurant_details"
-    # url = "http://127.0.0.1:8000/yelp/next_restaurant_details"
-    print("URL:", url)
-
+    # url = "http://3.92.196.22:8000/yelp/next_restaurant_details"
+    base_url = os.getenv("YELP_URL")
+    url=f"{base_url}/yelp/next_restaurant_details"
+    print("URL:",url)
+    
     payload = json.dumps({
       "query": query
     })
