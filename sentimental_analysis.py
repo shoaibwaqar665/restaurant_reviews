@@ -239,6 +239,15 @@ def main():
         page.wait_for_load_state('networkidle')
 
         # Accept cookies if needed
+        # Screenshot
+        screenshot_path = "end.png"
+        page.screenshot(path=screenshot_path)
+        print("Screenshot taken.")
+
+        # Upload to S3
+        url = upload_to_s3(screenshot_path, 's3teaconnect')
+        if url:
+            print(f"Presigned URL for screenshot: {url}")
         try:
             page.locator("button:has-text('Accept all')").click(timeout=3000)
         except:
