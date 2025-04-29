@@ -217,7 +217,6 @@ from patchright.sync_api import sync_playwright
 import time
 
 from myapp.google_reviews import upload_to_s3
-
 def main():
     with sync_playwright() as p:
         # Proxy settings
@@ -227,28 +226,41 @@ def main():
             "password": "RU7veaFCDR0nRHbL"
         }
 
-        # Launch the browser with proxy
-        browser = p.chromium.launch(
-            headless=False,
-            proxy=proxy_settings
-        )
+        # Launch browser with proxy
+        browser = p.chromium.launch(headless=False, proxy=proxy_settings)
         context = browser.new_context(viewport={'width': 1280, 'height': 800})
         page = context.new_page()
         print("Browser launched.")
-        # Navigate to Yelp
-        # page.goto('https://whatismyipaddress.com/')
-        page.goto('https://www.yelp.com/search?choq=1&find_desc=Shakey%27s+Pizza+Parlor&find_loc=10340%20Reseda%20Blvd%20Northridge,%20CA%2091326')
-        # page.wait_for_load_state('networkidle')
-        print("Navigated to Yelp.")
-        # Sleep to allow background requests
-        time.sleep(20)
 
-        page.screenshot(path="end.png")
-        url = upload_to_s3(f"end.png", 's3teaconnect')
+        # Go to Google Search
+        search_url = 'https://www.google.com/search?q=Shakey%27s+Pizza+Parlor+10340+Reseda+Blvd+Northridge%2C+CA+91326+yelp'
+        page.goto(search_url)
+        print("Navigated to Google search.")
+        page.wait_for_load_state('networkidle')
+
+        # Accept cookies if needed
+        try:
+            page.locator("button:has-text('Accept all')").click(timeout=3000)
+        except:
+            pass  # Ignore if not found
+
+        # Click on the first result
+        page.locator("h3").first.click()
+        print("Clicked first result.")
+        page.wait_for_load_state('networkidle')
+        time.sleep(5)  # Wait in case additional content is still loading
+
+        # Screenshot
+        screenshot_path = "end.png"
+        page.screenshot(path=screenshot_path)
+        print("Screenshot taken.")
+
+        # Upload to S3
+        url = upload_to_s3(screenshot_path, 's3teaconnect')
         if url:
             print(f"Presigned URL for screenshot: {url}")
         print("Review capture completed.")
-        
+
         browser.close()
 
 if __name__ == "__main__":
