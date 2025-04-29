@@ -227,7 +227,7 @@ def main():
         }
 
         # Launch browser with proxy
-        browser = p.chromium.launch(headless=False, proxy=proxy_settings)
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context(viewport={'width': 1280, 'height': 800})
         page = context.new_page()
         print("Browser launched.")
