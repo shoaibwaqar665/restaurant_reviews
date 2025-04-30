@@ -831,7 +831,6 @@ def InsertRestaurantDetailsForYelp(yelp_data, restaurant_name, location_name):
         rating = str(yelp_data.get("custom_class_data", {}).get("rating", ""))
         reviews = str(yelp_data.get("custom_class_data", {}).get("review_count", ""))
 
-        full_name = f"{restaurant_name} {location_name}"
 
         # Business key generation
         address_data = parse_address_google(address) or {}
@@ -841,9 +840,9 @@ def InsertRestaurantDetailsForYelp(yelp_data, restaurant_name, location_name):
         postal_code = address_data.get("postal_code", "")
         country = address_data.get("country", "")
         print(f"Parsed address: Street={street}, City={city}, State={state}, Postal={postal_code}")
+        full_name = f"{restaurant_name} {address}"
         restaurant_name_clean = restaurant_name.replace(" ", "_").replace("'", "")
-        location_name_clean = location_name.replace(" ", "_")
-        business_key = f"{location_name_clean}_{street}_{city}_{state}_{postal_code}_{restaurant_name_clean}"
+        business_key = f"{city}_{street}_{city}_{state}_{postal_code}_{restaurant_name_clean}"
         business_key = business_key.replace(",", "")
         business_key = business_key.replace(" ", "_")
 
