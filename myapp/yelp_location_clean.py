@@ -127,7 +127,10 @@ def parse_yelp_html(html_content):
 
 def yelp_loc_clean(html_content, output_file, query, location):
     try:
-        whole_data = parse_yelp_html(html_content)
+        with open(html_content, 'r', encoding='utf-8') as file:
+            whole_data = file.read() 
+        
+        whole_data = parse_yelp_html(whole_data)
 
         if not whole_data:
             raise ValueError("Parsed data is None or empty")
