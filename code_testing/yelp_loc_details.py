@@ -2,12 +2,12 @@ import subprocess
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from myapp.dbOperations import select_name_from_trip_business_details
+from myapp.dbOperations import select_address_from_trip_business_details
 from yelp_clean import yelp_loc_clean
 # getting the slug from the trip table
 query = "shakey's pizza parlor"
 
-location_names = select_name_from_trip_business_details(query)
+location_names = select_address_from_trip_business_details(query)
 print(f"Location names: {location_names}")
 res_slug = query.replace("'", "")
 

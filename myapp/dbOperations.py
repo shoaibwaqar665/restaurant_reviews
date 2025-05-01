@@ -747,7 +747,7 @@ def InsertYelpReviewsBatch(reviews, business_key, location_id=None):
         cursor.close()
         conn.close()
 
-def select_name_from_trip_business_details(query):
+def select_address_from_trip_business_details(query):
     conn = psycopg2.connect(
         dbname=Scraping["Database"],
         user=Scraping["Username"],
@@ -759,6 +759,27 @@ def select_name_from_trip_business_details(query):
     cursor = conn.cursor()
     search_pattern = f"%{query.lower()}%"  # Add wildcards for ILIKE
     cursor.execute("SELECT address FROM trip_business_details WHERE localized_name ILIKE %s", (search_pattern,))
+    
+    results = cursor.fetchall()
+    names = [row[0] for row in results]  # Extract names from tuples
+    
+    cursor.close()
+    conn.close()
+    
+    return names
+
+def select_name_from_trip_business_details(query):
+    conn = psycopg2.connect(
+        dbname=Scraping["Database"],
+        user=Scraping["Username"],
+        password=Scraping["Password"],
+        host=Scraping["Host"],
+        port=Scraping["Port"]
+    )
+    
+    cursor = conn.cursor()
+    search_pattern = f"%{query.lower()}%"  # Add wildcards for ILIKE
+    cursor.execute("SELECT name FROM trip_business_details WHERE localized_name ILIKE %s group by name", (search_pattern,))
     
     results = cursor.fetchall()
     names = [row[0] for row in results]  # Extract names from tuples

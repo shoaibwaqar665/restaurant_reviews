@@ -7,11 +7,14 @@ import requests
 import re
 from typing import Dict
 from ninja_extra import api_controller, http_post, NinjaExtraAPI,http_get
+from myapp.google import FetchAndStoreRestaurantDataForGoogle
 from myapp.schema import TripAdvisorQuery
 import base64
 from googletrans import Translator
 from myapp.dbOperations import InsertRestaurantDetailsForTripadvisor, InsertRestaurantReviewsForTripAdvisor, fetch_trip_data
 import sys
+import asyncio
+from myapp.yelp_loc_data import FetchYelpData
 
 
 # Initialize the Ninja API
@@ -949,6 +952,20 @@ def translate_existing_reviews(location_id):
 
 ########################################################
 
+async def yelp_scraper(query):
+    print("Running Yelp Scraper")
+    FetchYelpData(query)
+
+
+async def google_scraper(query):
+    print("Running Google Scraper")
+    FetchAndStoreRestaurantDataForGoogle(query)
+
+
+async def scrapers(query):
+    await asyncio.gather(google_scraper(query), yelp_scraper(query))
+
+
 def FetchAndStoreRestaurantData(restaurant_query):
     """
     Fetches restaurant data from TripAdvisor and stores it in the database.
@@ -1051,6 +1068,11 @@ def FetchAndStoreRestaurantData(restaurant_query):
             })
             
             print(f"Successfully processed restaurant: {location_name} - Inserted {review_count} reviews")
+
+        asyncio.run(scrapers(restaurant_query))
+        # FetchYelpData(restaurant_query)
+        # FetchAndStoreRestaurantDataForGoogle(restaurant_query)
+
     
     except Exception as e:
         import traceback

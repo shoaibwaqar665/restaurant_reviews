@@ -1,6 +1,7 @@
 import subprocess
 import json
-from myapp.dbOperations import fetch_yelp_data, select_name_from_trip_business_details
+from urllib.parse import unquote, urlparse
+from myapp.dbOperations import fetch_yelp_data, select_address_from_trip_business_details, select_name_from_trip_business_details
 from myapp.trip import FetchAndStoreRestaurantData
 from myapp.yelp_location_clean import yelp_loc_clean
 from concurrent.futures import ThreadPoolExecutor
@@ -18,10 +19,22 @@ def clean_address(address: str) -> str:
     return re.sub(r'\b(\d{5})-\d{4}\b', r'\1', address)
 
 
-def get_longest_url(query, num_results=2):
+ 
+def get_longest_url(query, num_results=10):
     urls = list(search(query, num_results=num_results))
-    sorted_urls = sorted(urls, key=len, reverse=True)
-    return sorted_urls[0] if sorted_urls else None
+    yelp_urls = set()
+
+    for url in urls:
+        if "yelp.com/biz/" in url:
+            parsed = urlparse(url)
+            # Normalize domain (remove www.) and decode path
+            domain = parsed.netloc.replace("www.", "").replace("m.", "")
+            decoded_path = unquote(parsed.path)
+            clean_url = f"{parsed.scheme}://{domain}{decoded_path}"
+            yelp_urls.add(clean_url)
+
+    return list(yelp_urls)
+
 
 def execute_bash_script(restaurant_slug):
     # Define the bash script file path
@@ -54,19 +67,18 @@ def FetchYelpData(query):
     
     for location in location_names:
         try:
-            # restaurant_slug = res_slug + "-" + location.replace(" ", "-").lower()
-            # restaurant_slug = restaurant_slug.replace(" ", "-")
-
+           
             print(f"🚀 Executing script for restaurant slug: {location}")
-            result = get_longest_url(f"yelp {query.lower()} {clean_address(location).lower()}")
-         
-            execute_bash_script(result)
-            restaurant_slug = result.replace("https://www.yelp.com/", "").replace("/", "-")
+            results = get_longest_url(f"yelp {query.lower()} {location.lower()}")
+            for result in results:
+                
+                execute_bash_script(result)
+                restaurant_slug = result.replace("https://www.yelp.com/", "").replace("/", "-")
 
-            input_file = input_file = os.path.join(base_dir, restaurant_slug + ".html")
-            output_file = restaurant_slug + ".json"
+                input_file = os.path.join(base_dir, restaurant_slug + ".html")
+                output_file = restaurant_slug + ".json"
 
-            yelp_loc_clean(input_file, output_file, query, location)
+                yelp_loc_clean(input_file, output_file, query, location)
 
         except FileNotFoundError as e:
             print(f"❌ File not found for location '{location}': {e}")
