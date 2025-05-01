@@ -1,8 +1,7 @@
 import subprocess
 import json
 from urllib.parse import unquote, urlparse
-from myapp.dbOperations import fetch_yelp_data, select_address_from_trip_business_details, select_name_from_trip_business_details
-from myapp.trip import FetchAndStoreRestaurantData
+from myapp.dbOperations import fetch_yelp_data, select_name_from_trip_business_details
 from myapp.yelp_location_clean import yelp_loc_clean
 from concurrent.futures import ThreadPoolExecutor
 from ninja_extra import api_controller, http_post, NinjaExtraAPI,http_get

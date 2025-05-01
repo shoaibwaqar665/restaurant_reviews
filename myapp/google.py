@@ -7,10 +7,6 @@ from myapp.schema import GoogleMapsQuery
 from myapp.google_location_data_cleaning import location_data_cleaning
 from myapp.dbOperations import fetch_google_data, select_address_from_trip_business_details
 import requests
-
-from myapp.trip import FetchAndStoreRestaurantData
-from myapp.yelp_loc_data import FetchYelpData
-
 gmb_api = NinjaExtraAPI(urls_namespace='GoogleMaps')
 
 
