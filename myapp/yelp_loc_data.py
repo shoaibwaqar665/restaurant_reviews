@@ -72,7 +72,9 @@ def FetchYelpData(query):
             for result in results:
                 print('working on ',result)
                 execute_bash_script(result)
-                restaurant_slug = result.replace("https://www.yelp.com/", "").replace("/", "-")
+                slug_path = re.sub(r"^https?://(www\.)?yelp\.com/", "", result)
+                # Replace remaining slashes with dashes
+                restaurant_slug = slug_path.replace("/", "-")
 
                 input_file = os.path.join(base_dir, restaurant_slug + ".html")
                 print('the inputfile is ' ,input_file)

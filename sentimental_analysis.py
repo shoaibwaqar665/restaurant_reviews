@@ -44,6 +44,11 @@
 # data = select_name_from_trip_business_details("shakey's pizza parlor")
 # print(data)
 
-result = "https://www.yelp.com/biz/ovolo-southside-奧華酒店-南岸-香港"
-estaurant_slug = result.replace("https://www.yelp.com/", "").replace("/", "-")
-print(estaurant_slug)
+import re
+
+result = "https://www.yelp.com/biz/shakeys-pizza-parlor-pico-rivera-2"
+# Remove protocol and domain
+slug_path = re.sub(r"^https?://(www\.)?yelp\.com/", "", result)
+# Replace remaining slashes with dashes
+restaurant_slug = slug_path.replace("/", "-")
+print(restaurant_slug)
