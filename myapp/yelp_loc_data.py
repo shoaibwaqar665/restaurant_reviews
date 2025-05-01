@@ -70,11 +70,12 @@ def FetchYelpData(query):
             print(f"🚀 Executing script for restaurant slug: {location}")
             results = get_longest_url(f"yelp {query.lower()} {location.lower()}")
             for result in results:
-                
+                print('working on ',result)
                 execute_bash_script(result)
                 restaurant_slug = result.replace("https://www.yelp.com/", "").replace("/", "-")
 
                 input_file = os.path.join(base_dir, restaurant_slug + ".html")
+                print('the inputfile is ' ,input_file)
                 output_file = restaurant_slug + ".json"
 
                 yelp_loc_clean(input_file, output_file, query, location)

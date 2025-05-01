@@ -1,29 +1,29 @@
 
 # from googlesearch import search
-from urllib.parse import urlparse, unquote
-from googlesearch import search
+# from urllib.parse import urlparse, unquote
+# from googlesearch import search
 
 
 
-def get_unique_yelp_urls(query, num_results=10):
-    urls = list(search(query, num_results=num_results))
-    yelp_urls = set()
+# def get_unique_yelp_urls(query, num_results=10):
+#     urls = list(search(query, num_results=num_results))
+#     yelp_urls = set()
 
-    for url in urls:
-        if "yelp.com/biz/" in url:
-            parsed = urlparse(url)
-            # Normalize domain (remove www.) and decode path
-            domain = parsed.netloc.replace("www.", "").replace("m.", "")
-            decoded_path = unquote(parsed.path)
-            clean_url = f"{parsed.scheme}://{domain}{decoded_path}"
-            yelp_urls.add(clean_url)
+#     for url in urls:
+#         if "yelp.com/biz/" in url:
+#             parsed = urlparse(url)
+#             # Normalize domain (remove www.) and decode path
+#             domain = parsed.netloc.replace("www.", "").replace("m.", "")
+#             decoded_path = unquote(parsed.path)
+#             clean_url = f"{parsed.scheme}://{domain}{decoded_path}"
+#             yelp_urls.add(clean_url)
 
-    return list(yelp_urls)
+#     return list(yelp_urls)
 
-# Example usage
-data = get_unique_yelp_urls("yelp ovolo hong kong")
-for url in data:
-    print(url)
+# # Example usage
+# data = get_unique_yelp_urls("yelp ovolo hong kong")
+# for url in data:
+#     print(url)
 # print(get_unique_yelp_urls("yelp shakey's pizza los angeles"))
 # print(get_longest_url("yelp ovolo hong kong"))
 
@@ -43,3 +43,7 @@ for url in data:
 
 # data = select_name_from_trip_business_details("shakey's pizza parlor")
 # print(data)
+
+result = "https://www.yelp.com/biz/ovolo-southside-奧華酒店-南岸-香港"
+estaurant_slug = result.replace("https://www.yelp.com/", "").replace("/", "-")
+print(estaurant_slug)
