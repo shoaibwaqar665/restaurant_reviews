@@ -147,8 +147,8 @@ def send_request_location_data(query="shakey's pizza parlor"):
                     "query": query,
                     "userContext": {
                         "coordinates": {
-                            "latitude": 31.408397,
-                            "longitude": 73.103523
+                            "latitude": 34.052235,
+                            "longitude": -118.243683
                         }
                     }
                 }
