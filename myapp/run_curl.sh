@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 URL="$1"
-SLUG=$(echo "$URL" | sed -E 's|https?://[^/]+/||; s|[/?&=]+|-|g')
+SLUG=$(echo "$URL" | sed -E 's|https?://[^/]+/||; s|\?.*||; s|[/?&=]+|-|g')
 OUTPUT="${SLUG}.html"
 
 

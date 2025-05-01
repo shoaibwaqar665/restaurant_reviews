@@ -11,6 +11,12 @@ from typing import Dict
 import os
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 from googlesearch import search
+import re
+
+def clean_address(address: str) -> str:
+    # Pattern matches a 5-digit ZIP followed by a dash and more digits (e.g. 98058-8905)
+    return re.sub(r'\b(\d{5})-\d{4}\b', r'\1', address)
+
 
 def get_longest_url(query, num_results=2):
     urls = list(search(query, num_results=num_results))
@@ -52,7 +58,7 @@ def FetchYelpData(query):
             # restaurant_slug = restaurant_slug.replace(" ", "-")
 
             print(f"🚀 Executing script for restaurant slug: {location}")
-            result = get_longest_url(f"yelp {query.lower()} {location.lower()}")
+            result = get_longest_url(f"yelp {query.lower()} {clean_address(location).lower()}")
          
             execute_bash_script(result)
             restaurant_slug = result.replace("https://www.yelp.com/", "").replace("/", "-")
@@ -68,6 +74,8 @@ def FetchYelpData(query):
             print(f"⚠️ Value error for location '{location}': {ve}")
         except Exception as e:
             print(f"❌ Unexpected error occurred for location '{location}': {e}")
+    
+    return True
 
 
 @api_controller("", tags=["Yelp"])

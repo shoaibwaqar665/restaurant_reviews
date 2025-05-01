@@ -384,13 +384,13 @@ from googlesearch import search
 
 # from googlesearch import search
 
-def get_longest_url(query, num_results=2):
-    urls = list(search(query, num_results=num_results))
-    sorted_urls = sorted(urls, key=len, reverse=True)
-    return sorted_urls[0] if sorted_urls else None
+# def get_longest_url(query, num_results=2):
+#     urls = list(search(query, num_results=num_results))
+#     sorted_urls = sorted(urls, key=len, reverse=True)
+#     return sorted_urls if sorted_urls else None
 
-result = get_longest_url("yelp shakey's pizza parlor 3615 Pacific Coast Hwy Torrance, CA 90505")
-print(result)
+# result = get_longest_url("yelp shakey's pizza parlor 14300 Se Petrovitsky Rd, Renton, 8905")
+# print(result)
 
 # import requests
 
@@ -404,5 +404,16 @@ print(result)
 # for link in search_query("yelp Shakey's Pizza Parlor 10340 Reseda Blvd Northridge CA 91326"):
 #     print(link)
 
-restaurant_slug = result.replace("https://www.yelp.com/", "").replace("/", "-")
-print(restaurant_slug)
+# restaurant_slug = result.replace("https://www.yelp.com/", "").replace("/", "-")
+# print(restaurant_slug)
+import re
+
+def clean_address(address: str) -> str:
+    # Pattern matches a 5-digit ZIP followed by a dash and more digits (e.g. 98058-8905)
+    return re.sub(r'\b(\d{5})-\d{4}\b', r'\1', address)
+
+# Test examples
+addresses = "13701 Foothill Blvd, Los Angeles, 91342-3105"
+
+
+print(clean_address(addresses))

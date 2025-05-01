@@ -9,6 +9,7 @@ from myapp.dbOperations import fetch_google_data, select_name_from_trip_business
 import requests
 
 from myapp.trip import FetchAndStoreRestaurantData
+from myapp.yelp_loc_data import FetchYelpData
 
 gmb_api = NinjaExtraAPI(urls_namespace='GoogleMaps')
 
@@ -20,7 +21,7 @@ def FetchAndStoreRestaurantDataForGoogle(query):
     restaurant_name = select_name_from_trip_business_details(query)
     if len(restaurant_name) == 0:
         print("No restaurant name found")
-        data_flag = FetchAndStoreRestaurantData(query)
+        data_flag = FetchYelpData(query)
         if data_flag:
             print('data_flag is true')
             restaurant_name = select_name_from_trip_business_details(query)
