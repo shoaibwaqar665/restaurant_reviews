@@ -69,6 +69,7 @@ def FetchAndStoreRestaurantDataForGoogle(query):
         location_data_cleaning(cleaned_data, output_file,query,location_name)
         
     google_reviews_data(query)
+    print('🚀🚀🚀 Google data fetched successfully 🚀🚀🚀')
 
 @api_controller("", tags=["GoogleMaps"])
 class GoogleMapsController:

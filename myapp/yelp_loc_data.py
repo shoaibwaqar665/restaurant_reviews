@@ -88,7 +88,7 @@ def FetchYelpData(query):
             print(f"⚠️ Value error for location '{location}': {ve}")
         except Exception as e:
             print(f"❌ Unexpected error occurred for location '{location}': {e}")
-    
+    print('🚀🚀🚀🚀FetchYelpData completed 🚀🚀🚀🚀')
     return True
 
 
