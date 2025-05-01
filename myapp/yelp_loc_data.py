@@ -54,15 +54,15 @@ def execute_bash_script(restaurant_slug):
 def FetchYelpData(query):
     print('FetchYelpData')
     location_names = select_name_from_trip_business_details(query)
-    if len(location_names) == 0:
-        print("No restaurant name found")
-        data_flag = FetchAndStoreRestaurantData(query)
-        if data_flag:
-            print('data_flag is true')
-            location_names = select_name_from_trip_business_details(query)
-            print('restaurant names',location_names)
-    else:
-        print("Restaurant names found")
+    # if len(location_names) == 0:
+    #     print("No restaurant name found")
+    #     data_flag = FetchAndStoreRestaurantData(query)
+    #     if data_flag:
+    #         print('data_flag is true')
+    #         location_names = select_name_from_trip_business_details(query)
+    #         print('restaurant names',location_names)
+    # else:
+    #     print("Restaurant names found")
     print(f"Location names: {location_names}")
     
     for location in location_names:

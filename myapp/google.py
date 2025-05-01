@@ -19,15 +19,15 @@ def FetchAndStoreRestaurantDataForGoogle(query):
     print('query: ', query)
 
     restaurant_name = select_address_from_trip_business_details(query)
-    if len(restaurant_name) == 0:
-        print("No restaurant name found")
-        data_flag = FetchAndStoreRestaurantData(query)
-        if data_flag:
-            print('data_flag is true')
-            restaurant_name = select_address_from_trip_business_details(query)
-            print('restaurant names',restaurant_name)
-    else:
-        print("Restaurant names found")
+    # if len(restaurant_name) == 0:
+    #     print("No restaurant name found")
+    #     data_flag = FetchAndStoreRestaurantData(query)
+    #     if data_flag:
+    #         print('data_flag is true')
+    #         restaurant_name = select_address_from_trip_business_details(query)
+    #         print('restaurant names',restaurant_name)
+    # else:
+    #     print("Restaurant names found")
 
     for location_name in restaurant_name:
         url = "https://www.google.com/search?tbm=map&authuser=0&hl=en&q=" + query+" "+location_name
