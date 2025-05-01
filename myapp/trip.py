@@ -954,18 +954,17 @@ def translate_existing_reviews(location_id):
 
 async def yelp_scraper(query):
     print("Running Yelp Scraper")
-    FetchYelpData(query)
-
+    await asyncio.to_thread(FetchYelpData, query)  # Run in background thread
 
 async def google_scraper(query):
     print("Running Google Scraper")
-    FetchAndStoreRestaurantDataForGoogle(query)
-
+    await asyncio.to_thread(FetchAndStoreRestaurantDataForGoogle, query)
 
 async def scrapers(query):
-    await asyncio.gather(google_scraper(query), yelp_scraper(query))
-
-
+    await asyncio.gather(
+        google_scraper(query),
+        yelp_scraper(query)
+    )
 def FetchAndStoreRestaurantData(restaurant_query):
     """
     Fetches restaurant data from TripAdvisor and stores it in the database.
@@ -1070,8 +1069,7 @@ def FetchAndStoreRestaurantData(restaurant_query):
             print(f"Successfully processed restaurant: {location_name} - Inserted {review_count} reviews")
 
         asyncio.run(scrapers(restaurant_query))
-        # FetchYelpData(restaurant_query)
-        # FetchAndStoreRestaurantDataForGoogle(restaurant_query)
+    
 
     
     except Exception as e:
