@@ -72,7 +72,7 @@ def FetchYelpData(query):
         try:
            
             print(f"🚀 Executing script for restaurant slug: {location}")
-            results = get_longest_url(f"yelp {query.lower()} {location.lower()}")
+            results = get_unique_yelp_urls(f"yelp {query.lower()} {location.lower()}")
             for result in results:
                 print('working on ',result)
                 execute_bash_script(result)
