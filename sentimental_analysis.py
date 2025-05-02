@@ -88,13 +88,16 @@ from urllib.parse import urlparse, unquote
 
 
 
-
 def slugify_path(restaurant_url):
     parsed = urlparse(restaurant_url)
-    decoded_path = unquote(parsed.path)  # Decode %E9%A6%99%E6%B8%AF → 香港
-    cleaned = decoded_path.strip("/").replace("/", "-")  # /biz/foo → biz-foo
-    return f"{cleaned}.html"
+    path = parsed.path  # e.g., "/biz/the-sheung-wan-by-ovolo-%E9%A6%99%E6%B8%AF"
+    decoded_path = unquote(path)  # → "/biz/the-sheung-wan-by-ovolo-香港"
+    cleaned = decoded_path.strip("/").replace("/", "-")  # → "biz-the-sheung-wan-by-ovolo-香港"
+    
+    if not cleaned.startswith("biz-"):
+        cleaned = "biz-" + cleaned
 
+    return f"{cleaned}.html"
 def execute_bash_script(restaurant_url):
     output_filename = slugify_path(restaurant_url)
 
@@ -112,7 +115,7 @@ def execute_bash_script(restaurant_url):
         print("Error:", result.stderr)
 
 
-execute_bash_script('https://www.yelp.com/biz/the-sheung-wan-by-ovolo-%E9%A6%99%E6%B8%AF')
+print(slugify_path('https://yelp.com/biz/the-sheung-wan-by-ovolo-%E9%A6%99%E6%B8%AF'))
 
 # def get_unique_yelp_urls(query, num_results=10):
 #     urls = list(search(query, num_results=num_results))
