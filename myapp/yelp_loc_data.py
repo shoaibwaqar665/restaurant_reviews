@@ -41,7 +41,7 @@ def execute_bash_script(restaurant_url):
     output_filename = slugify_path(restaurant_url)
 
     result = subprocess.run(
-        ['./run_curl.sh', restaurant_url, output_filename],
+        ['myapp/run_curl.sh', restaurant_url, output_filename],
         capture_output=True,
         text=True
     )
