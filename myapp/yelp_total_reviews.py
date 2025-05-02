@@ -2,6 +2,7 @@ import requests
 import json
 import base64
 import math
+import time
 import traceback
 PROXY_SERVER = "geo.iproyal.com:12321"
 PROXY_USER = "jxuQHPGrydd0jIva"
@@ -14,55 +15,74 @@ proxies = {
     "http": proxy_url,
     "https": proxy_url,
 }
+MAX_RETRIES = 5
+INITIAL_BACKOFF = 2  # seconds
+
 def get_reviews_response(enc_biz_id, offset, headers):
-    try:
-        after = base64.b64encode(json.dumps({
-            "version": 1,
-            "type": "offset",
-            "offset": offset
-        }).encode('utf-8')).decode('utf-8')
+    after = base64.b64encode(json.dumps({
+        "version": 1,
+        "type": "offset",
+        "offset": offset
+    }).encode('utf-8')).decode('utf-8')
 
-        payload = json.dumps([
-            {
-                "operationName": "GetBusinessReviewFeed",
-                "variables": {
-                    "encBizId": enc_biz_id,
-                    "reviewsPerPage": 20,
-                    "selectedReviewEncId": "",
-                    "hasSelectedReview": False,
-                    "sortBy": "RELEVANCE_DESC",
-                    "languageCode": "en",
-                    "ratings": [5, 4, 3, 2, 1],
-                    "queryText": "",
-                    "isSearching": False,
-                    "after": after,
-                    "isTranslating": False,
-                    "translateLanguageCode": "en",
-                    "reactionsSourceFlow": "businessPageReviewSection",
-                    "guv": "CFCAA4676196EA17",
-                    "minConfidenceLevel": "HIGH_CONFIDENCE",
-                    "highlightType": "",
-                    "highlightIdentifier": "",
-                    "isHighlighting": False
-                },
-                "extensions": {
-                    "operationType": "query",
-                    "documentId": "691087a117482fc6d72e9549a7a23834bc35f578b0c161319eb1f9b20c0d92c0"
-                }
+    payload = json.dumps([
+        {
+            "operationName": "GetBusinessReviewFeed",
+            "variables": {
+                "encBizId": enc_biz_id,
+                "reviewsPerPage": 20,
+                "selectedReviewEncId": "",
+                "hasSelectedReview": False,
+                "sortBy": "RELEVANCE_DESC",
+                "languageCode": "en",
+                "ratings": [5, 4, 3, 2, 1],
+                "queryText": "",
+                "isSearching": False,
+                "after": after,
+                "isTranslating": False,
+                "translateLanguageCode": "en",
+                "reactionsSourceFlow": "businessPageReviewSection",
+                "guv": "CFCAA4676196EA17",
+                "minConfidenceLevel": "HIGH_CONFIDENCE",
+                "highlightType": "",
+                "highlightIdentifier": "",
+                "isHighlighting": False
+            },
+            "extensions": {
+                "operationType": "query",
+                "documentId": "691087a117482fc6d72e9549a7a23834bc35f578b0c161319eb1f9b20c0d92c0"
             }
-        ])
-        headers = clean_headers(headers)
-        response = requests.post("https://www.yelp.com/gql/batch", headers=headers, data=payload, proxies=proxies)
-        response.raise_for_status()
-        return response.json()
-
-    except requests.exceptions.RequestException as e:
-        print("❌ Request failed:", e)
-        traceback.print_exc()
-        print("📦 Payload:", payload)
-        print("📬 Headers:", headers)
-        return None
+        }
+    ])
     
+    headers = clean_headers(headers)
+    backoff = INITIAL_BACKOFF
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            print(f"🔁 Attempt {attempt} for offset {offset}...")
+            response = requests.post(
+                "https://www.yelp.com/gql/batch",
+                headers=headers,
+                data=payload,
+                proxies=proxies,
+                timeout=15  # Optional: avoid hanging forever
+            )
+            response.raise_for_status()
+            print("✅ Success")
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Request failed (attempt {attempt}):", e)
+            traceback.print_exc()
+            if attempt < MAX_RETRIES:
+                print(f"⏳ Retrying in {backoff} seconds...")
+                time.sleep(backoff)
+                backoff *= 2
+            else:
+                print("🚫 Max retries reached. Giving up.")
+                print("📦 Payload:", payload)
+                print("📬 Headers:", headers)
+                return None
 def clean_headers(headers):
     cleaned = {}
     for k, v in headers.items():
