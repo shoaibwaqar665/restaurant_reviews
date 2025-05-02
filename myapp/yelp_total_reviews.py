@@ -3,6 +3,17 @@ import json
 import base64
 import math
 import traceback
+PROXY_SERVER = "geo.iproyal.com:12321"
+PROXY_USER = "jxuQHPGrydd0jIva"
+PROXY_PASS = "RU7veaFCDR0nRHbL"
+
+# Format proxy with credentials
+proxy_url = f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_SERVER}"
+
+proxies = {
+    "http": proxy_url,
+    "https": proxy_url,
+}
 def get_reviews_response(enc_biz_id, offset, headers):
     try:
         after = base64.b64encode(json.dumps({
@@ -41,7 +52,7 @@ def get_reviews_response(enc_biz_id, offset, headers):
             }
         ])
         headers = clean_headers(headers)
-        response = requests.post("https://www.yelp.com/gql/batch", headers=headers, data=payload)
+        response = requests.post("https://www.yelp.com/gql/batch", headers=headers, data=payload, proxies=proxies)
         response.raise_for_status()
         return response.json()
 
