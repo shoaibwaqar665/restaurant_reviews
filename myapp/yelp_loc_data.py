@@ -19,36 +19,40 @@ def clean_address(address: str) -> str:
 
 
  
-def get_longest_url(query, num_results=10):
+def get_unique_yelp_urls(query, num_results=10):
     urls = list(search(query, num_results=num_results))
     yelp_urls = set()
-
+    
     for url in urls:
         if "yelp.com/biz/" in url:
             parsed = urlparse(url)
-            # Normalize domain (remove www.) and decode path
-            domain = parsed.netloc.replace("www.", "").replace("m.", "")
-            decoded_path = unquote(parsed.path)
-            clean_url = f"{parsed.scheme}://{domain}{decoded_path}"
+            clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
             yelp_urls.add(clean_url)
-
+    
     return list(yelp_urls)
 
+def slugify_path(restaurant_url):
+    parsed = urlparse(restaurant_url)
+    decoded_path = unquote(parsed.path)  # Decode %E9%A6%99%E6%B8%AF → 香港
+    cleaned = decoded_path.strip("/").replace("/", "-")  # /biz/foo → biz-foo
+    return f"{cleaned}.html"
 
-def execute_bash_script(restaurant_slug):
-    # Define the bash script file path
-    bash_script = 'myapp/run_curl.sh'
+def execute_bash_script(restaurant_url):
+    output_filename = slugify_path(restaurant_url)
 
-    # Run the bash script with the restaurant_slug argument
-    result = subprocess.run([bash_script, restaurant_slug], capture_output=True, text=True)
+    result = subprocess.run(
+        ['./run_curl.sh', restaurant_url, output_filename],
+        capture_output=True,
+        text=True
+    )
 
-    # Print the output and error (if any)
     if result.returncode == 0:
         print("Script executed successfully!")
         print("Output:", result.stdout)
     else:
         print("Error executing the script.")
         print("Error:", result.stderr)
+
 
 def FetchYelpData(query):
     print('FetchYelpData')
