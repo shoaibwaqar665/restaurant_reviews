@@ -1121,24 +1121,24 @@ class TripAdvisorController:
 api.register_controllers(TripAdvisorController)
 
 
-def cron_job():
-    print("Running cron job")
-    while True:
-        time.sleep(8 * 60 * 60)
-        queries = select_restaurant_names()
-        for query in queries:
-            FetchAndStoreRestaurantData(query)
-            asyncio.run(scrapers(query))
+# def cron_job():
+#     print("Running cron job")
+#     while True:
+#         time.sleep(8 * 60 * 60)
+#         queries = select_restaurant_names()
+#         for query in queries:
+#             FetchAndStoreRestaurantData(query)
+#             asyncio.run(scrapers(query))
 
 
 
-cron_thread = None
+# cron_thread = None
 
-def startup_function():
-    global cron_thread
-    print("Server is starting up...")
-    if cron_thread is None or not cron_thread.is_alive():
-        cron_thread = threading.Thread(target=cron_job, daemon=True)
-        cron_thread.start()
-    else:
-        print("Cron job is already running.")
+# def startup_function():
+#     global cron_thread
+#     print("Server is starting up...")
+#     if cron_thread is None or not cron_thread.is_alive():
+#         cron_thread = threading.Thread(target=cron_job, daemon=True)
+#         cron_thread.start()
+#     else:
+#         print("Cron job is already running.")
