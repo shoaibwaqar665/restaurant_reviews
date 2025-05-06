@@ -1297,3 +1297,24 @@ def fetch_yelp_data():
             cursor.close()
         if 'conn' in locals():
             conn.close()
+
+
+def select_restaurant_names():
+    conn = psycopg2.connect(
+        dbname=Scraping["Database"],
+        user=Scraping["Username"],
+        password=Scraping["Password"],
+        host=Scraping["Host"],
+        port=Scraping["Port"]
+    )
+    
+    cursor = conn.cursor()
+    cursor.execute("SELECT restaurant_name FROM trip_business_details group by restaurant_name")
+    
+    results = cursor.fetchall()
+    names = [row[0] for row in results]  # Extract names from tuples
+    
+    cursor.close()
+    conn.close()
+    
+    return names

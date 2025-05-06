@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import threading
 import requests
 import json
 import time
@@ -11,7 +12,7 @@ from myapp.google import FetchAndStoreRestaurantDataForGoogle
 from myapp.schema import TripAdvisorQuery
 import base64
 from googletrans import Translator
-from myapp.dbOperations import InsertRestaurantDetailsForTripadvisor, InsertRestaurantReviewsForTripAdvisor, fetch_trip_data
+from myapp.dbOperations import InsertRestaurantDetailsForTripadvisor, InsertRestaurantReviewsForTripAdvisor, fetch_trip_data, select_restaurant_names
 import sys
 import asyncio
 from myapp.yelp_loc_data import FetchYelpData
@@ -1118,3 +1119,26 @@ class TripAdvisorController:
 
 # Register controllers
 api.register_controllers(TripAdvisorController)
+
+
+def cron_job():
+    print("Running cron job")
+    while True:
+        time.sleep(8 * 60 * 60)
+        queries = select_restaurant_names()
+        for query in queries:
+            FetchAndStoreRestaurantData(query)
+            asyncio.run(scrapers(query))
+
+
+
+cron_thread = None
+
+def startup_function():
+    global cron_thread
+    print("Server is starting up...")
+    if cron_thread is None or not cron_thread.is_alive():
+        cron_thread = threading.Thread(target=cron_job, daemon=True)
+        cron_thread.start()
+    else:
+        print("Cron job is already running.")
