@@ -138,6 +138,7 @@ def extract_review_data(review_entry):
 def extract_google_reviews(folder_path,loc_reviews,business_key):
     try:
         # Read the source JSON file
+        loc_reviews = loc_reviews.replace("/","")
         reviews = []
         folder_path = f'responses_{folder_path}'
         if not os.path.exists(folder_path):
