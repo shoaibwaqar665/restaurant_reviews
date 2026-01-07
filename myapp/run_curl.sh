@@ -26,12 +26,19 @@ echo "URL: $URL"
 MAX_RETRIES="${MAX_RETRIES:-12}"
 RETRY_SLEEP_SECONDS="${RETRY_SLEEP_SECONDS:-5}"
 
-# Retry loop
-attempt=1
-while [ "$attempt" -le "$MAX_RETRIES" ]; do
-  echo "Trying: $URL"
-
-  HTTP_STATUS=$(curl --proxy "$PROXY_USER:$PROXY_PASS@$PROXY_SERVER" \
+# Function to try curl with or without proxy
+try_curl() {
+  local USE_PROXY=$1
+  local PROXY_FLAG=""
+  
+  if [ "$USE_PROXY" = "true" ]; then
+    PROXY_FLAG="--proxy $PROXY_USER:$PROXY_PASS@$PROXY_SERVER"
+    echo "🔐 Using proxy..."
+  else
+    echo "🌐 Trying without proxy..."
+  fi
+  
+  HTTP_STATUS=$(curl $PROXY_FLAG \
     --location "$URL" \
     --connect-timeout 20 \
     --max-time 60 \
@@ -54,16 +61,37 @@ while [ "$attempt" -le "$MAX_RETRIES" ]; do
     --silent --show-error \
     --output "$OUTPUT")
   CURL_EXIT=$?
-
+  
   echo "HTTP Status: $HTTP_STATUS"
+  return $CURL_EXIT
+}
+
+# Retry loop - try without proxy first, then with proxy
+attempt=1
+use_proxy=false
+
+while [ "$attempt" -le "$MAX_RETRIES" ]; do
+  echo "Attempt ${attempt}/${MAX_RETRIES}: Trying $URL"
+  
+  try_curl "$use_proxy"
 
   if [ "$CURL_EXIT" -eq 0 ] && [ "$HTTP_STATUS" -eq 200 ]; then
-    echo "Success: Received 200 OK"
+    echo "✅ Success: Received 200 OK"
     exit 0
   else
     rm -f "$OUTPUT" >/dev/null 2>&1 || true
-    echo "Failed (curl_exit=$CURL_EXIT, http_status=$HTTP_STATUS), retrying in ${RETRY_SLEEP_SECONDS}s... (attempt ${attempt}/${MAX_RETRIES})" >&2
-    sleep "$RETRY_SLEEP_SECONDS"
+    echo "❌ Failed (curl_exit=$CURL_EXIT, http_status=$HTTP_STATUS)"
+    
+    # If first attempt without proxy failed, switch to proxy
+    if [ "$use_proxy" = "false" ]; then
+      echo "💡 Switching to proxy for next attempt..."
+      use_proxy=true
+    fi
+    
+    if [ "$attempt" -lt "$MAX_RETRIES" ]; then
+      echo "Retrying in ${RETRY_SLEEP_SECONDS}s..."
+      sleep "$RETRY_SLEEP_SECONDS"
+    fi
   fi
   attempt=$((attempt + 1))
 done
