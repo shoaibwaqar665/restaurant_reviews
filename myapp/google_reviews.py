@@ -205,4 +205,8 @@ def google_reviews_data(restaurant_name):
         search_and_log_reviews(address,business_key,folder_name,restaurant_name)
         loc_reviews = address.replace(" ","_")
         loc_reviews = loc_reviews.replace("'","")
+        loc_reviews = loc_reviews.replace("/","")
+        print('here loc_reviews',loc_reviews)
+        folder_name = folder_name.replace("/","")
+        print('here folder_name',folder_name)
         extract_google_reviews(folder_name,loc_reviews,business_key)
