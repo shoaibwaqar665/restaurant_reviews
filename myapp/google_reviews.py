@@ -53,12 +53,18 @@ def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
         context = browser.new_context(viewport={'width': 1280, 'height': 800})
         page = context.new_page()
         
+        # Flag to control response processing
+        processing_enabled = True
 
         # Log all requests and capture response for specific URL
         def log_request(request):
-            print(f"Request URL: {request.url}")
+            if processing_enabled:
+                print(f"Request URL: {request.url}")
 
         def capture_response(response):
+            if not processing_enabled:
+                return
+                
             if 'https://www.google.com/maps/rpc/listugcposts' in response.url:
                 # print(f"Captured Response URL: {response.url}")
                 # print(f"Status: {response.status}")
@@ -92,7 +98,9 @@ def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
                     # Check if error is due to closed page/context/browser
                     error_msg = str(e).lower()
                     if 'closed' in error_msg or 'target page' in error_msg or 'context' in error_msg:
-                        print(f"Response handler called after page/context closed, skipping: {e}")
+                        # Silently skip if processing is disabled or page is closed
+                        if processing_enabled:
+                            print(f"Response handler called after page/context closed, skipping: {e}")
                     else:
                         print(f"Error processing response: {e}")
 
@@ -170,8 +178,17 @@ def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
         time.sleep(5)  # Additional wait for requests
         print("Review capture completed.")
         
-        # Wait a bit more to ensure all response handlers complete
-        time.sleep(2)
+        # Wait for network to be idle before closing
+        try:
+            page.wait_for_load_state('networkidle', timeout=5000)
+        except Exception:
+            pass  # Timeout is okay, we'll proceed anyway
+        
+        # Disable processing flag to prevent new response handlers from processing
+        processing_enabled = False
+        
+        # Wait a bit more to ensure all in-flight response handlers complete
+        time.sleep(3)
         
         browser.close()
 
