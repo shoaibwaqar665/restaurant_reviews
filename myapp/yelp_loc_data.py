@@ -54,13 +54,13 @@ def slugify_path(restaurant_url):
 
 def execute_bash_script(restaurant_url):
     output_filename = slugify_path(restaurant_url)
-
+    print('output_filename',output_filename)
     result = subprocess.run(
         ['myapp/run_curl.sh', restaurant_url, output_filename],
         capture_output=True,
         text=True
     )
-
+    print('result of execute_bash_script',result)
     if result.returncode == 0:
         print("Script executed successfully!")
         print("Output:", result.stdout)
