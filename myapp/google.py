@@ -36,7 +36,12 @@ def FetchAndStoreRestaurantDataForGoogle(query):
         }
         file_name = query.replace(" ", "_")
         file_name = file_name.replace("'", "")
+        file_name = file_name.replace("/","")
+
         new_location_name = location_name.replace(" ","_")
+        new_location_name = new_location_name.replace("/","")
+        print('file_name',file_name)
+        print('new_location_name',new_location_name)
         input_file = f'{file_name}_{new_location_name}_google_loc_response.json'
         response = requests.request("GET", url, headers=headers, data=payload)
 
