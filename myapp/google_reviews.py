@@ -44,11 +44,15 @@ def upload_to_s3(file_name, bucket, object_name=None):
         return None
 
 def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
+   
+    folder_name = folder_name.replace("/","")
     with sync_playwright() as p:
         # Launch the browser
+        
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(viewport={'width': 1280, 'height': 800})
         page = context.new_page()
+        
 
         # Log all requests and capture response for specific URL
         def log_request(request):
@@ -161,8 +165,9 @@ def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
 def google_reviews_data(restaurant_name):
 
     restaurant_name_and_review_count = select_restaurant_name_and_review_count_from_google_business_details(restaurant_name)
+    print('here restaurant_name_and_review_count',restaurant_name_and_review_count)
     for restaurant in restaurant_name_and_review_count:
-        print(restaurant)
+        print('here restaurant',restaurant)
         address = restaurant["name"]
         business_key = restaurant["business_key"]
         folder_name = address.replace(" ", "_")
