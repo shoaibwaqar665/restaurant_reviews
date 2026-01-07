@@ -10,7 +10,7 @@ from myapp.schema import Yelp
 from typing import Dict
 import os
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-from googlesearch import search
+import requests
 import re
 
 def clean_address(address: str) -> str:
@@ -19,15 +19,24 @@ def clean_address(address: str) -> str:
 
 
  
-def get_unique_yelp_urls(query, num_results=10):
-    urls = list(search(query, num_results=num_results))
+def search_query(query_name, num_results=5):
+    GOOGLE_API_KEY = "AIzaSyCvg6iFBMR1iGuYnlWtYuwjkBKUBKKJoaw"
+    GOOGLE_CX = "110793119bc8f4502"
+    
+    url = f"https://www.googleapis.com/customsearch/v1?q={query_name}&key={GOOGLE_API_KEY}&cx={GOOGLE_CX}&num={num_results}"
+    
+    response = requests.get(url)
+    data = response.json()
+    
     yelp_urls = set()
     
-    for url in urls:
-        if "yelp.com/biz/" in url:
-            parsed = urlparse(url)
-            clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-            yelp_urls.add(clean_url)
+    if 'items' in data:
+        for item in data['items']:
+            url = item.get('link', '')
+            if "yelp.com/biz/" in url:
+                parsed = urlparse(url)
+                clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+                yelp_urls.add(clean_url)
     
     return list(yelp_urls)
 
@@ -78,7 +87,7 @@ def FetchYelpData(query):
         try:
            
             print(f"🚀 Executing script for restaurant slug: {location}")
-            results = get_unique_yelp_urls(f"yelp {query.lower()} {location.lower()}")
+            results = search_query(f"yelp {query.lower()} {location.lower()}")
             for result in results:
                 print('working on ',result)
                 execute_bash_script(result)
