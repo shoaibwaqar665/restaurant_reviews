@@ -111,12 +111,42 @@ def scrape_yelp_reviews(enc_biz_id, pages, output_file):
     print("🚀 Starting Yelp review scraping...")
     offset = 0
     main_response = get_reviews_response(enc_biz_id, offset, headers)
+    
+    if main_response is None:
+        raise ValueError("Failed to get initial response from Yelp API")
+    
     main_data = main_response[0]
     # print(main_data)
     review_list = main_data["data"]["business"]["reviews"]["edges"]
-    total_pages = pages/20
-    total_pages = math.ceil(total_pages)
-    print(f"Total pages to scrape: {total_pages}")
+    
+    # Try to get total review count from API response, fallback to pages parameter
+    total_reviews = None
+    try:
+        # Check if API response has total count
+        reviews_data = main_data.get("data", {}).get("business", {}).get("reviews", {})
+        if "total" in reviews_data:
+            total_reviews = reviews_data["total"]
+        elif "pageInfo" in reviews_data and "totalCount" in reviews_data["pageInfo"]:
+            total_reviews = reviews_data["pageInfo"]["totalCount"]
+    except (KeyError, TypeError):
+        pass
+    
+    # Use pages parameter if available and valid, otherwise use API response
+    if pages is not None:
+        try:
+            # Convert to int if it's a string
+            pages_int = int(pages) if isinstance(pages, str) else pages
+            if pages_int > 0:
+                total_reviews = pages_int
+        except (ValueError, TypeError):
+            pass
+    
+    # If we still don't have a total, raise an error
+    if total_reviews is None or total_reviews == 0:
+        raise ValueError(f"Could not determine total review count. pages parameter: {pages}, API response: {main_data.get('data', {}).get('business', {}).get('reviews', {})}")
+    
+    total_pages = math.ceil(total_reviews / 20)
+    print(f"Total reviews: {total_reviews}, Total pages to scrape: {total_pages}")
     for i in range(1, total_pages):
         offset = i * 20
         try:

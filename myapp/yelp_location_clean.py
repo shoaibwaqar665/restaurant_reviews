@@ -74,11 +74,25 @@ def get_custom_class_data(soup):
     elements = soup.find_all("div", class_="arrange-unit__09f24__rqHTg arrange-unit-fill__09f24__CUubG y-css-1n5biw7")
     for el in elements:
         text = el.get_text(separator=" ", strip=True)
-        match = re.match(r"([\d.]+)\s+\((\d+)\s+reviews\)", text)
+        # Match rating and review count, handling abbreviated numbers like "1.4k", "2.3M", etc.
+        match = re.match(r"([\d.]+)\s+\(([\d.]+)([kKmM]?)\s+reviews\)", text)
         if match:
+            rating = float(match.group(1))
+            review_count_str = match.group(2)
+            multiplier = match.group(3).lower()
+            
+            # Convert abbreviated numbers to integers
+            review_count = float(review_count_str)
+            if multiplier == 'k':
+                review_count = int(review_count * 1000)
+            elif multiplier == 'm':
+                review_count = int(review_count * 1000000)
+            else:
+                review_count = int(review_count)
+            
             return {
-                "rating": float(match.group(1)),
-                "review_count": int(match.group(2))
+                "rating": rating,
+                "review_count": review_count
             }
     return {"rating": None, "review_count": None}
 
@@ -153,8 +167,10 @@ def yelp_loc_clean(html_content, output_file, query, location):
 
         if yelp_biz_id == None or review_count == '0':
             raise ValueError("Invalid Yelp Business ID or review count is zero")
-
-        scrape_yelp_reviews(yelp_biz_id, review_count, output_file=f"{business_key}_raw.json")
+        business_key = business_key.replace(" ", "_")
+        business_key = business_key.replace("/","")
+        print("business_key",business_key)
+        scrape_yelp_reviews(yelp_biz_id, review_count, output_file=f"{business_key}_raw.json".replace(" ", "_"))
 
         # if not raw_data:
         #     raise ValueError("No review data returned from scraper")
