@@ -55,8 +55,10 @@ def slugify_path(restaurant_url):
 def execute_bash_script(restaurant_url):
     output_filename = slugify_path(restaurant_url)
     print('output_filename',output_filename)
+    script_path = os.path.join(os.path.dirname(__file__), 'run_curl.sh')
+    output_path = os.path.join(base_dir, output_filename)
     result = subprocess.run(
-        ['myapp/run_curl.sh', restaurant_url, output_filename],
+        [script_path, restaurant_url, output_path],
         capture_output=True,
         text=True
     )
@@ -64,9 +66,15 @@ def execute_bash_script(restaurant_url):
     if result.returncode == 0:
         print("Script executed successfully!")
         print("Output:", result.stdout)
+        if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+            return output_path
+        print(f"Download reported success but file missing/empty: {output_path}")
+        return None
     else:
         print("Error executing the script.")
+        print("Output:", result.stdout)
         print("Error:", result.stderr)
+        return None
 
 
 def FetchYelpData(query):
@@ -90,14 +98,14 @@ def FetchYelpData(query):
             results = search_query(f"yelp {query.lower()} {location.lower()}")
             for result in results:
                 print('working on ',result)
-                execute_bash_script(result)
-                slug_path = re.sub(r"^https?://(www\.)?yelp\.com/", "", result)
-                # Replace remaining slashes with dashes
-                restaurant_slug = slug_path.replace("/", "-")
+                input_file = execute_bash_script(result)
+                if not input_file:
+                    print(f"⚠️ Skipping parse because download failed for: {result}")
+                    continue
 
-                input_file = os.path.join(base_dir, restaurant_slug + ".html")
+                restaurant_slug = os.path.splitext(os.path.basename(input_file))[0]
                 print('the inputfile is ' ,input_file)
-                output_file = restaurant_slug + ".json"
+                output_file = os.path.join(base_dir, restaurant_slug + ".json")
 
                 yelp_loc_clean(input_file, output_file, query, location)
 
