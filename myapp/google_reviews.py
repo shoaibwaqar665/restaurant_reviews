@@ -63,6 +63,11 @@ def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
                 # print(f"Captured Response URL: {response.url}")
                 # print(f"Status: {response.status}")
                 try:
+                    # Check if page is still valid before accessing response
+                    if page.is_closed():
+                        print("Page is closed, skipping response processing")
+                        return
+                    
                     # Get the response as text
                     response_data = response.text()
 
@@ -84,7 +89,12 @@ def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
                     print(f"Response saved to {file_name}")
 
                 except Exception as e:
-                    print(f"Error processing response: {e}")
+                    # Check if error is due to closed page/context/browser
+                    error_msg = str(e).lower()
+                    if 'closed' in error_msg or 'target page' in error_msg or 'context' in error_msg:
+                        print(f"Response handler called after page/context closed, skipping: {e}")
+                    else:
+                        print(f"Error processing response: {e}")
 
         page.on('request', log_request)
         page.on('response', capture_response)
@@ -159,6 +169,9 @@ def search_and_log_reviews(address,review_count,folder_name,restaurant_name):
 
         time.sleep(5)  # Additional wait for requests
         print("Review capture completed.")
+        
+        # Wait a bit more to ensure all response handlers complete
+        time.sleep(2)
         
         browser.close()
 
